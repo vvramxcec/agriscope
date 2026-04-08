@@ -10,7 +10,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 <style>
-/* ── DESIGN TOKENS ── */
 :root {
   --color-bg:            #0b1410;
   --color-surface:       #111a16;
@@ -22,7 +21,6 @@
   --color-text-faint:    #3f5c47;
   --color-primary:       #4ade80;
   --color-primary-dim:   rgba(74,222,128,0.12);
-  --color-primary-glow:  rgba(74,222,128,0.25);
   --color-rain:          #38bdf8;
   --color-rain-dim:      rgba(56,189,248,0.15);
   --color-warn:          #fb923c;
@@ -30,348 +28,190 @@
   --color-danger:        #f87171;
   --color-danger-dim:    rgba(248,113,113,0.15);
   --color-monsoon:       #a78bfa;
+  --color-health-great:  #4ade80;
+  --color-health-good:   #86efac;
+  --color-health-fair:   #facc15;
+  --color-health-poor:   #fb923c;
+  --color-health-crit:   #f87171;
   --font-body:           'Satoshi', system-ui, sans-serif;
-  --nav-w:               56px;
-  --topbar-h:            52px;
-  --right-w:             300px;
-  --radius:              8px;
-  --transition:          180ms cubic-bezier(0.16,1,0.3,1);
+  --nav-w: 56px; --topbar-h: 52px; --right-w: 304px;
+  --radius: 8px; --transition: 180ms cubic-bezier(0.16,1,0.3,1);
 }
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;overflow:hidden;}
+body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-text);font-size:13px;line-height:1.5;-webkit-font-smoothing:antialiased;}
 
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; overflow: hidden; }
-body {
-  font-family: var(--font-body);
-  background: var(--color-bg);
-  color: var(--color-text);
-  font-size: 13px;
-  line-height: 1.5;
-  -webkit-font-smoothing: antialiased;
-}
+/* TOP BAR */
+#topbar{position:fixed;top:0;left:var(--nav-w);right:0;height:var(--topbar-h);background:var(--color-surface);border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:12px;padding:0 16px;z-index:1000;}
+#topbar .logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--color-primary);letter-spacing:-0.3px;}
+.topbar-divider{width:1px;height:20px;background:var(--color-border);}
+#topbar .subtitle{color:var(--color-text-muted);font-size:11px;}
+#topbar .spacer{flex:1;}
+#live-badge{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--color-primary);background:var(--color-primary-dim);border:1px solid rgba(74,222,128,0.2);padding:3px 8px;border-radius:99px;}
+#live-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--color-primary);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+#last-updated{font-size:10px;color:var(--color-text-faint);}
+#clock{font-size:12px;color:var(--color-text-muted);font-variant-numeric:tabular-nums;}
 
-/* ── TOP BAR ── */
-#topbar {
-  position: fixed; top: 0; left: var(--nav-w); right: 0;
-  height: var(--topbar-h);
-  background: var(--color-surface);
-  border-bottom: 1px solid var(--color-border);
-  display: flex; align-items: center; gap: 12px;
-  padding: 0 16px; z-index: 1000;
-}
-#topbar .logo {
-  display: flex; align-items: center; gap: 8px;
-  font-size: 15px; font-weight: 700; color: var(--color-primary);
-  letter-spacing: -0.3px;
-}
-#topbar .logo svg { width: 28px; height: 28px; }
-.topbar-divider { width: 1px; height: 20px; background: var(--color-border); }
-#topbar .subtitle { color: var(--color-text-muted); font-size: 11px; }
-#topbar .spacer { flex: 1; }
-#live-badge {
-  display: flex; align-items: center; gap: 5px;
-  font-size: 10px; color: var(--color-primary);
-  background: var(--color-primary-dim);
-  border: 1px solid rgba(74,222,128,0.2);
-  padding: 3px 8px; border-radius: 99px;
-}
-#live-badge .dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--color-primary);
-  animation: pulse 2s infinite;
-}
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-#last-updated { font-size: 10px; color: var(--color-text-faint); }
-#clock { font-size: 12px; color: var(--color-text-muted); font-variant-numeric: tabular-nums; }
+/* LEFT NAV */
+#nav{position:fixed;top:0;left:0;bottom:0;width:var(--nav-w);background:var(--color-surface);border-right:1px solid var(--color-border);display:flex;flex-direction:column;align-items:center;padding-top:8px;z-index:1001;gap:2px;}
+.nav-item{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius);cursor:pointer;position:relative;color:var(--color-text-muted);transition:background var(--transition),color var(--transition);}
+.nav-item:hover{background:var(--color-surface-2);color:var(--color-text);}
+.nav-item.active{background:var(--color-primary-dim);color:var(--color-primary);}
+.nav-item i{width:18px;height:18px;}
+.nav-tooltip{position:absolute;left:52px;background:var(--color-surface-3);color:var(--color-text);padding:4px 8px;border-radius:4px;font-size:11px;white-space:nowrap;pointer-events:none;opacity:0;border:1px solid var(--color-border);transition:opacity var(--transition);z-index:999;}
+.nav-item:hover .nav-tooltip{opacity:1;}
+.nav-spacer{flex:1;}
+.alert-count{position:absolute;top:6px;right:6px;width:14px;height:14px;border-radius:50%;background:var(--color-danger);color:#fff;font-size:8px;display:flex;align-items:center;justify-content:center;font-weight:700;}
 
-/* ── LEFT NAV ── */
-#nav {
-  position: fixed; top: 0; left: 0; bottom: 0;
-  width: var(--nav-w);
-  background: var(--color-surface);
-  border-right: 1px solid var(--color-border);
-  display: flex; flex-direction: column; align-items: center;
-  padding-top: 8px; z-index: 1001; gap: 2px;
-}
-.nav-logo {
-  width: 36px; height: 36px; margin-bottom: 12px;
-  display: flex; align-items: center; justify-content: center;
-}
-.nav-item {
-  width: 40px; height: 40px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: var(--radius); cursor: pointer; position: relative;
-  color: var(--color-text-muted);
-  transition: background var(--transition), color var(--transition);
-}
-.nav-item:hover { background: var(--color-surface-2); color: var(--color-text); }
-.nav-item.active { background: var(--color-primary-dim); color: var(--color-primary); }
-.nav-item i { width: 18px; height: 18px; }
-.nav-item .nav-tooltip {
-  position: absolute; left: 52px;
-  background: var(--color-surface-3); color: var(--color-text);
-  padding: 4px 8px; border-radius: 4px; font-size: 11px;
-  white-space: nowrap; pointer-events: none; opacity: 0;
-  border: 1px solid var(--color-border);
-  transition: opacity var(--transition);
-  z-index: 999;
-}
-.nav-item:hover .nav-tooltip { opacity: 1; }
-.nav-spacer { flex: 1; }
-.nav-item.alert-item .alert-count {
-  position: absolute; top: 6px; right: 6px;
-  width: 14px; height: 14px; border-radius: 50%;
-  background: var(--color-danger); color: #fff;
-  font-size: 8px; display: flex; align-items: center; justify-content: center;
-  font-weight: 700;
-}
+/* MAIN */
+#main{position:fixed;top:var(--topbar-h);left:var(--nav-w);right:var(--right-w);bottom:0;display:flex;flex-direction:column;overflow:hidden;}
 
-/* ── MAIN LAYOUT ── */
-#main {
-  position: fixed;
-  top: var(--topbar-h); left: var(--nav-w);
-  right: var(--right-w); bottom: 0;
-  display: flex; flex-direction: column;
-  overflow: hidden;
-}
+/* KPI BAR */
+#kpi-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--color-border);border-bottom:1px solid var(--color-border);flex-shrink:0;}
+.kpi-card{background:var(--color-surface);padding:10px 14px;cursor:default;transition:background var(--transition);}
+.kpi-card:hover{background:var(--color-surface-2);}
+.kpi-label{font-size:10px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
+.kpi-value{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;}
+.kpi-sub{font-size:10px;color:var(--color-text-muted);margin-top:3px;display:flex;align-items:center;gap:3px;}
+.kpi-up{color:var(--color-primary);}
+.kpi-down{color:var(--color-danger);}
+.kpi-warn{color:var(--color-warn);}
 
-/* ── KPI BAR ── */
-#kpi-bar {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 1px; background: var(--color-border);
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
-}
-.kpi-card {
-  background: var(--color-surface);
-  padding: 10px 14px; cursor: default;
-  transition: background var(--transition);
-}
-.kpi-card:hover { background: var(--color-surface-2); }
-.kpi-label { font-size: 10px; color: var(--color-text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
-.kpi-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; }
-.kpi-sub { font-size: 10px; color: var(--color-text-muted); margin-top: 3px; display: flex; align-items: center; gap: 3px; }
-.kpi-up { color: var(--color-primary); }
-.kpi-down { color: var(--color-danger); }
-.kpi-warn { color: var(--color-warn); }
+/* MAP */
+#map-container{flex:1;position:relative;overflow:hidden;}
+#map{width:100%;height:100%;background:#0b1410!important;}
+#layer-toggles{position:absolute;top:10px;left:10px;z-index:500;display:flex;gap:6px;flex-wrap:wrap;}
+.layer-btn{padding:5px 10px;border-radius:99px;font-size:11px;font-weight:600;border:1px solid var(--color-border);cursor:pointer;background:rgba(11,20,16,0.88);color:var(--color-text-muted);backdrop-filter:blur(6px);transition:all var(--transition);}
+.layer-btn:hover{color:var(--color-text);border-color:rgba(255,255,255,0.2);}
+.layer-btn.l-green{background:rgba(74,222,128,0.12);color:var(--color-primary);border-color:rgba(74,222,128,0.4);}
+.layer-btn.l-blue{background:var(--color-rain-dim);color:var(--color-rain);border-color:rgba(56,189,248,0.4);}
+.layer-btn.l-orange{background:var(--color-warn-dim);color:var(--color-warn);border-color:rgba(251,146,60,0.4);}
+.layer-btn.l-purple{background:rgba(167,139,250,0.12);color:var(--color-monsoon);border-color:rgba(167,139,250,0.4);}
 
-/* ── MAP AREA ── */
-#map-container {
-  flex: 1; position: relative; overflow: hidden;
-}
-#map { width: 100%; height: 100%; background: #0b1410 !important; }
-
-/* Layer toggles */
-#layer-toggles {
-  position: absolute; top: 10px; left: 10px; z-index: 500;
-  display: flex; gap: 6px; flex-wrap: wrap;
-}
-.layer-btn {
-  padding: 5px 10px; border-radius: 99px; font-size: 11px; font-weight: 600;
-  border: 1px solid var(--color-border); cursor: pointer;
-  background: rgba(11,20,16,0.85); color: var(--color-text-muted);
-  backdrop-filter: blur(6px);
-  transition: all var(--transition);
-}
-.layer-btn:hover { color: var(--color-text); border-color: rgba(255,255,255,0.2); }
-.layer-btn.active { background: var(--color-primary-dim); color: var(--color-primary); border-color: rgba(74,222,128,0.4); }
-.layer-btn.rain-active { background: var(--color-rain-dim); color: var(--color-rain); border-color: rgba(56,189,248,0.4); }
-.layer-btn.warn-active { background: var(--color-warn-dim); color: var(--color-warn); border-color: rgba(251,146,60,0.4); }
+/* NASA badge */
+#nasa-badge{position:absolute;bottom:44px;right:10px;z-index:500;background:rgba(11,20,16,0.88);border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:4px 8px;font-size:9px;color:var(--color-monsoon);backdrop-filter:blur(6px);display:none;}
 
 /* Map legend */
-#map-legend {
-  position: absolute; bottom: 10px; left: 10px; z-index: 500;
-  background: rgba(11,20,16,0.9); border: 1px solid var(--color-border);
-  border-radius: var(--radius); padding: 8px 12px; backdrop-filter: blur(6px);
-  font-size: 10px; color: var(--color-text-muted);
-}
-#map-legend .legend-title { font-weight: 600; color: var(--color-text); margin-bottom: 5px; font-size: 11px; }
-.legend-scale { display: flex; align-items: center; gap: 6px; }
-.legend-bar {
-  width: 100px; height: 8px; border-radius: 4px;
-}
-.legend-labels { display: flex; justify-content: space-between; font-size: 9px; }
+#map-legend{position:absolute;bottom:10px;left:10px;z-index:500;background:rgba(11,20,16,0.9);border:1px solid var(--color-border);border-radius:var(--radius);padding:8px 12px;backdrop-filter:blur(6px);font-size:10px;color:var(--color-text-muted);}
+.legend-title{font-weight:600;color:var(--color-text);margin-bottom:5px;font-size:11px;}
+.legend-scale{display:flex;align-items:center;gap:6px;}
+.legend-bar{width:100px;height:8px;border-radius:4px;}
 
-/* District tooltip */
-.district-popup .leaflet-popup-content-wrapper {
-  background: var(--color-surface-3) !important;
-  border: 1px solid var(--color-border) !important;
-  border-radius: var(--radius) !important;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.4) !important;
-  color: var(--color-text) !important;
-  font-family: var(--font-body) !important;
-}
-.district-popup .leaflet-popup-tip { background: var(--color-surface-3) !important; }
+/* CHART PANEL */
+#chart-panel{height:180px;flex-shrink:0;background:var(--color-surface);border-top:1px solid var(--color-border);display:flex;flex-direction:column;padding:10px 14px 8px;}
+.panel-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
+.panel-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-text-muted);}
+.chart-tabs{display:flex;gap:4px;margin-left:auto;}
+.chart-tab{padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--color-text-muted);background:none;border:1px solid transparent;transition:all var(--transition);}
+.chart-tab.active{background:var(--color-primary-dim);color:var(--color-primary);border-color:rgba(74,222,128,0.3);}
+.chart-tab:hover:not(.active){background:var(--color-surface-2);color:var(--color-text);}
+#chart-canvas-wrap{flex:1;position:relative;}
 
-/* ── CHART PANEL ── */
-#chart-panel {
-  height: 180px; flex-shrink: 0;
-  background: var(--color-surface);
-  border-top: 1px solid var(--color-border);
-  display: flex; flex-direction: column;
-  padding: 10px 14px 8px;
-}
-#chart-panel .panel-header {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
-}
-#chart-panel .panel-title { font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-muted); }
-#chart-panel .chart-tabs { display: flex; gap: 4px; margin-left: auto; }
-.chart-tab {
-  padding: 3px 8px; border-radius: 4px; font-size: 10px; cursor: pointer;
-  color: var(--color-text-muted); background: none; border: 1px solid transparent;
-  transition: all var(--transition);
-}
-.chart-tab.active { background: var(--color-primary-dim); color: var(--color-primary); border-color: rgba(74,222,128,0.3); }
-.chart-tab:hover:not(.active) { background: var(--color-surface-2); color: var(--color-text); }
-#chart-canvas-wrap { flex: 1; position: relative; }
+/* RIGHT PANEL */
+#right-panel{position:fixed;top:var(--topbar-h);right:0;bottom:0;width:var(--right-w);background:var(--color-surface);border-left:1px solid var(--color-border);display:flex;flex-direction:column;overflow:hidden;z-index:900;}
+.rp-section{border-bottom:1px solid var(--color-border);flex-shrink:0;}
+.rp-header{display:flex;align-items:center;gap:6px;padding:10px 14px 8px;}
+.rp-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--color-text-muted);}
+.rp-badge{margin-left:auto;font-size:9px;padding:1px 6px;border-radius:99px;font-weight:600;}
+.rp-badge.live{background:var(--color-primary-dim);color:var(--color-primary);border:1px solid rgba(74,222,128,0.25);}
+.rp-badge.warn{background:var(--color-warn-dim);color:var(--color-warn);}
+.rp-badge.info{background:rgba(56,189,248,0.12);color:var(--color-rain);}
 
-/* ── RIGHT PANEL ── */
-#right-panel {
-  position: fixed; top: var(--topbar-h); right: 0; bottom: 0;
-  width: var(--right-w);
-  background: var(--color-surface);
-  border-left: 1px solid var(--color-border);
-  display: flex; flex-direction: column;
-  overflow: hidden; z-index: 900;
-}
-.rp-section {
-  border-bottom: 1px solid var(--color-border);
-  flex-shrink: 0;
-}
-.rp-header {
-  display: flex; align-items: center; gap: 6px;
-  padding: 10px 14px 8px;
-}
-.rp-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.8px; color: var(--color-text-muted); }
-.rp-badge {
-  margin-left: auto; font-size: 9px; padding: 1px 6px;
-  border-radius: 99px; font-weight: 600;
-}
-.rp-badge.live { background: var(--color-primary-dim); color: var(--color-primary); border: 1px solid rgba(74,222,128,0.25); }
-.rp-badge.warn { background: var(--color-warn-dim); color: var(--color-warn); }
+/* RIGHT PANEL TABS */
+#rp-tabs{display:flex;border-bottom:1px solid var(--color-border);flex-shrink:0;}
+.rp-tab{flex:1;padding:9px 4px;font-size:10px;font-weight:600;text-align:center;cursor:pointer;color:var(--color-text-faint);border-bottom:2px solid transparent;transition:all var(--transition);text-transform:uppercase;letter-spacing:0.5px;}
+.rp-tab:hover{color:var(--color-text-muted);}
+.rp-tab.active{color:var(--color-primary);border-bottom-color:var(--color-primary);}
+.rp-tab-content{display:none;flex:1;overflow-y:auto;flex-direction:column;}
+.rp-tab-content.active{display:flex;}
+.rp-tab-content::-webkit-scrollbar{width:4px;}
+.rp-tab-content::-webkit-scrollbar-thumb{background:var(--color-surface-3);border-radius:2px;}
 
-/* Monsoon tracker */
-#monsoon-section { padding: 0 14px 12px; }
-.monsoon-bar-wrap { margin-top: 6px; }
-.monsoon-bar-bg {
-  height: 6px; border-radius: 99px;
-  background: var(--color-surface-3); position: relative; overflow: hidden;
-}
-.monsoon-bar-fill {
-  height: 100%; border-radius: 99px;
-  background: linear-gradient(90deg, var(--color-rain), var(--color-monsoon));
-  transition: width 1s ease;
-}
-.monsoon-labels { display: flex; justify-content: space-between; font-size: 9px; color: var(--color-text-faint); margin-top: 4px; }
-.monsoon-status { font-size: 11px; color: var(--color-text-muted); margin-top: 2px; }
-.monsoon-day { font-weight: 700; color: var(--color-monsoon); font-size: 13px; }
+/* Monsoon */
+#monsoon-section{padding:0 14px 12px;}
+.monsoon-bar-bg{height:6px;border-radius:99px;background:var(--color-surface-3);margin-top:6px;}
+.monsoon-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--color-rain),var(--color-monsoon));transition:width 1s ease;}
+.monsoon-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--color-text-faint);margin-top:4px;}
+.monsoon-day{font-weight:700;color:var(--color-monsoon);font-size:13px;}
 
 /* District weather list */
-#district-list {
-  flex: 1; overflow-y: auto; padding: 4px 0;
-}
-#district-list::-webkit-scrollbar { width: 4px; }
-#district-list::-webkit-scrollbar-track { background: transparent; }
-#district-list::-webkit-scrollbar-thumb { background: var(--color-surface-3); border-radius: 2px; }
+.district-row{display:grid;grid-template-columns:1fr 20px 46px 38px;align-items:center;gap:4px;padding:7px 14px;cursor:pointer;border-left:2px solid transparent;transition:all var(--transition);}
+.district-row:hover{background:var(--color-surface-2);}
+.district-row.selected{background:var(--color-primary-dim);border-left-color:var(--color-primary);}
+.district-row.rain-alert{border-left-color:var(--color-rain);}
+.district-row.heat-alert{border-left-color:var(--color-warn);}
+.district-row.health-crit{border-left-color:var(--color-danger);}
+.d-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.d-icon{font-size:14px;text-align:center;}
+.d-val{font-size:11px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
 
-.district-row {
-  display: grid; grid-template-columns: 1fr 44px 44px 44px;
-  align-items: center; gap: 4px;
-  padding: 7px 14px; cursor: pointer;
-  border-left: 2px solid transparent;
-  transition: all var(--transition);
-}
-.district-row:hover { background: var(--color-surface-2); }
-.district-row.selected { background: var(--color-primary-dim); border-left-color: var(--color-primary); }
-.district-row.rain-alert { border-left-color: var(--color-rain); }
-.district-row.heat-alert { border-left-color: var(--color-warn); }
-.d-name { font-size: 12px; font-weight: 500; color: var(--color-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.d-icon { font-size: 14px; text-align: center; }
-.d-rain { font-size: 11px; color: var(--color-rain); text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
-.d-temp { font-size: 11px; color: var(--color-warn); text-align: right; font-variant-numeric: tabular-nums; }
+/* Crop health list */
+.health-row{display:grid;grid-template-columns:1fr 60px 32px;align-items:center;gap:6px;padding:6px 14px;cursor:pointer;border-left:2px solid transparent;transition:all var(--transition);}
+.health-row:hover{background:var(--color-surface-2);}
+.health-row.selected{background:var(--color-primary-dim);border-left-color:var(--color-primary);}
+.health-bar-bg{height:4px;border-radius:99px;background:var(--color-surface-3);overflow:hidden;}
+.health-bar-fill{height:100%;border-radius:99px;transition:width 0.8s ease;}
+.health-score{font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
+.health-name{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.health-sub{font-size:9px;color:var(--color-text-faint);}
 
-/* Advisory panel */
-#advisory-section { flex-shrink: 0; border-bottom: none; }
-#advisory-list { padding: 4px 14px 10px; display: flex; flex-direction: column; gap: 5px; }
-.advisory-item {
-  display: flex; gap: 7px; align-items: flex-start;
-  padding: 7px 8px; border-radius: 6px;
-  background: var(--color-surface-2);
-  border: 1px solid var(--color-border);
-  font-size: 11px; line-height: 1.4;
-}
-.advisory-icon { font-size: 13px; flex-shrink: 0; margin-top: 1px; }
-.advisory-text { color: var(--color-text-muted); }
-.advisory-text strong { color: var(--color-text); display: block; margin-bottom: 1px; font-size: 11px; }
+/* Advisory items */
+.advisory-item{display:flex;gap:7px;align-items:flex-start;padding:7px 8px;border-radius:6px;background:var(--color-surface-2);border:1px solid var(--color-border);font-size:11px;line-height:1.4;margin:0 14px 6px;}
+.advisory-text strong{color:var(--color-text);display:block;margin-bottom:1px;font-size:11px;}
+.advisory-text{color:var(--color-text-muted);}
 
-/* District detail popup overlay */
-#district-detail {
-  position: fixed; top: calc(var(--topbar-h) + 8px); left: calc(var(--nav-w) + 8px);
-  width: 280px; z-index: 800;
-  background: var(--color-surface-3);
-  border: 1px solid var(--color-border);
-  border-radius: var(--radius);
-  box-shadow: 0 16px 40px rgba(0,0,0,0.5);
-  display: none; overflow: hidden;
-}
-#district-detail.visible { display: block; }
-#district-detail .dd-header {
-  display: flex; align-items: center; gap: 8px;
-  padding: 12px 14px 10px;
-  border-bottom: 1px solid var(--color-border);
-}
-#district-detail .dd-name { font-size: 15px; font-weight: 700; flex: 1; }
-#district-detail .dd-close {
-  cursor: pointer; color: var(--color-text-faint);
-  width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
-  border-radius: 4px;
-  transition: background var(--transition), color var(--transition);
-}
-#district-detail .dd-close:hover { background: var(--color-surface); color: var(--color-text); }
-.dd-body { padding: 12px 14px; }
-.dd-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-.dd-stat { background: var(--color-surface); border-radius: 6px; padding: 8px 10px; }
-.dd-stat-label { font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--color-text-faint); margin-bottom: 2px; }
-.dd-stat-value { font-size: 16px; font-weight: 700; font-variant-numeric: tabular-nums; }
-.forecast-strip { display: flex; gap: 4px; overflow-x: auto; padding-bottom: 4px; }
-.forecast-strip::-webkit-scrollbar { height: 3px; }
-.forecast-strip::-webkit-scrollbar-thumb { background: var(--color-surface-3); }
-.forecast-day {
-  flex-shrink: 0; width: 44px; text-align: center;
-  background: var(--color-surface); border-radius: 6px; padding: 6px 4px;
-  border: 1px solid var(--color-border);
-}
-.fc-day-name { font-size: 9px; color: var(--color-text-faint); text-transform: uppercase; }
-.fc-icon { font-size: 16px; margin: 3px 0; }
-.fc-temp { font-size: 11px; font-weight: 600; color: var(--color-warn); }
-.fc-rain { font-size: 10px; color: var(--color-rain); }
-.dd-advisory { background: var(--color-surface); border-radius: 6px; padding: 8px 10px; margin-top: 8px; font-size: 11px; color: var(--color-text-muted); border-left: 2px solid var(--color-primary); }
-.dd-advisory strong { color: var(--color-primary); }
+/* District Detail Overlay */
+#district-detail{position:fixed;top:calc(var(--topbar-h) + 8px);left:calc(var(--nav-w) + 8px);width:288px;z-index:800;background:var(--color-surface-3);border:1px solid var(--color-border);border-radius:var(--radius);box-shadow:0 16px 40px rgba(0,0,0,0.5);display:none;overflow:hidden;}
+#district-detail.visible{display:block;}
+.dd-header{display:flex;align-items:center;gap:8px;padding:12px 14px 10px;border-bottom:1px solid var(--color-border);}
+.dd-name{font-size:15px;font-weight:700;flex:1;}
+.dd-tabs{display:flex;gap:2px;margin-right:6px;}
+.dd-tab{padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--color-text-faint);background:none;border:1px solid transparent;font-weight:600;transition:all var(--transition);}
+.dd-tab.active{background:var(--color-primary-dim);color:var(--color-primary);border-color:rgba(74,222,128,0.3);}
+.dd-close{cursor:pointer;color:var(--color-text-faint);width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:background var(--transition);}
+.dd-close:hover{background:var(--color-surface);color:var(--color-text);}
+.dd-body{padding:12px 14px;}
+.dd-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
+.dd-stat{background:var(--color-surface);border-radius:6px;padding:8px 10px;}
+.dd-stat-label{font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-text-faint);margin-bottom:2px;}
+.dd-stat-value{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;}
+.forecast-strip{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;}
+.forecast-strip::-webkit-scrollbar{height:3px;}
+.forecast-strip::-webkit-scrollbar-thumb{background:var(--color-surface-3);}
+.forecast-day{flex-shrink:0;width:44px;text-align:center;background:var(--color-surface);border-radius:6px;padding:6px 4px;border:1px solid var(--color-border);}
+.fc-day-name{font-size:9px;color:var(--color-text-faint);text-transform:uppercase;}
+.fc-icon{font-size:16px;margin:3px 0;}
+.fc-temp{font-size:11px;font-weight:600;color:var(--color-warn);}
+.fc-rain{font-size:10px;color:var(--color-rain);}
+.dd-advisory-box{background:var(--color-surface);border-radius:6px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--color-text-muted);border-left:2px solid var(--color-primary);}
 
-/* Leaflet dark overrides */
-.leaflet-container { background: var(--color-bg) !important; }
-.leaflet-control-zoom { display: none !important; }
-.leaflet-popup-close-button { color: var(--color-text-muted) !important; }
+/* Health detail panel */
+.health-detail-wrap{display:none;}
+.health-detail-wrap.active{display:block;}
+.weather-detail-wrap{display:none;}
+.weather-detail-wrap.active{display:block;}
+.health-score-big{text-align:center;padding:12px 0 8px;}
+.health-score-num{font-size:42px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;}
+.health-score-label{font-size:12px;color:var(--color-text-muted);margin-top:4px;}
+.health-crop-tag{display:inline-block;background:var(--color-primary-dim);color:var(--color-primary);padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;margin-top:4px;}
+.breakdown-list{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
+.breakdown-item{display:flex;align-items:center;gap:8px;}
+.breakdown-label{font-size:11px;color:var(--color-text-muted);width:90px;flex-shrink:0;}
+.breakdown-bar-bg{flex:1;height:5px;background:var(--color-surface);border-radius:99px;overflow:hidden;}
+.breakdown-bar-fill{height:100%;border-radius:99px;transition:width 0.8s ease;}
+.breakdown-val{font-size:10px;font-weight:600;width:36px;text-align:right;font-variant-numeric:tabular-nums;}
 
-/* Loading overlay */
-#loading {
-  position: fixed; inset: 0; background: var(--color-bg);
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  z-index: 9999; gap: 16px;
-  transition: opacity 0.5s ease;
-}
-#loading.hidden { opacity: 0; pointer-events: none; }
-.loader-ring {
-  width: 40px; height: 40px; border-radius: 50%;
-  border: 3px solid var(--color-surface-3);
-  border-top-color: var(--color-primary);
-  animation: spin 0.8s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-#loading p { font-size: 13px; color: var(--color-text-muted); }
-#loading .load-step { font-size: 11px; color: var(--color-text-faint); font-variant-numeric: tabular-nums; }
-
-/* Scrollbar for map tiles to look dark */
-.leaflet-tile-pane { filter: brightness(0.85) saturate(0.5); }
+/* Loading */
+#loading{position:fixed;inset:0;background:var(--color-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;transition:opacity 0.5s ease;}
+#loading.hidden{opacity:0;pointer-events:none;}
+.loader-ring{width:40px;height:40px;border-radius:50%;border:3px solid var(--color-surface-3);border-top-color:var(--color-primary);animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg)}}
+#loading p{font-size:13px;color:var(--color-text-muted);}
+#load-step{font-size:11px;color:var(--color-text-faint);}
+.leaflet-container{background:var(--color-bg)!important;}
+.leaflet-control-zoom{display:none!important;}
+.leaflet-tile-pane{filter:brightness(0.8) saturate(0.5);}
 </style>
 </head>
 <body>
@@ -383,46 +223,27 @@ body {
     <circle cx="18" cy="18" r="4" fill="#4ade80" opacity="0.3"/>
   </svg>
   <p>AgriScope Kerala</p>
-  <span class="load-step" id="load-step">Fetching weather data…</span>
+  <span id="load-step">Initialising…</span>
   <div class="loader-ring" style="margin-top:4px"></div>
 </div>
 
 <!-- LEFT NAV -->
 <nav id="nav">
-  <div class="nav-logo">
-    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-label="AgriScope">
+  <div style="width:36px;height:36px;margin-bottom:12px;display:flex;align-items:center;justify-content:center;">
+    <svg width="30" height="30" viewBox="0 0 32 32" fill="none">
       <circle cx="16" cy="16" r="15" fill="rgba(74,222,128,0.1)" stroke="#4ade80" stroke-width="1.5"/>
-      <path d="M16 8 C16 8 10 14 10 19 C10 22.3 12.7 25 16 25 C19.3 25 22 22.3 22 19 C22 14 16 8 16 8Z" fill="#4ade80" opacity="0.8"/>
-      <path d="M16 14 L16 25" stroke="#0b1410" stroke-width="1.5" stroke-linecap="round"/>
-      <path d="M16 18 C16 18 13 15 11 15" stroke="#0b1410" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
+      <path d="M16 8C16 8 10 14 10 19c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11z" fill="#4ade80" opacity="0.85"/>
+      <path d="M16 14v11" stroke="#0b1410" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M16 18c0 0-3-3-5-3" stroke="#0b1410" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
     </svg>
   </div>
-  <div class="nav-item active" title="">
-    <i data-lucide="layout-dashboard"></i>
-    <span class="nav-tooltip">Overview</span>
-  </div>
-  <div class="nav-item rain-active" style="background:rgba(56,189,248,0.12);color:var(--color-rain)">
-    <i data-lucide="cloud-rain"></i>
-    <span class="nav-tooltip">Weather</span>
-  </div>
-  <div class="nav-item">
-    <i data-lucide="wheat"></i>
-    <span class="nav-tooltip">Crops</span>
-  </div>
-  <div class="nav-item">
-    <i data-lucide="trending-up"></i>
-    <span class="nav-tooltip">Markets</span>
-  </div>
-  <div class="nav-item alert-item">
-    <i data-lucide="triangle-alert"></i>
-    <span class="nav-tooltip">Alerts</span>
-    <span class="alert-count" id="nav-alert-count">0</span>
-  </div>
+  <div class="nav-item active"><i data-lucide="layout-dashboard"></i><span class="nav-tooltip">Overview</span></div>
+  <div class="nav-item" style="background:rgba(56,189,248,0.1);color:var(--color-rain)"><i data-lucide="cloud-rain"></i><span class="nav-tooltip">Weather</span></div>
+  <div class="nav-item" style="background:rgba(74,222,128,0.1);color:var(--color-primary)"><i data-lucide="wheat"></i><span class="nav-tooltip">Crop Health</span></div>
+  <div class="nav-item"><i data-lucide="trending-up"></i><span class="nav-tooltip">Markets</span></div>
+  <div class="nav-item" style="position:relative"><i data-lucide="triangle-alert"></i><span class="nav-tooltip">Alerts</span><span class="alert-count" id="nav-alert-count">0</span></div>
   <div class="nav-spacer"></div>
-  <div class="nav-item">
-    <i data-lucide="settings"></i>
-    <span class="nav-tooltip">Settings</span>
-  </div>
+  <div class="nav-item"><i data-lucide="settings"></i><span class="nav-tooltip">Settings</span></div>
 </nav>
 
 <!-- TOP BAR -->
@@ -430,8 +251,8 @@ body {
   <div class="logo">
     <svg width="22" height="22" viewBox="0 0 32 32" fill="none">
       <circle cx="16" cy="16" r="15" fill="rgba(74,222,128,0.1)" stroke="#4ade80" stroke-width="1.5"/>
-      <path d="M16 8 C16 8 10 14 10 19 C10 22.3 12.7 25 16 25 C19.3 25 22 22.3 22 19 C22 14 16 8 16 8Z" fill="#4ade80" opacity="0.8"/>
-      <path d="M16 14 L16 25" stroke="#0b1410" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M16 8C16 8 10 14 10 19c0 3.3 2.7 6 6 6s6-2.7 6-6c0-5-6-11-6-11z" fill="#4ade80" opacity="0.85"/>
+      <path d="M16 14v11" stroke="#0b1410" stroke-width="1.5" stroke-linecap="round"/>
     </svg>
     AgriScope Kerala
   </div>
@@ -444,12 +265,12 @@ body {
   <span id="clock">--:--:--</span>
 </header>
 
-<!-- MAIN AREA -->
+<!-- MAIN -->
 <div id="main">
-  <!-- KPI BAR -->
+  <!-- KPI BAR — 5 cards -->
   <div id="kpi-bar">
     <div class="kpi-card">
-      <div class="kpi-label">☁️ Highest Rainfall Today</div>
+      <div class="kpi-label">🌧️ Highest Rainfall</div>
       <div class="kpi-value" id="kpi-rain" style="color:var(--color-rain)">--mm</div>
       <div class="kpi-sub" id="kpi-rain-sub">Loading…</div>
     </div>
@@ -459,33 +280,39 @@ body {
       <div class="kpi-sub" id="kpi-temp-sub">Loading…</div>
     </div>
     <div class="kpi-card">
-      <div class="kpi-label">💧 Avg Humidity</div>
-      <div class="kpi-value" id="kpi-humidity" style="color:var(--color-monsoon)">--%</div>
-      <div class="kpi-sub" id="kpi-humidity-sub">Across Kerala</div>
+      <div class="kpi-label">🌾 Avg Crop Health</div>
+      <div class="kpi-value" id="kpi-health" style="color:var(--color-primary)">--</div>
+      <div class="kpi-sub" id="kpi-health-sub">Loading…</div>
+    </div>
+    <div class="kpi-card">
+      <div class="kpi-label">🔴 Distressed Districts</div>
+      <div class="kpi-value" id="kpi-distressed" style="color:var(--color-danger)">0</div>
+      <div class="kpi-sub" id="kpi-distressed-sub">Score below 55</div>
     </div>
     <div class="kpi-card">
       <div class="kpi-label">⚠️ Active Alerts</div>
       <div class="kpi-value" id="kpi-alerts" style="color:var(--color-danger)">0</div>
-      <div class="kpi-sub" id="kpi-alerts-sub">Crop weather alerts</div>
+      <div class="kpi-sub" id="kpi-alerts-sub">All clear</div>
     </div>
   </div>
 
   <!-- MAP -->
   <div id="map-container">
     <div id="map"></div>
-    <!-- Layer toggles -->
     <div id="layer-toggles">
-      <button class="layer-btn rain-active" id="btn-rainfall" onclick="setLayer('rainfall')">🌧️ Rainfall</button>
-      <button class="layer-btn" id="btn-temperature" onclick="setLayer('temperature')">🌡️ Temperature</button>
-      <button class="layer-btn" id="btn-humidity" onclick="setLayer('humidity')">💧 Humidity</button>
+      <button class="layer-btn l-blue" id="btn-rainfall"    onclick="setLayer('rainfall')">🌧️ Rainfall</button>
+      <button class="layer-btn"        id="btn-temperature" onclick="setLayer('temperature')">🌡️ Temperature</button>
+      <button class="layer-btn"        id="btn-humidity"    onclick="setLayer('humidity')">💧 Humidity</button>
+      <button class="layer-btn"        id="btn-crophealth"  onclick="setLayer('crophealth')">🌾 Crop Health</button>
+      <button class="layer-btn"        id="btn-nasa"        onclick="toggleNASA()">🛰️ NASA NDVI</button>
     </div>
-    <!-- Legend -->
+    <div id="nasa-badge">🛰️ NASA MODIS Terra — Live Vegetation</div>
     <div id="map-legend">
       <div class="legend-title" id="legend-title">Rainfall (mm/day)</div>
       <div class="legend-scale">
-        <span style="font-size:9px;color:var(--color-text-faint)">0</span>
-        <div class="legend-bar" id="legend-bar" style="background:linear-gradient(90deg,#0b1410,#0ea5e9,#38bdf8,#7dd3fc,#bae6fd)"></div>
-        <span style="font-size:9px;color:var(--color-text-faint)">50mm+</span>
+        <span style="font-size:9px;color:var(--color-text-faint)" id="legend-min">0</span>
+        <div class="legend-bar" id="legend-bar" style="background:linear-gradient(90deg,#1a2f22,#164e63,#0ea5e9,#38bdf8,#bae6fd)"></div>
+        <span style="font-size:9px;color:var(--color-text-faint)" id="legend-max">50mm+</span>
       </div>
     </div>
   </div>
@@ -495,14 +322,13 @@ body {
     <div class="panel-header">
       <span class="panel-title">📈 District Trends</span>
       <div class="chart-tabs">
-        <button class="chart-tab active" onclick="switchChart('rainfall')">Rainfall 7-day</button>
-        <button class="chart-tab" onclick="switchChart('temperature')">Temperature</button>
-        <button class="chart-tab" onclick="switchChart('humidity')">Humidity</button>
+        <button class="chart-tab active" onclick="switchChart('rainfall',this)">Rainfall</button>
+        <button class="chart-tab" onclick="switchChart('temperature',this)">Temperature</button>
+        <button class="chart-tab" onclick="switchChart('humidity',this)">Humidity</button>
+        <button class="chart-tab" onclick="switchChart('crophealth',this)">🌾 Crop Health</button>
       </div>
     </div>
-    <div id="chart-canvas-wrap">
-      <canvas id="trend-chart"></canvas>
-    </div>
+    <div id="chart-canvas-wrap"><canvas id="trend-chart"></canvas></div>
   </div>
 </div>
 
@@ -511,30 +337,35 @@ body {
   <div class="dd-header">
     <span style="font-size:20px" id="dd-icon">🌤️</span>
     <span class="dd-name" id="dd-name">District</span>
+    <div class="dd-tabs">
+      <button class="dd-tab active" onclick="switchDDTab('weather',this)">Weather</button>
+      <button class="dd-tab" onclick="switchDDTab('health',this)">🌾 Health</button>
+    </div>
     <div class="dd-close" onclick="closeDetail()"><i data-lucide="x" style="width:14px;height:14px"></i></div>
   </div>
   <div class="dd-body">
-    <div class="dd-stats">
-      <div class="dd-stat">
-        <div class="dd-stat-label">Rainfall</div>
-        <div class="dd-stat-value" id="dd-rain" style="color:var(--color-rain)">--mm</div>
+    <!-- WEATHER TAB -->
+    <div class="weather-detail-wrap active" id="dd-weather-tab">
+      <div class="dd-stats">
+        <div class="dd-stat"><div class="dd-stat-label">Rainfall</div><div class="dd-stat-value" id="dd-rain" style="color:var(--color-rain)">--</div></div>
+        <div class="dd-stat"><div class="dd-stat-label">Max Temp</div><div class="dd-stat-value" id="dd-temp" style="color:var(--color-warn)">--</div></div>
+        <div class="dd-stat"><div class="dd-stat-label">Humidity</div><div class="dd-stat-value" id="dd-humidity" style="color:var(--color-monsoon)">--</div></div>
+        <div class="dd-stat"><div class="dd-stat-label">Wind</div><div class="dd-stat-value" id="dd-wind" style="color:var(--color-text-muted)">--</div></div>
       </div>
-      <div class="dd-stat">
-        <div class="dd-stat-label">Max Temp</div>
-        <div class="dd-stat-value" id="dd-temp" style="color:var(--color-warn)">--°C</div>
-      </div>
-      <div class="dd-stat">
-        <div class="dd-stat-label">Humidity</div>
-        <div class="dd-stat-value" id="dd-humidity" style="color:var(--color-monsoon)">--%</div>
-      </div>
-      <div class="dd-stat">
-        <div class="dd-stat-label">Wind</div>
-        <div class="dd-stat-value" id="dd-wind" style="color:var(--color-text-muted)">--km/h</div>
-      </div>
+      <div style="font-size:10px;color:var(--color-text-faint);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;">7-Day Forecast</div>
+      <div class="forecast-strip" id="dd-forecast"></div>
+      <div class="dd-advisory-box" id="dd-advisory"></div>
     </div>
-    <div style="font-size:10px;color:var(--color-text-faint);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px">7-Day Forecast</div>
-    <div class="forecast-strip" id="dd-forecast"></div>
-    <div class="dd-advisory" id="dd-advisory">Loading advisory…</div>
+    <!-- HEALTH TAB -->
+    <div class="health-detail-wrap" id="dd-health-tab">
+      <div class="health-score-big">
+        <div class="health-score-num" id="dd-health-score">--</div>
+        <div class="health-score-label" id="dd-health-label">Computing…</div>
+        <div class="health-crop-tag" id="dd-crop-tag">--</div>
+      </div>
+      <div class="breakdown-list" id="dd-breakdown"></div>
+      <div class="dd-advisory-box" style="margin-top:10px;border-left-color:var(--color-health-great)" id="dd-health-advisory"></div>
+    </div>
   </div>
 </div>
 
@@ -548,577 +379,609 @@ body {
       <span class="rp-badge live">SW 2026</span>
     </div>
     <div id="monsoon-section">
-      <div class="monsoon-status">
-        <span id="monsoon-phase">Pre-Monsoon Season</span> &nbsp;·&nbsp;
-        <span class="monsoon-day" id="monsoon-day-label">Day --</span>
-      </div>
-      <div class="monsoon-bar-wrap">
-        <div class="monsoon-bar-bg">
-          <div class="monsoon-bar-fill" id="monsoon-fill" style="width:0%"></div>
-        </div>
-        <div class="monsoon-labels">
-          <span>Jun 1</span><span>Jul 15</span><span>Sep 30</span>
-        </div>
-      </div>
+      <div style="font-size:11px;color:var(--color-text-muted)"><span id="monsoon-phase">Pre-Monsoon</span> · <span class="monsoon-day" id="monsoon-day-label">Day --</span></div>
+      <div class="monsoon-bar-bg"><div class="monsoon-bar-fill" id="monsoon-fill" style="width:0%"></div></div>
+      <div class="monsoon-labels"><span>Jun 1</span><span>Jul 15</span><span>Sep 30</span></div>
     </div>
   </div>
 
-  <!-- Weather header -->
-  <div class="rp-section" style="border-bottom:none">
-    <div class="rp-header">
-      <i data-lucide="map-pin" style="width:13px;height:13px;color:var(--color-rain)"></i>
-      <span class="rp-title">Districts — Live Weather</span>
-      <span class="rp-badge live" id="rp-live-label">LIVE</span>
+  <!-- Right panel tabs -->
+  <div id="rp-tabs">
+    <div class="rp-tab active" onclick="switchRPTab('weather',this)">🌦️ Weather</div>
+    <div class="rp-tab" onclick="switchRPTab('health',this)">🌾 Crops</div>
+    <div class="rp-tab" onclick="switchRPTab('alerts',this)">⚠️ Alerts</div>
+  </div>
+
+  <!-- WEATHER TAB -->
+  <div class="rp-tab-content active" id="rp-weather">
+    <div style="padding:6px 14px 4px;font-size:9px;color:var(--color-text-faint);display:grid;grid-template-columns:1fr 20px 46px 38px;gap:4px;">
+      <span>DISTRICT</span><span></span><span style="text-align:right">RAIN</span><span style="text-align:right">TEMP</span>
+    </div>
+    <div id="district-list"></div>
+  </div>
+
+  <!-- CROP HEALTH TAB -->
+  <div class="rp-tab-content" id="rp-health">
+    <div style="padding:8px 14px 4px;font-size:9px;color:var(--color-text-faint);display:grid;grid-template-columns:1fr 60px 32px;gap:6px;">
+      <span>DISTRICT · CROP</span><span style="text-align:center">SCORE</span><span style="text-align:right">/100</span>
+    </div>
+    <div id="health-list"></div>
+    <div style="padding:8px 14px;font-size:9px;color:var(--color-text-faint);border-top:1px solid var(--color-border);margin-top:auto;flex-shrink:0;">
+      Score = Weather × Crop Ideal Conditions.<br>Real NDVI via MapMyCrop API coming soon.
     </div>
   </div>
 
-  <!-- District list -->
-  <div id="district-list"></div>
-
-  <!-- Crop Advisories -->
-  <div class="rp-section advisory-section" id="advisory-section">
-    <div class="rp-header">
-      <i data-lucide="leaf" style="width:13px;height:13px;color:var(--color-primary)"></i>
-      <span class="rp-title">Crop Advisories</span>
-      <span class="rp-badge warn" id="advisory-count">0</span>
-    </div>
-    <div id="advisory-list">
-      <div style="font-size:11px;color:var(--color-text-faint);padding:4px 0">Loading advisories…</div>
+  <!-- ALERTS TAB -->
+  <div class="rp-tab-content" id="rp-alerts">
+    <div style="padding:8px 14px 4px;">
+      <div style="font-size:10px;color:var(--color-text-muted);margin-bottom:6px;font-weight:600;">CROP ADVISORIES</div>
+      <div id="advisory-list"></div>
     </div>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════════
-//  KERALA DISTRICTS — Coordinates & Meta
-// ═══════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  DISTRICT DATA — coordinates + crops + agronomic ideals
+// ═══════════════════════════════════════════════════════
 const DISTRICTS = [
-  { name:'Thiruvananthapuram', lat:8.5241,  lon:76.9366, crops:['Tapioca','Coconut','Vegetables'] },
-  { name:'Kollam',             lat:8.8932,  lon:76.6141, crops:['Cashew','Coconut','Rubber'] },
-  { name:'Pathanamthitta',     lat:9.2648,  lon:76.7870, crops:['Rubber','Coconut','Spices'] },
-  { name:'Alappuzha',          lat:9.4981,  lon:76.3388, crops:['Rice','Coconut','Coir'] },
-  { name:'Kottayam',           lat:9.5916,  lon:76.5222, crops:['Rubber','Coconut','Spices'] },
-  { name:'Idukki',             lat:9.9189,  lon:77.1025, crops:['Cardamom','Tea','Coffee'] },
-  { name:'Ernakulam',          lat:9.9312,  lon:76.2673, crops:['Coconut','Vegetables','Fish'] },
-  { name:'Thrissur',           lat:10.5276, lon:76.2144, crops:['Coconut','Banana','Rubber'] },
-  { name:'Palakkad',           lat:10.7867, lon:76.6548, crops:['Rice','Sugarcane','Banana'] },
-  { name:'Malappuram',         lat:11.0510, lon:76.0711, crops:['Banana','Coconut','Ginger'] },
-  { name:'Kozhikode',          lat:11.2588, lon:75.7804, crops:['Ginger','Turmeric','Coconut'] },
-  { name:'Wayanad',            lat:11.6854, lon:76.1320, crops:['Coffee','Tea','Pepper','Cardamom'] },
-  { name:'Kannur',             lat:11.8745, lon:75.3704, crops:['Arecanut','Coconut','Pepper'] },
-  { name:'Kasaragod',          lat:12.4996, lon:74.9869, crops:['Coconut','Cashew','Arecanut'] },
+  { name:'Thiruvananthapuram', lat:8.5241,  lon:76.9366, crops:['Tapioca','Coconut','Vegetables'],    idealTemp:[25,35], idealRain:[3,10],  idealHum:[60,80] },
+  { name:'Kollam',             lat:8.8932,  lon:76.6141, crops:['Cashew','Coconut','Rubber'],          idealTemp:[24,32], idealRain:[2,8],   idealHum:[55,75] },
+  { name:'Pathanamthitta',     lat:9.2648,  lon:76.7870, crops:['Rubber','Coconut','Spices'],          idealTemp:[25,32], idealRain:[3,10],  idealHum:[70,80] },
+  { name:'Alappuzha',          lat:9.4981,  lon:76.3388, crops:['Rice','Coconut','Coir'],              idealTemp:[24,32], idealRain:[5,15],  idealHum:[70,85] },
+  { name:'Kottayam',           lat:9.5916,  lon:76.5222, crops:['Rubber','Coconut','Spices'],          idealTemp:[25,32], idealRain:[3,10],  idealHum:[70,80] },
+  { name:'Idukki',             lat:9.9189,  lon:77.1025, crops:['Cardamom','Tea','Coffee'],            idealTemp:[18,26], idealRain:[8,20],  idealHum:[75,90] },
+  { name:'Ernakulam',          lat:9.9312,  lon:76.2673, crops:['Coconut','Vegetables','Banana'],      idealTemp:[27,33], idealRain:[3,8],   idealHum:[65,78] },
+  { name:'Thrissur',           lat:10.5276, lon:76.2144, crops:['Coconut','Banana','Rubber'],          idealTemp:[27,33], idealRain:[3,8],   idealHum:[65,80] },
+  { name:'Palakkad',           lat:10.7867, lon:76.6548, crops:['Rice','Sugarcane','Banana'],          idealTemp:[25,32], idealRain:[4,12],  idealHum:[65,80] },
+  { name:'Malappuram',         lat:11.0510, lon:76.0711, crops:['Banana','Coconut','Ginger'],          idealTemp:[26,32], idealRain:[4,10],  idealHum:[70,80] },
+  { name:'Kozhikode',          lat:11.2588, lon:75.7804, crops:['Ginger','Turmeric','Coconut'],        idealTemp:[25,30], idealRain:[5,15],  idealHum:[75,85] },
+  { name:'Wayanad',            lat:11.6854, lon:76.1320, crops:['Coffee','Tea','Pepper','Cardamom'],   idealTemp:[20,28], idealRain:[5,15],  idealHum:[70,85] },
+  { name:'Kannur',             lat:11.8745, lon:75.3704, crops:['Arecanut','Coconut','Pepper'],        idealTemp:[25,32], idealRain:[4,12],  idealHum:[70,85] },
+  { name:'Kasaragod',          lat:12.4996, lon:74.9869, crops:['Coconut','Cashew','Arecanut'],        idealTemp:[27,33], idealRain:[3,8],   idealHum:[65,78] },
 ];
 
-// WMO weather code → emoji + label
-function weatherInfo(code) {
-  if (code === 0) return { icon:'☀️', label:'Clear' };
-  if (code <= 2)  return { icon:'⛅', label:'Partly Cloudy' };
-  if (code === 3) return { icon:'☁️', label:'Overcast' };
-  if (code <= 49) return { icon:'🌫️', label:'Foggy' };
-  if (code <= 59) return { icon:'🌦️', label:'Drizzle' };
-  if (code <= 69) return { icon:'🌧️', label:'Rain' };
-  if (code <= 79) return { icon:'🌨️', label:'Snow' };
-  if (code <= 84) return { icon:'🌦️', label:'Showers' };
-  if (code <= 99) return { icon:'⛈️', label:'Thunderstorm' };
-  return { icon:'🌤️', label:'Mixed' };
+// WMO code → icon
+function wxInfo(c){
+  if(c===0) return{icon:'☀️',label:'Clear'};
+  if(c<=2)  return{icon:'⛅',label:'Part Cloudy'};
+  if(c===3) return{icon:'☁️',label:'Overcast'};
+  if(c<=49) return{icon:'🌫️',label:'Foggy'};
+  if(c<=59) return{icon:'🌦️',label:'Drizzle'};
+  if(c<=69) return{icon:'🌧️',label:'Rain'};
+  if(c<=79) return{icon:'🌨️',label:'Snow'};
+  if(c<=84) return{icon:'🌦️',label:'Showers'};
+  if(c<=99) return{icon:'⛈️',label:'Thunderstorm'};
+  return{icon:'🌤️',label:'Mixed'};
 }
 
-// ═══════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  STATE
-// ═══════════════════════════════════════
-let weatherData = {}; // districtName → API response
+// ═══════════════════════════════════════════════════════
+let weatherData = {};
+let healthScores = {};
 let geoLayer = null;
+let nasaLayer = null;
+let nasaOn = false;
 let currentLayer = 'rainfall';
 let trendChart = null;
-let keralaBoundary = null;
 let currentChartType = 'rainfall';
 
-// ═══════════════════════════════════════
+// ═══════════════════════════════════════════════════════
 //  MAP INIT
-// ═══════════════════════════════════════
-const map = L.map('map', {
-  center: [10.5, 76.5],
-  zoom: 7,
-  zoomControl: false,
-  attributionControl: false,
-});
-L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-  maxZoom: 12, minZoom: 6
-}).addTo(map);
+// ═══════════════════════════════════════════════════════
+const map = L.map('map',{center:[10.5,76.5],zoom:7,zoomControl:false,attributionControl:false});
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:12,minZoom:6}).addTo(map);
 
-// ═══════════════════════════════════════
-//  FETCH WEATHER — Open-Meteo
-// ═══════════════════════════════════════
-async function fetchWeather() {
-  document.getElementById('load-step').textContent = 'Fetching live weather for 14 districts…';
-  const promises = DISTRICTS.map(d =>
+// ═══════════════════════════════════════════════════════
+//  OPEN-METEO FETCH
+// ═══════════════════════════════════════════════════════
+async function fetchWeather(){
+  document.getElementById('load-step').textContent='Fetching live weather for 14 districts…';
+  const promises = DISTRICTS.map(d=>
     fetch(`https://api.open-meteo.com/v1/forecast?latitude=${d.lat}&longitude=${d.lon}&daily=precipitation_sum,temperature_2m_max,temperature_2m_min,weathercode,windspeed_10m_max&hourly=relativehumidity_2m&timezone=Asia%2FKolkata&forecast_days=7`)
-    .then(r => r.json())
-    .then(data => ({ district: d.name, data }))
-    .catch(() => ({ district: d.name, data: null }))
+    .then(r=>r.json()).then(data=>({district:d.name,data}))
+    .catch(()=>({district:d.name,data:null}))
   );
   const results = await Promise.all(promises);
-  results.forEach(r => { weatherData[r.district] = r.data; });
-  document.getElementById('load-step').textContent = 'Building map…';
+  results.forEach(r=>{ weatherData[r.district]=r.data; });
 }
 
-// ═══════════════════════════════════════
-//  LOAD GEOJSON & RENDER MAP
-// ═══════════════════════════════════════
-async function loadGeoJSON() {
-  const res = await fetch('https://raw.githubusercontent.com/geohacker/kerala/master/geojsons/district.geojson');
-  return res.json();
+// ═══════════════════════════════════════════════════════
+//  CROP HEALTH SCORE ENGINE
+// ═══════════════════════════════════════════════════════
+function scoreInRange(val, min, max, weight){
+  if(val===null||val===undefined) return weight*0.5;
+  if(val>=min && val<=max) return weight;
+  const range = max-min;
+  const over = val>max ? val-max : min-val;
+  const penalty = Math.min(1, over/(range*0.8));
+  return weight*(1-penalty);
 }
 
-function getTodayValue(districtName, metric) {
-  const d = weatherData[districtName];
-  if (!d) return null;
-  const idx = 0; // today = index 0
-  if (metric === 'rainfall')    return d.daily.precipitation_sum[idx];
-  if (metric === 'temperature') return d.daily.temperature_2m_max[idx];
-  if (metric === 'humidity') {
-    const h = d.hourly.relativehumidity_2m;
-    const slice = h.slice(0,24);
-    return Math.round(slice.reduce((a,b)=>a+b,0)/slice.length);
+function computeHealthScore(districtName){
+  const d = DISTRICTS.find(x=>x.name===districtName);
+  if(!d) return {score:50,breakdown:{}};
+  const wd = weatherData[districtName];
+  if(!wd) return {score:50,breakdown:{}};
+
+  const rain = wd.daily.precipitation_sum[0] || 0;
+  const temp = wd.daily.temperature_2m_max[0] || 30;
+  const humSlice = wd.hourly.relativehumidity_2m.slice(0,24);
+  const hum = humSlice.length ? Math.round(humSlice.reduce((a,b)=>a+b)/humSlice.length) : 70;
+
+  // Dry spell: count consecutive days with <2mm
+  let dryDays=0;
+  for(let i=0;i<7;i++){ if((wd.daily.precipitation_sum[i]||0)<2) dryDays++; else break; }
+
+  const rainScore  = scoreInRange(rain, d.idealRain[0], d.idealRain[1], 30);
+  const tempScore  = scoreInRange(temp, d.idealTemp[0], d.idealTemp[1], 25);
+  const humScore   = scoreInRange(hum,  d.idealHum[0],  d.idealHum[1],  20);
+  const dryPenalty = Math.min(15, dryDays*2.5);
+  const dryScore   = 15 - dryPenalty;
+
+  // Season fit (April = pre-kharif, moderate bonus)
+  const month = new Date().getMonth()+1;
+  const seasonScore = (month>=6&&month<=9) ? 10 : (month>=10&&month<=12) ? 8 : 6;
+
+  const total = Math.round(Math.min(100, Math.max(0, rainScore+tempScore+humScore+dryScore+seasonScore)));
+
+  return {
+    score: total,
+    breakdown: {
+      'Rainfall':    { pct: Math.round((rainScore/30)*100), val: rain.toFixed(1)+'mm' },
+      'Temperature': { pct: Math.round((tempScore/25)*100), val: temp.toFixed(0)+'°C' },
+      'Humidity':    { pct: Math.round((humScore/20)*100),  val: hum+'%' },
+      'Dry Spell':   { pct: Math.round((dryScore/15)*100),  val: dryDays+' days' },
+      'Season Fit':  { pct: Math.round((seasonScore/10)*100), val: month>=6&&month<=9?'Kharif ✓':'Pre-season' },
+    },
+    dryDays, rain, temp, hum,
+  };
+}
+
+function computeAllHealth(){
+  DISTRICTS.forEach(d=>{ healthScores[d.name]=computeHealthScore(d.name); });
+}
+
+function healthColor(score){
+  if(score>=85) return '#4ade80';
+  if(score>=70) return '#86efac';
+  if(score>=55) return '#facc15';
+  if(score>=40) return '#fb923c';
+  return '#f87171';
+}
+
+function healthLabel(score){
+  if(score>=85) return '🟢 Thriving';
+  if(score>=70) return '🟩 Healthy';
+  if(score>=55) return '🟡 Moderate';
+  if(score>=40) return '🟠 Stressed';
+  return '🔴 Critical';
+}
+
+// ═══════════════════════════════════════════════════════
+//  MAP LAYER COLORS
+// ═══════════════════════════════════════════════════════
+function getTodayVal(name, metric){
+  const d=weatherData[name]; if(!d) return null;
+  if(metric==='rainfall')    return d.daily.precipitation_sum[0];
+  if(metric==='temperature') return d.daily.temperature_2m_max[0];
+  if(metric==='humidity'){
+    const sl=d.hourly.relativehumidity_2m.slice(0,24);
+    return sl.length?Math.round(sl.reduce((a,b)=>a+b)/sl.length):null;
   }
+  if(metric==='crophealth')  return healthScores[name]?.score||null;
   return null;
 }
 
-function getRainfallColor(mm) {
-  if (mm === null) return '#1c2a20';
-  if (mm < 1)  return '#1a2f22';
-  if (mm < 5)  return '#164e63';
-  if (mm < 15) return '#0ea5e9';
-  if (mm < 30) return '#38bdf8';
-  if (mm < 50) return '#7dd3fc';
-  return '#bae6fd';
-}
-function getTempColor(c) {
-  if (c === null) return '#1c2a20';
-  if (c < 28) return '#1e3a5f';
-  if (c < 32) return '#854d0e';
-  if (c < 35) return '#ea580c';
-  return '#ef4444';
-}
-function getHumidityColor(h) {
-  if (h === null) return '#1c2a20';
-  if (h < 50) return '#1a2f22';
-  if (h < 65) return '#5b21b6';
-  if (h < 80) return '#7c3aed';
-  return '#a78bfa';
-}
-
-function getDistrictColor(name) {
-  const v = getTodayValue(name, currentLayer);
-  if (currentLayer === 'rainfall')    return getRainfallColor(v);
-  if (currentLayer === 'temperature') return getTempColor(v);
-  if (currentLayer === 'humidity')    return getHumidityColor(v);
+function districtFill(name){
+  const v=getTodayVal(name,currentLayer);
+  if(v===null) return '#1c2a20';
+  if(currentLayer==='rainfall'){
+    if(v<1) return '#1a2f22'; if(v<5) return '#164e63';
+    if(v<15) return '#0ea5e9'; if(v<30) return '#38bdf8';
+    if(v<50) return '#7dd3fc'; return '#bae6fd';
+  }
+  if(currentLayer==='temperature'){
+    if(v<28) return '#1e3a5f'; if(v<32) return '#854d0e';
+    if(v<35) return '#ea580c'; return '#ef4444';
+  }
+  if(currentLayer==='humidity'){
+    if(v<50) return '#1a2f22'; if(v<65) return '#5b21b6';
+    if(v<80) return '#7c3aed'; return '#a78bfa';
+  }
+  if(currentLayer==='crophealth') return healthColor(v);
   return '#1c2a20';
 }
 
-function districtDisplayName(geoName) {
-  const map_names = {
-    'Thiruvananthapuram': 'Thiruvananthapuram',
-    'Thrissur': 'Thrissur',
-    'Malappuram': 'Malappuram',
-    'Pathanamthitta': 'Pathanamthitta',
-  };
-  return map_names[geoName] || geoName;
-}
-
-function renderGeoLayer(geojson) {
-  if (geoLayer) map.removeLayer(geoLayer);
-  geoLayer = L.geoJSON(geojson, {
-    style: feature => {
-      const name = feature.properties.DISTRICT;
-      return {
-        fillColor: getDistrictColor(name),
-        weight: 1,
-        opacity: 0.6,
-        color: 'rgba(255,255,255,0.15)',
-        fillOpacity: 0.85,
-      };
-    },
-    onEachFeature: (feature, layer) => {
-      const name = feature.properties.DISTRICT;
+// ═══════════════════════════════════════════════════════
+//  RENDER GEO LAYER
+// ═══════════════════════════════════════════════════════
+function renderGeoLayer(geojson){
+  if(geoLayer) map.removeLayer(geoLayer);
+  geoLayer=L.geoJSON(geojson,{
+    style: f=>({fillColor:districtFill(f.properties.DISTRICT),weight:1,opacity:0.6,color:'rgba(255,255,255,0.15)',fillOpacity:0.85}),
+    onEachFeature:(f,layer)=>{
+      const name=f.properties.DISTRICT;
       layer.on({
-        mouseover: e => {
-          e.target.setStyle({ weight:2, color:'rgba(255,255,255,0.5)', fillOpacity:0.95 });
-        },
-        mouseout: e => {
-          geoLayer.resetStyle(e.target);
-        },
-        click: () => showDistrictDetail(name),
+        mouseover:e=>{e.target.setStyle({weight:2,color:'rgba(255,255,255,0.5)',fillOpacity:0.95});},
+        mouseout:e=>{geoLayer.resetStyle(e.target);},
+        click:()=>showDistrictDetail(name),
       });
     }
   }).addTo(map);
 }
 
-function refreshMapColors() {
-  if (!geoLayer) return;
-  geoLayer.eachLayer(layer => {
-    const name = layer.feature.properties.DISTRICT;
-    layer.setStyle({ fillColor: getDistrictColor(name) });
-  });
+function refreshMap(){
+  if(!geoLayer) return;
+  geoLayer.eachLayer(l=>l.setStyle({fillColor:districtFill(l.feature.properties.DISTRICT)}));
 }
 
-// ═══════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  NASA MODIS WMS TOGGLE
+// ═══════════════════════════════════════════════════════
+function toggleNASA(){
+  nasaOn=!nasaOn;
+  const btn=document.getElementById('btn-nasa');
+  const badge=document.getElementById('nasa-badge');
+  if(nasaOn){
+    nasaLayer=L.tileLayer.wms('https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi',{
+      layers:'MODIS_Terra_NDVI_8Day',
+      format:'image/png',
+      transparent:true,
+      opacity:0.55,
+      attribution:'NASA GIBS',
+    }).addTo(map);
+    btn.classList.add('l-purple');
+    badge.style.display='block';
+  } else {
+    if(nasaLayer){ map.removeLayer(nasaLayer); nasaLayer=null; }
+    btn.classList.remove('l-purple');
+    badge.style.display='none';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
 //  LAYER TOGGLE
-// ═══════════════════════════════════════
-function setLayer(type) {
-  currentLayer = type;
-  document.querySelectorAll('.layer-btn').forEach(b => b.classList.remove('active','rain-active','warn-active'));
-  const btn = document.getElementById('btn-'+type);
-  if (type==='rainfall')    { btn.classList.add('rain-active'); }
-  else if(type==='temperature') { btn.classList.add('warn-active'); }
-  else { btn.classList.add('active'); }
-
-  // Update legend
-  const legends = {
-    rainfall:    { title:'Rainfall (mm/day)', bar:'linear-gradient(90deg,#1a2f22,#164e63,#0ea5e9,#38bdf8,#bae6fd)', l:'0', r:'50mm+' },
-    temperature: { title:'Max Temperature (°C)', bar:'linear-gradient(90deg,#1e3a5f,#854d0e,#ea580c,#ef4444)', l:'25°', r:'38°+' },
-    humidity:    { title:'Avg Humidity (%)', bar:'linear-gradient(90deg,#1a2f22,#5b21b6,#7c3aed,#a78bfa)', l:'40%', r:'95%' },
-  };
-  const leg = legends[type];
-  document.getElementById('legend-title').textContent = leg.title;
-  document.getElementById('legend-bar').style.background = leg.bar;
-
-  refreshMapColors();
-}
-
-// ═══════════════════════════════════════
-//  KPI CARDS
-// ═══════════════════════════════════════
-function updateKPIs() {
-  let maxRain = 0, maxRainDistrict = '';
-  let maxTemp = 0, maxTempDistrict = '';
-  let totalHumidity = 0, humCount = 0;
-  let alerts = 0;
-
-  DISTRICTS.forEach(d => {
-    const rain = getTodayValue(d.name, 'rainfall') || 0;
-    const temp = getTodayValue(d.name, 'temperature') || 0;
-    const hum  = getTodayValue(d.name, 'humidity') || 0;
-    if (rain > maxRain) { maxRain = rain; maxRainDistrict = d.name; }
-    if (temp > maxTemp) { maxTemp = temp; maxTempDistrict = d.name; }
-    if (hum > 0) { totalHumidity += hum; humCount++; }
-    // Count alerts
-    if (rain > 40) alerts++;
-    if (temp > 36) alerts++;
-    if (hum > 85 && rain > 20) alerts++;
+// ═══════════════════════════════════════════════════════
+const LEGENDS = {
+  rainfall:    {title:'Rainfall (mm/day)',      bar:'linear-gradient(90deg,#1a2f22,#164e63,#0ea5e9,#38bdf8,#bae6fd)', min:'0',   max:'50mm+'},
+  temperature: {title:'Max Temperature (°C)',   bar:'linear-gradient(90deg,#1e3a5f,#854d0e,#ea580c,#ef4444)',         min:'25°',  max:'38°+'},
+  humidity:    {title:'Avg Humidity (%)',        bar:'linear-gradient(90deg,#1a2f22,#5b21b6,#7c3aed,#a78bfa)',         min:'40%',  max:'95%'},
+  crophealth:  {title:'Crop Health Score',       bar:'linear-gradient(90deg,#f87171,#fb923c,#facc15,#86efac,#4ade80)', min:'0',    max:'100'},
+};
+function setLayer(type){
+  currentLayer=type;
+  ['rainfall','temperature','humidity','crophealth'].forEach(t=>{
+    const b=document.getElementById('btn-'+t);
+    b.className='layer-btn';
   });
-
-  document.getElementById('kpi-rain').textContent = maxRain.toFixed(1)+'mm';
-  document.getElementById('kpi-rain-sub').innerHTML = `<span class="kpi-up">↑</span> ${maxRainDistrict}`;
-  document.getElementById('kpi-temp').textContent = maxTemp.toFixed(1)+'°C';
-  document.getElementById('kpi-temp-sub').innerHTML = `<span class="kpi-warn">⚠</span> ${maxTempDistrict}`;
-  const avgHum = humCount ? Math.round(totalHumidity/humCount) : 0;
-  document.getElementById('kpi-humidity').textContent = avgHum+'%';
-  document.getElementById('kpi-humidity-sub').textContent = humCount + ' districts reporting';
-  document.getElementById('kpi-alerts').textContent = alerts;
-  document.getElementById('kpi-alerts-sub').textContent = alerts > 0 ? 'Active crop alerts' : 'All clear';
-  document.getElementById('nav-alert-count').textContent = alerts;
+  const classes={rainfall:'l-blue',temperature:'l-orange',humidity:'l-purple',crophealth:'l-green'};
+  document.getElementById('btn-'+type).classList.add(classes[type]);
+  const leg=LEGENDS[type];
+  document.getElementById('legend-title').textContent=leg.title;
+  document.getElementById('legend-bar').style.background=leg.bar;
+  document.getElementById('legend-min').textContent=leg.min;
+  document.getElementById('legend-max').textContent=leg.max;
+  refreshMap();
 }
 
-// ═══════════════════════════════════════
-//  DISTRICT LIST (RIGHT PANEL)
-// ═══════════════════════════════════════
-function updateDistrictList() {
-  const list = document.getElementById('district-list');
-  list.innerHTML = '';
-  DISTRICTS.forEach(d => {
-    const rain = getTodayValue(d.name, 'rainfall');
-    const temp = getTodayValue(d.name, 'temperature');
-    const wd   = weatherData[d.name];
-    const code = wd ? wd.daily.weathercode[0] : 0;
-    const { icon } = weatherInfo(code);
-    const rainAlert = rain > 40;
-    const heatAlert = temp > 36;
-    const row = document.createElement('div');
-    row.className = 'district-row' + (rainAlert?' rain-alert':heatAlert?' heat-alert':'');
-    row.innerHTML = `
-      <span class="d-name">${d.name}</span>
-      <span class="d-icon">${icon}</span>
-      <span class="d-rain">${rain !== null ? rain.toFixed(1)+'mm' : '--'}</span>
-      <span class="d-temp">${temp !== null ? temp.toFixed(0)+'°' : '--'}</span>
-    `;
-    row.onclick = () => showDistrictDetail(d.name);
+// ═══════════════════════════════════════════════════════
+//  KPI CARDS
+// ═══════════════════════════════════════════════════════
+function updateKPIs(){
+  let maxRain=0,maxRainD='',maxTemp=0,maxTempD='';
+  let totalHealth=0,distressed=0,alerts=0;
+  DISTRICTS.forEach(d=>{
+    const rain=getTodayVal(d.name,'rainfall')||0;
+    const temp=getTodayVal(d.name,'temperature')||0;
+    const hs=healthScores[d.name]?.score||50;
+    if(rain>maxRain){maxRain=rain;maxRainD=d.name;}
+    if(temp>maxTemp){maxTemp=temp;maxTempD=d.name;}
+    totalHealth+=hs;
+    if(hs<55) distressed++;
+    if(rain>40) alerts++;
+    if(temp>36) alerts++;
+    const hum=getTodayVal(d.name,'humidity')||0;
+    if(hum>85&&rain>20) alerts++;
+  });
+  const avgH=Math.round(totalHealth/DISTRICTS.length);
+  document.getElementById('kpi-rain').textContent=maxRain.toFixed(1)+'mm';
+  document.getElementById('kpi-rain-sub').innerHTML=`<span class="kpi-up">↑</span>${maxRainD}`;
+  document.getElementById('kpi-temp').textContent=maxTemp.toFixed(1)+'°C';
+  document.getElementById('kpi-temp-sub').innerHTML=`<span class="kpi-warn">⚠</span>${maxTempD}`;
+  document.getElementById('kpi-health').textContent=avgH+'/100';
+  document.getElementById('kpi-health').style.color=healthColor(avgH);
+  document.getElementById('kpi-health-sub').innerHTML=`<span style="color:${healthColor(avgH)}">${healthLabel(avgH).split(' ')[1]||'—'}</span> across Kerala`;
+  document.getElementById('kpi-distressed').textContent=distressed;
+  document.getElementById('kpi-distressed-sub').textContent=distressed>0?distressed+' need attention':'All districts OK';
+  document.getElementById('kpi-alerts').textContent=alerts;
+  document.getElementById('kpi-alerts-sub').textContent=alerts>0?'Active crop alerts':'All clear';
+  document.getElementById('nav-alert-count').textContent=alerts;
+}
+
+// ═══════════════════════════════════════════════════════
+//  DISTRICT LIST (Weather tab)
+// ═══════════════════════════════════════════════════════
+function updateDistrictList(){
+  const list=document.getElementById('district-list'); list.innerHTML='';
+  DISTRICTS.forEach(d=>{
+    const rain=getTodayVal(d.name,'rainfall'); const temp=getTodayVal(d.name,'temperature');
+    const wd=weatherData[d.name]; const code=wd?wd.daily.weathercode[0]:0;
+    const{icon}=wxInfo(code);
+    const cls='district-row'+(rain>40?' rain-alert':temp>36?' heat-alert':'');
+    const row=document.createElement('div'); row.className=cls;
+    row.innerHTML=`<span class="d-name">${d.name}</span><span class="d-icon">${icon}</span><span class="d-val" style="color:var(--color-rain)">${rain!==null?rain.toFixed(1)+'mm':'--'}</span><span class="d-val" style="color:var(--color-warn)">${temp!==null?temp.toFixed(0)+'°':'--'}</span>`;
+    row.onclick=()=>showDistrictDetail(d.name);
     list.appendChild(row);
   });
 }
 
-// ═══════════════════════════════════════
-//  DISTRICT DETAIL PANEL
-// ═══════════════════════════════════════
-function showDistrictDetail(name) {
-  const wd = weatherData[name];
-  const district = DISTRICTS.find(d => d.name === name);
-  if (!wd || !district) return;
-
-  document.getElementById('dd-name').textContent = name;
-  const rain = getTodayValue(name,'rainfall');
-  const temp = getTodayValue(name,'temperature');
-  const hum  = getTodayValue(name,'humidity');
-  const wind = wd.daily.windspeed_10m_max[0];
-  const code = wd.daily.weathercode[0];
-  const { icon } = weatherInfo(code);
-
-  document.getElementById('dd-icon').textContent = icon;
-  document.getElementById('dd-rain').textContent = rain !== null ? rain.toFixed(1)+'mm' : '--';
-  document.getElementById('dd-temp').textContent = temp !== null ? temp.toFixed(1)+'°C' : '--';
-  document.getElementById('dd-humidity').textContent = hum !== null ? hum+'%' : '--';
-  document.getElementById('dd-wind').textContent = wind !== null ? wind.toFixed(0)+' km/h' : '--';
-
-  // 7-day forecast strip
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const forecastEl = document.getElementById('dd-forecast');
-  forecastEl.innerHTML = '';
-  for (let i=0;i<7;i++) {
-    const date = new Date(); date.setDate(date.getDate()+i);
-    const dayName = i===0 ? 'Today' : days[date.getDay()];
-    const fc = weatherInfo(wd.daily.weathercode[i]);
-    const fcRain = wd.daily.precipitation_sum[i];
-    const fcTemp = wd.daily.temperature_2m_max[i];
-    const div = document.createElement('div');
-    div.className = 'forecast-day';
-    div.innerHTML = `<div class="fc-day-name">${dayName}</div><div class="fc-icon">${fc.icon}</div><div class="fc-temp">${fcTemp?.toFixed(0)||'--'}°</div><div class="fc-rain">${fcRain?.toFixed(0)||'0'}mm</div>`;
-    forecastEl.appendChild(div);
-  }
-
-  // Advisory
-  const advisory = generateAdvisory(name, rain, temp, hum, district.crops);
-  document.getElementById('dd-advisory').innerHTML = advisory;
-
-  document.getElementById('district-detail').classList.add('visible');
-
-  // Highlight in list
-  document.querySelectorAll('.district-row').forEach(r => r.classList.remove('selected'));
-  const rows = document.querySelectorAll('.district-row');
-  const idx = DISTRICTS.findIndex(d=>d.name===name);
-  if (rows[idx]) rows[idx].classList.add('selected');
-}
-
-function closeDetail() {
-  document.getElementById('district-detail').classList.remove('visible');
-  document.querySelectorAll('.district-row').forEach(r=>r.classList.remove('selected'));
-}
-
-// ═══════════════════════════════════════
-//  CROP ADVISORIES (Rule-based)
-// ═══════════════════════════════════════
-function generateAdvisory(name, rain, temp, hum, crops) {
-  const mainCrop = crops[0];
-  if (rain > 50)  return `<strong>⚠️ Heavy Rain Alert</strong>Delay ${mainCrop} harvesting. Check drainage in fields. Risk of waterlogging.`;
-  if (rain > 30 && hum > 80) return `<strong>🍄 Fungal Disease Risk</strong>High humidity + rain — monitor ${mainCrop} for fungal infections. Consider preventive spray.`;
-  if (temp > 36)  return `<strong>🌡️ Heat Stress Warning</strong>${mainCrop} under heat stress. Increase irrigation frequency. Avoid midday spraying.`;
-  if (rain < 2 && temp > 33) return `<strong>💧 Dry Spell — Irrigate</strong>Low rainfall detected. ${mainCrop} needs supplemental irrigation. Check soil moisture daily.`;
-  if (hum > 85)   return `<strong>💦 High Humidity</strong>Conditions favour pests in ${mainCrop}. Scout fields for early disease symptoms.`;
-  return `<strong style="color:var(--color-primary)">✅ Conditions Normal</strong>${mainCrop} conditions are favourable. Continue regular crop management practices.`;
-}
-
-function updateAdvisories() {
-  const list = document.getElementById('advisory-list');
-  const advisories = [];
-  DISTRICTS.forEach(d => {
-    const rain = getTodayValue(d.name,'rainfall') || 0;
-    const temp = getTodayValue(d.name,'temperature') || 0;
-    const hum  = getTodayValue(d.name,'humidity') || 0;
-    const crop = d.crops[0];
-    if (rain > 50)  advisories.push({ icon:'🌊', title:`${d.name}`, msg:`Flood risk — delay ${crop} work` });
-    else if (rain > 30 && hum > 80) advisories.push({ icon:'🍄', title:`${d.name}`, msg:`Fungal risk in ${crop}` });
-    else if (temp > 36) advisories.push({ icon:'🌡️', title:`${d.name}`, msg:`Heat stress — irrigate ${crop}` });
-    else if (rain < 2 && temp > 33) advisories.push({ icon:'💧', title:`${d.name}`, msg:`Dry spell — irrigate ${crop}` });
+// ═══════════════════════════════════════════════════════
+//  HEALTH LIST (Crops tab)
+// ═══════════════════════════════════════════════════════
+function updateHealthList(){
+  const list=document.getElementById('health-list'); list.innerHTML='';
+  const sorted=[...DISTRICTS].sort((a,b)=>(healthScores[b.name]?.score||0)-(healthScores[a.name]?.score||0));
+  sorted.forEach(d=>{
+    const hs=healthScores[d.name]||{score:50};
+    const score=hs.score; const col=healthColor(score);
+    const row=document.createElement('div'); row.className='health-row'+(score<55?' health-crit':'');
+    row.innerHTML=`
+      <div><div class="health-name">${d.name}</div><div class="health-sub">${d.crops[0]}</div>
+      <div class="health-bar-bg"><div class="health-bar-fill" style="width:${score}%;background:${col}"></div></div></div>
+      <div style="text-align:center;font-size:10px;color:${col}">${healthLabel(score).split(' ')[0]}</div>
+      <div class="health-score" style="color:${col}">${score}</div>`;
+    row.onclick=()=>{ showDistrictDetail(d.name,'health'); };
+    list.appendChild(row);
   });
-  document.getElementById('advisory-count').textContent = advisories.length;
-  if (advisories.length === 0) {
-    list.innerHTML = '<div style="font-size:11px;color:var(--color-primary);padding:4px 0">✅ All Kerala districts — normal conditions</div>';
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADVISORIES (Alerts tab)
+// ═══════════════════════════════════════════════════════
+function updateAdvisories(){
+  const list=document.getElementById('advisory-list'); list.innerHTML='';
+  const items=[];
+  DISTRICTS.forEach(d=>{
+    const hs=healthScores[d.name]; if(!hs) return;
+    const{rain,temp,hum,dryDays,score}=hs; const crop=d.crops[0];
+    if(score<40)       items.push({icon:'🔴',title:d.name,msg:`${crop} critical (${score}/100) — urgent attention needed`});
+    else if(rain>50)   items.push({icon:'🌊',title:d.name,msg:`Flood risk — delay ${crop} field operations`});
+    else if(rain>30&&hum>80) items.push({icon:'🍄',title:d.name,msg:`Fungal risk in ${crop} — high moisture`});
+    else if(temp>36)   items.push({icon:'🌡️',title:d.name,msg:`Heat stress — irrigate ${crop} urgently`});
+    else if(dryDays>4) items.push({icon:'💧',title:d.name,msg:`Dry spell ${dryDays} days — irrigate ${crop}`});
+    else if(score<55)  items.push({icon:'🟠',title:d.name,msg:`${crop} under stress (${score}/100) — monitor closely`});
+  });
+  if(items.length===0){
+    list.innerHTML='<div style="font-size:11px;color:var(--color-primary);padding:4px 0 8px;">✅ All Kerala districts — conditions normal</div>';
     return;
   }
-  list.innerHTML = advisories.map(a => `
-    <div class="advisory-item">
-      <span class="advisory-icon">${a.icon}</span>
-      <div class="advisory-text"><strong>${a.title}</strong>${a.msg}</div>
-    </div>
-  `).join('');
+  list.innerHTML=items.map(a=>`<div class="advisory-item"><span style="font-size:13px;flex-shrink:0">${a.icon}</span><div class="advisory-text"><strong>${a.title}</strong>${a.msg}</div></div>`).join('');
 }
 
-// ═══════════════════════════════════════
-//  MONSOON TRACKER
-// ═══════════════════════════════════════
-function updateMonsoon() {
-  const today = new Date();
-  const year = today.getFullYear();
-  const monsoonStart = new Date(year, 5, 1);  // June 1
-  const monsoonEnd   = new Date(year, 8, 30); // Sept 30
-  const totalDays = (monsoonEnd - monsoonStart) / 86400000;
-  const daysSinceStart = (today - monsoonStart) / 86400000;
-  const pct = Math.max(0, Math.min(100, (daysSinceStart / totalDays) * 100));
-  
-  let phase = 'Pre-Monsoon Season';
-  let dayLabel = '--';
-  if (daysSinceStart >= 0 && daysSinceStart <= totalDays) {
-    const day = Math.floor(daysSinceStart);
-    phase = day < 30 ? 'SW Monsoon — Early Phase' : day < 75 ? 'SW Monsoon — Active Phase' : 'SW Monsoon — Withdrawal';
-    dayLabel = `Day ${day}`;
-  } else if (daysSinceStart > totalDays) {
-    phase = 'Post-Monsoon (NE Monsoon)';
-    dayLabel = 'Season ended';
+// ═══════════════════════════════════════════════════════
+//  DISTRICT DETAIL
+// ═══════════════════════════════════════════════════════
+function showDistrictDetail(name, tab='weather'){
+  const wd=weatherData[name]; const district=DISTRICTS.find(d=>d.name===name);
+  if(!wd||!district) return;
+  document.getElementById('dd-name').textContent=name;
+  // weather icon
+  const{icon}=wxInfo(wd.daily.weathercode[0]);
+  document.getElementById('dd-icon').textContent=icon;
+  // weather stats
+  const rain=getTodayVal(name,'rainfall'); const temp=getTodayVal(name,'temperature');
+  const hum=getTodayVal(name,'humidity');  const wind=wd.daily.windspeed_10m_max[0];
+  document.getElementById('dd-rain').textContent=rain!=null?rain.toFixed(1)+'mm':'--';
+  document.getElementById('dd-temp').textContent=temp!=null?temp.toFixed(1)+'°C':'--';
+  document.getElementById('dd-humidity').textContent=hum!=null?hum+'%':'--';
+  document.getElementById('dd-wind').textContent=wind!=null?wind.toFixed(0)+' km/h':'--';
+  // forecast
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const fc=document.getElementById('dd-forecast'); fc.innerHTML='';
+  for(let i=0;i<7;i++){
+    const dt=new Date(); dt.setDate(dt.getDate()+i);
+    const dn=i===0?'Today':days[dt.getDay()];
+    const fi=wxInfo(wd.daily.weathercode[i]);
+    const el=document.createElement('div'); el.className='forecast-day';
+    el.innerHTML=`<div class="fc-day-name">${dn}</div><div class="fc-icon">${fi.icon}</div><div class="fc-temp">${(wd.daily.temperature_2m_max[i]||0).toFixed(0)}°</div><div class="fc-rain">${(wd.daily.precipitation_sum[i]||0).toFixed(0)}mm</div>`;
+    fc.appendChild(el);
   }
-  document.getElementById('monsoon-phase').textContent = phase;
-  document.getElementById('monsoon-day-label').textContent = dayLabel;
-  setTimeout(() => { document.getElementById('monsoon-fill').style.width = pct+'%'; }, 500);
-}
-
-// ═══════════════════════════════════════
-//  TREND CHART
-// ═══════════════════════════════════════
-const CHART_COLORS = ['#4ade80','#38bdf8','#fb923c','#a78bfa','#f472b6','#facc15','#34d399'];
-const TOP_DISTRICTS = ['Wayanad','Idukki','Alappuzha','Ernakulam','Palakkad','Kozhikode','Thiruvananthapuram'];
-
-function getDayLabels() {
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  return Array.from({length:7},(_,i)=>{
-    const d=new Date(); d.setDate(d.getDate()+i);
-    return i===0?'Today':days[d.getDay()];
+  document.getElementById('dd-advisory').innerHTML=generateWeatherAdvisory(name,rain,temp,hum,district.crops);
+  // health tab
+  const hs=healthScores[name]||{score:50,breakdown:{}};
+  document.getElementById('dd-health-score').textContent=hs.score;
+  document.getElementById('dd-health-score').style.color=healthColor(hs.score);
+  document.getElementById('dd-health-label').textContent=healthLabel(hs.score);
+  document.getElementById('dd-crop-tag').textContent='Primary: '+district.crops[0];
+  // breakdown bars
+  const bkEl=document.getElementById('dd-breakdown'); bkEl.innerHTML='';
+  Object.entries(hs.breakdown||{}).forEach(([label,{pct,val}])=>{
+    const col=pct>=80?'#4ade80':pct>=60?'#facc15':'#fb923c';
+    bkEl.innerHTML+=`<div class="breakdown-item"><span class="breakdown-label">${label}</span><div class="breakdown-bar-bg"><div class="breakdown-bar-fill" style="width:${pct}%;background:${col}"></div></div><span class="breakdown-val" style="color:${col}">${val}</span></div>`;
   });
+  document.getElementById('dd-health-advisory').innerHTML=generateHealthAdvisory(name,hs);
+  // switch tab
+  switchDDTab(tab, null);
+  document.getElementById('district-detail').classList.add('visible');
+  // highlight list
+  document.querySelectorAll('.district-row,.health-row').forEach(r=>r.classList.remove('selected'));
+  const idx=DISTRICTS.findIndex(d=>d.name===name);
+  document.querySelectorAll('.district-row')[idx]?.classList.add('selected');
+  document.querySelectorAll('.health-row').forEach(r=>{ if(r.querySelector('.health-name')?.textContent===name) r.classList.add('selected'); });
 }
 
-function buildChart(type) {
-  const ctx = document.getElementById('trend-chart').getContext('2d');
-  if (trendChart) trendChart.destroy();
-  const labels = getDayLabels();
-  const datasets = TOP_DISTRICTS.map((name,i) => {
-    const wd = weatherData[name];
-    let data = Array(7).fill(0);
-    if (wd) {
-      if (type==='rainfall') data = wd.daily.precipitation_sum.slice(0,7).map(v=>v||0);
-      else if (type==='temperature') data = wd.daily.temperature_2m_max.slice(0,7).map(v=>v||0);
-      else if (type==='humidity') {
-        data = Array.from({length:7},(_,day)=>{
-          const slice = wd.hourly.relativehumidity_2m.slice(day*24,(day+1)*24);
-          return slice.length ? Math.round(slice.reduce((a,b)=>a+b)/slice.length) : 0;
+function switchDDTab(tab, btn){
+  document.querySelectorAll('.dd-tab').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  else {
+    document.querySelectorAll('.dd-tab').forEach(b=>{ if(b.textContent.includes(tab==='weather'?'Weather':'Health')) b.classList.add('active'); });
+  }
+  document.getElementById('dd-weather-tab').className='weather-detail-wrap'+(tab==='weather'?' active':'');
+  document.getElementById('dd-health-tab').className='health-detail-wrap'+(tab==='health'?' active':'');
+}
+
+function closeDetail(){
+  document.getElementById('district-detail').classList.remove('visible');
+  document.querySelectorAll('.district-row,.health-row').forEach(r=>r.classList.remove('selected'));
+}
+
+// ═══════════════════════════════════════════════════════
+//  ADVISORIES
+// ═══════════════════════════════════════════════════════
+function generateWeatherAdvisory(name,rain,temp,hum,crops){
+  const c=crops[0];
+  if(rain>50)  return `<strong>⚠️ Heavy Rain</strong>Delay ${c} harvest. Check field drainage.`;
+  if(rain>30&&hum>80) return `<strong>🍄 Fungal Risk</strong>High humidity + rain — monitor ${c} for disease.`;
+  if(temp>36)  return `<strong>🌡️ Heat Stress</strong>${c} stressed. Increase irrigation frequency.`;
+  if(rain<2&&temp>33) return `<strong>💧 Irrigate</strong>Dry spell detected. ${c} needs supplemental water.`;
+  return `<strong style="color:var(--color-primary)">✅ Normal</strong>${c} conditions are favourable today.`;
+}
+function generateHealthAdvisory(name,hs){
+  const d=DISTRICTS.find(x=>x.name===name);
+  const c=d.crops[0]; const s=hs.score;
+  if(s>=85) return `<strong style="color:#4ade80">🌱 Thriving</strong>${c} is in excellent condition. Maintain current practices.`;
+  if(s>=70) return `<strong style="color:#86efac">✅ Healthy</strong>${c} growing well. Minor optimisation possible.`;
+  if(s>=55) return `<strong style="color:#facc15">⚡ Monitor</strong>${c} showing moderate stress. Check water and nutrient levels.`;
+  if(s>=40) return `<strong style="color:#fb923c">⚠️ Stressed</strong>${c} needs attention — review irrigation and pest scouting.`;
+  return `<strong style="color:#f87171">🔴 Critical</strong>${c} in critical condition. Immediate agronomist consultation advised.`;
+}
+
+// ═══════════════════════════════════════════════════════
+//  MONSOON TRACKER
+// ═══════════════════════════════════════════════════════
+function updateMonsoon(){
+  const today=new Date(); const y=today.getFullYear();
+  const start=new Date(y,5,1); const end=new Date(y,8,30);
+  const total=(end-start)/86400000; const elapsed=(today-start)/86400000;
+  const pct=Math.max(0,Math.min(100,(elapsed/total)*100));
+  let phase='Pre-Monsoon Season',dayLabel='--';
+  if(elapsed>=0&&elapsed<=total){
+    const day=Math.floor(elapsed);
+    phase=day<30?'SW Monsoon — Early Phase':day<75?'SW Monsoon — Active Phase':'SW Monsoon — Withdrawal';
+    dayLabel=`Day ${day}`;
+  } else if(elapsed>total){ phase='Post-Monsoon (NE Monsoon)';dayLabel='Season ended'; }
+  document.getElementById('monsoon-phase').textContent=phase;
+  document.getElementById('monsoon-day-label').textContent=dayLabel;
+  setTimeout(()=>{ document.getElementById('monsoon-fill').style.width=pct+'%'; },600);
+}
+
+// ═══════════════════════════════════════════════════════
+//  TREND CHART
+// ═══════════════════════════════════════════════════════
+const CHART_COLORS=['#4ade80','#38bdf8','#fb923c','#a78bfa','#f472b6','#facc15','#34d399'];
+const TOP7=['Wayanad','Idukki','Alappuzha','Ernakulam','Palakkad','Kozhikode','Thiruvananthapuram'];
+
+function getDayLabels(){
+  const days=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  return Array.from({length:7},(_,i)=>{ const d=new Date();d.setDate(d.getDate()+i);return i===0?'Today':days[d.getDay()]; });
+}
+
+function buildChart(type){
+  const ctx=document.getElementById('trend-chart').getContext('2d');
+  if(trendChart) trendChart.destroy();
+  const labels=getDayLabels();
+  const datasets=TOP7.map((name,i)=>{
+    const wd=weatherData[name]; let data=Array(7).fill(0);
+    if(wd){
+      if(type==='rainfall')    data=wd.daily.precipitation_sum.slice(0,7).map(v=>v||0);
+      else if(type==='temperature') data=wd.daily.temperature_2m_max.slice(0,7).map(v=>v||0);
+      else if(type==='humidity') data=Array.from({length:7},(_,day)=>{ const sl=wd.hourly.relativehumidity_2m.slice(day*24,(day+1)*24); return sl.length?Math.round(sl.reduce((a,b)=>a+b)/sl.length):0; });
+      else if(type==='crophealth'){
+        // compute health for each of 7 forecast days using that day's rain/temp
+        data=Array.from({length:7},(_,day)=>{
+          const dist=DISTRICTS.find(d=>d.name===name);
+          const r=wd.daily.precipitation_sum[day]||0;
+          const t=wd.daily.temperature_2m_max[day]||30;
+          const hSlice=wd.hourly.relativehumidity_2m.slice(day*24,(day+1)*24);
+          const h=hSlice.length?Math.round(hSlice.reduce((a,b)=>a+b)/hSlice.length):70;
+          const rs=scoreInRange(r,dist.idealRain[0],dist.idealRain[1],30);
+          const ts=scoreInRange(t,dist.idealTemp[0],dist.idealTemp[1],25);
+          const hs2=scoreInRange(h,dist.idealHum[0],dist.idealHum[1],20);
+          const month=new Date().getMonth()+1;
+          const ss=(month>=6&&month<=9)?10:(month>=10&&month<=12)?8:6;
+          return Math.round(Math.min(100,rs+ts+hs2+15+ss));
         });
       }
     }
-    return {
-      label: name, data,
-      borderColor: CHART_COLORS[i],
-      backgroundColor: CHART_COLORS[i]+'22',
-      borderWidth: 1.5,
-      pointRadius: 2,
-      tension: 0.4, fill: false,
-    };
+    return{label:name,data,borderColor:CHART_COLORS[i],backgroundColor:CHART_COLORS[i]+'22',borderWidth:1.5,pointRadius:2,tension:0.4,fill:false};
   });
-  trendChart = new Chart(ctx, {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true, maintainAspectRatio: false,
-      animation: { duration: 600 },
-      plugins: {
-        legend: { display:false },
-        tooltip: {
-          backgroundColor: '#1c2a20',
-          borderColor: 'rgba(255,255,255,0.1)',
-          borderWidth: 1,
-          titleColor: '#e2ede6',
-          bodyColor: '#7a9982',
-          titleFont: { family:'Satoshi', size:11 },
-          bodyFont:  { family:'Satoshi', size:11 },
-          callbacks: {
-            label: ctx => {
-              const unit = type==='rainfall'?'mm':type==='temperature'?'°C':'%';
-              return ` ${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}${unit}`;
-            }
-          }
+  const units={rainfall:'mm',temperature:'°C',humidity:'%',crophealth:'/100'};
+  trendChart=new Chart(ctx,{
+    type:'line',
+    data:{labels,datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,animation:{duration:600},
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          backgroundColor:'#1c2a20',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,
+          titleColor:'#e2ede6',bodyColor:'#7a9982',
+          titleFont:{family:'Satoshi',size:11},bodyFont:{family:'Satoshi',size:11},
+          callbacks:{label:ctx=>`${ctx.dataset.label}: ${ctx.parsed.y.toFixed(1)}${units[type]}`}
         }
       },
-      scales: {
-        x: {
-          grid: { color:'rgba(255,255,255,0.04)' },
-          ticks: { color:'#7a9982', font:{family:'Satoshi',size:10} }
-        },
-        y: {
-          grid: { color:'rgba(255,255,255,0.04)' },
-          ticks: { color:'#7a9982', font:{family:'Satoshi',size:10} },
-          beginAtZero: type!=='temperature',
-        }
+      scales:{
+        x:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#7a9982',font:{family:'Satoshi',size:10}}},
+        y:{grid:{color:'rgba(255,255,255,0.04)'},ticks:{color:'#7a9982',font:{family:'Satoshi',size:10}},beginAtZero:type!=='temperature'},
       }
     }
   });
 }
 
-function switchChart(type) {
-  currentChartType = type;
+function switchChart(type,el){
+  currentChartType=type;
   document.querySelectorAll('.chart-tab').forEach(t=>t.classList.remove('active'));
-  event.target.classList.add('active');
+  el.classList.add('active');
   buildChart(type);
 }
 
-// ═══════════════════════════════════════
-//  CLOCK
-// ═══════════════════════════════════════
-function updateClock() {
-  const now = new Date();
-  document.getElementById('clock').textContent = now.toLocaleTimeString('en-IN',{hour12:false,timeZone:'Asia/Kolkata'}) + ' IST';
-}
-setInterval(updateClock, 1000); updateClock();
-
-// ═══════════════════════════════════════
-//  LAST UPDATED
-// ═══════════════════════════════════════
-function setLastUpdated() {
-  const now = new Date();
-  document.getElementById('last-updated').textContent = 'Updated ' + now.toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Kolkata'});
+// ═══════════════════════════════════════════════════════
+//  RIGHT PANEL TAB SWITCH
+// ═══════════════════════════════════════════════════════
+function switchRPTab(tab,btn){
+  document.querySelectorAll('.rp-tab').forEach(t=>t.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.rp-tab-content').forEach(c=>c.classList.remove('active'));
+  document.getElementById('rp-'+tab).classList.add('active');
 }
 
-// ═══════════════════════════════════════
+// ═══════════════════════════════════════════════════════
+//  CLOCK + LAST UPDATED
+// ═══════════════════════════════════════════════════════
+function updateClock(){document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-IN',{hour12:false,timeZone:'Asia/Kolkata'})+' IST';}
+setInterval(updateClock,1000); updateClock();
+function setLastUpdated(){document.getElementById('last-updated').textContent='Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Kolkata'});}
+
+// ═══════════════════════════════════════════════════════
 //  INIT
-// ═══════════════════════════════════════
-async function init() {
-  try {
+// ═══════════════════════════════════════════════════════
+async function init(){
+  try{
     await fetchWeather();
-    document.getElementById('load-step').textContent = 'Loading district boundaries…';
-    const geojson = await loadGeoJSON();
-
+    document.getElementById('load-step').textContent='Computing crop health scores…';
+    computeAllHealth();
+    document.getElementById('load-step').textContent='Loading district boundaries…';
+    const geoRes=await fetch('https://raw.githubusercontent.com/geohacker/kerala/master/geojsons/district.geojson');
+    const geojson=await geoRes.json();
     renderGeoLayer(geojson);
-    updateKPIs();
-    updateDistrictList();
-    updateAdvisories();
-    updateMonsoon();
-    buildChart('rainfall');
-    setLastUpdated();
-
-    // Hide loader
-    const loader = document.getElementById('loading');
-    loader.classList.add('hidden');
-    setTimeout(()=>loader.style.display='none', 600);
-
-    // Store geojson for layer refreshes
-    window._geojson = geojson;
-
-    // Refresh every 10 min
-    setInterval(async ()=>{
-      await fetchWeather();
-      refreshMapColors();
-      updateKPIs();
-      updateDistrictList();
-      updateAdvisories();
-      buildChart(currentChartType);
-      setLastUpdated();
-    }, 600000);
-
-  } catch(e) {
-    document.getElementById('load-step').textContent = 'Error: ' + e.message;
+    updateKPIs(); updateDistrictList(); updateHealthList(); updateAdvisories(); updateMonsoon();
+    buildChart('rainfall'); setLastUpdated();
+    const loader=document.getElementById('loading');
+    loader.classList.add('hidden'); setTimeout(()=>loader.style.display='none',600);
+    window._geojson=geojson;
+    setInterval(async()=>{
+      await fetchWeather(); computeAllHealth();
+      refreshMap(); updateKPIs(); updateDistrictList(); updateHealthList(); updateAdvisories();
+      buildChart(currentChartType); setLastUpdated();
+    },600000);
+  }catch(e){
+    document.getElementById('load-step').textContent='Error: '+e.message;
     console.error(e);
   }
 }
-
-// Init Lucide icons
-document.addEventListener('DOMContentLoaded', ()=>{
-  lucide.createIcons();
-  init();
-});
+document.addEventListener('DOMContentLoaded',()=>{ lucide.createIcons(); init(); });
 </script>
 </body>
 </html>
