@@ -237,13 +237,13 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
       <path d="M16 18c0 0-3-3-5-3" stroke="#0b1410" stroke-width="1" stroke-linecap="round" opacity="0.6"/>
     </svg>
   </div>
-  <div class="nav-item active"><i data-lucide="layout-dashboard"></i><span class="nav-tooltip">Overview</span></div>
-  <div class="nav-item" style="background:rgba(56,189,248,0.1);color:var(--color-rain)"><i data-lucide="cloud-rain"></i><span class="nav-tooltip">Weather</span></div>
-  <div class="nav-item" style="background:rgba(74,222,128,0.1);color:var(--color-primary)"><i data-lucide="wheat"></i><span class="nav-tooltip">Crop Health</span></div>
-  <div class="nav-item"><i data-lucide="trending-up"></i><span class="nav-tooltip">Markets</span></div>
-  <div class="nav-item" style="position:relative"><i data-lucide="triangle-alert"></i><span class="nav-tooltip">Alerts</span><span class="alert-count" id="nav-alert-count">0</span></div>
+  <div class="nav-item active" data-nav="overview" onclick="switchNav('overview',this)"><i data-lucide="layout-dashboard"></i><span class="nav-tooltip">Overview</span></div>
+  <div class="nav-item" data-nav="weather" onclick="switchNav('weather',this)"><i data-lucide="cloud-rain"></i><span class="nav-tooltip">Weather</span></div>
+  <div class="nav-item" data-nav="crophealth" onclick="switchNav('crophealth',this)"><i data-lucide="wheat"></i><span class="nav-tooltip">Crop Health</span></div>
+  <div class="nav-item" data-nav="markets" onclick="switchNav('markets',this)"><i data-lucide="trending-up"></i><span class="nav-tooltip">Markets</span></div>
+  <div class="nav-item" data-nav="alerts" onclick="switchNav('alerts',this)" style="position:relative"><i data-lucide="triangle-alert"></i><span class="nav-tooltip">Alerts</span><span class="alert-count" id="nav-alert-count">0</span></div>
   <div class="nav-spacer"></div>
-  <div class="nav-item"><i data-lucide="settings"></i><span class="nav-tooltip">Settings</span></div>
+  <div class="nav-item" onclick="switchNav('overview',document.querySelector('[data-nav=overview]'))"><i data-lucide="settings"></i><span class="nav-tooltip">Settings</span></div>
 </nav>
 
 <!-- TOP BAR -->
@@ -503,11 +503,11 @@ function computeHealthScore(districtName){
   const d = DISTRICTS.find(x=>x.name===districtName);
   if(!d) return {score:50,breakdown:{}};
   const wd = weatherData[districtName];
-  if(!wd) return {score:50,breakdown:{}};
+  if(!wd || !wd.daily || !wd.daily.precipitation_sum) return {score:50,breakdown:{},rain:0,temp:30,hum:70,dryDays:0};
 
   const rain = wd.daily.precipitation_sum[0] || 0;
   const temp = wd.daily.temperature_2m_max[0] || 30;
-  const humSlice = wd.hourly.relativehumidity_2m.slice(0,24);
+  const humSlice = (wd.hourly?.relativehumidity_2m||[]).slice(0,24);
   const hum = humSlice.length ? Math.round(humSlice.reduce((a,b)=>a+b)/humSlice.length) : 70;
 
   // Dry spell: count consecutive days with <2mm
@@ -540,7 +540,7 @@ function computeHealthScore(districtName){
 }
 
 function computeAllHealth(){
-  DISTRICTS.forEach(d=>{ healthScores[d.name]=computeHealthScore(d.name); });
+  DISTRICTS.forEach(d=>{ try{ healthScores[d.name]=computeHealthScore(d.name); } catch(e){ healthScores[d.name]={score:50,breakdown:{},rain:0,temp:30,hum:70,dryDays:0}; } });
 }
 
 function healthColor(score){
@@ -563,11 +563,11 @@ function healthLabel(score){
 //  MAP LAYER COLORS
 // ═══════════════════════════════════════════════════════
 function getTodayVal(name, metric){
-  const d=weatherData[name]; if(!d) return null;
-  if(metric==='rainfall')    return d.daily.precipitation_sum[0];
-  if(metric==='temperature') return d.daily.temperature_2m_max[0];
+  const d=weatherData[name]; if(!d||!d.daily) return null;
+  if(metric==='rainfall')    return d.daily.precipitation_sum?.[0]??null;
+  if(metric==='temperature') return d.daily.temperature_2m_max?.[0]??null;
   if(metric==='humidity'){
-    const sl=d.hourly.relativehumidity_2m.slice(0,24);
+    const sl=(d.hourly?.relativehumidity_2m||[]).slice(0,24);
     return sl.length?Math.round(sl.reduce((a,b)=>a+b)/sl.length):null;
   }
   if(metric==='crophealth')  return healthScores[name]?.score||null;
@@ -606,7 +606,7 @@ function renderGeoLayer(geojson){
       layer.on({
         mouseover:e=>{e.target.setStyle({weight:2,color:'rgba(255,255,255,0.5)',fillOpacity:0.95});},
         mouseout:e=>{geoLayer.resetStyle(e.target);},
-        click:()=>showDistrictDetail(name),
+        click:()=>showDistrictDetail(name, currentLayer==='crophealth'?'health':'weather'),
       });
     }
   }).addTo(map);
@@ -650,7 +650,21 @@ const LEGENDS = {
   humidity:    {title:'Avg Humidity (%)',        bar:'linear-gradient(90deg,#1a2f22,#5b21b6,#7c3aed,#a78bfa)',         min:'40%',  max:'95%'},
   crophealth:  {title:'Crop Health Score',       bar:'linear-gradient(90deg,#f87171,#fb923c,#facc15,#86efac,#4ade80)', min:'0',    max:'100'},
 };
-function setLayer(type){
+function setLayer(type, forceOn=false){
+  // Toggle off if same layer clicked again (unless forced on by nav)
+  if(currentLayer===type && !forceOn){
+    currentLayer='none';
+    ['rainfall','temperature','humidity','crophealth'].forEach(t=>{
+      document.getElementById('btn-'+t).className='layer-btn';
+    });
+    // reset map to neutral dark fill
+    if(geoLayer) geoLayer.eachLayer(l=>l.setStyle({fillColor:'#1c2a20'}));
+    document.getElementById('legend-title').textContent='No Layer Selected';
+    document.getElementById('legend-bar').style.background='linear-gradient(90deg,#1c2a20,#1c2a20)';
+    document.getElementById('legend-min').textContent='';
+    document.getElementById('legend-max').textContent='';
+    return;
+  }
   currentLayer=type;
   ['rainfall','temperature','humidity','crophealth'].forEach(t=>{
     const b=document.getElementById('btn-'+t);
@@ -707,7 +721,7 @@ function updateDistrictList(){
   const list=document.getElementById('district-list'); list.innerHTML='';
   DISTRICTS.forEach(d=>{
     const rain=getTodayVal(d.name,'rainfall'); const temp=getTodayVal(d.name,'temperature');
-    const wd=weatherData[d.name]; const code=wd?wd.daily.weathercode[0]:0;
+    const wd=weatherData[d.name]; const code=(wd&&wd.daily)?wd.daily.weathercode?.[0]||0:0;
     const{icon}=wxInfo(code);
     const cls='district-row'+(rain>40?' rain-alert':temp>36?' heat-alert':'');
     const row=document.createElement('div'); row.className=cls;
@@ -765,7 +779,7 @@ function updateAdvisories(){
 // ═══════════════════════════════════════════════════════
 function showDistrictDetail(name, tab='weather'){
   const wd=weatherData[name]; const district=DISTRICTS.find(d=>d.name===name);
-  if(!wd||!district) return;
+  if(!wd||!wd.daily||!district) return;
   document.getElementById('dd-name').textContent=name;
   // weather icon
   const{icon}=wxInfo(wd.daily.weathercode[0]);
@@ -884,10 +898,10 @@ function buildChart(type){
   const labels=getDayLabels();
   const datasets=TOP7.map((name,i)=>{
     const wd=weatherData[name]; let data=Array(7).fill(0);
-    if(wd){
-      if(type==='rainfall')    data=wd.daily.precipitation_sum.slice(0,7).map(v=>v||0);
-      else if(type==='temperature') data=wd.daily.temperature_2m_max.slice(0,7).map(v=>v||0);
-      else if(type==='humidity') data=Array.from({length:7},(_,day)=>{ const sl=wd.hourly.relativehumidity_2m.slice(day*24,(day+1)*24); return sl.length?Math.round(sl.reduce((a,b)=>a+b)/sl.length):0; });
+    if(wd&&wd.daily){
+      if(type==='rainfall')    data=(wd.daily.precipitation_sum||[]).slice(0,7).map(v=>v||0);
+      else if(type==='temperature') data=(wd.daily.temperature_2m_max||[]).slice(0,7).map(v=>v||0);
+      else if(type==='humidity') data=Array.from({length:7},(_,day)=>{ const sl=(wd.hourly?.relativehumidity_2m||[]).slice(day*24,(day+1)*24); return sl.length?Math.round(sl.reduce((a,b)=>a+b)/sl.length):0; });
       else if(type==='crophealth'){
         // compute health for each of 7 forecast days using that day's rain/temp
         data=Array.from({length:7},(_,day)=>{
@@ -981,6 +995,36 @@ async function init(){
     console.error(e);
   }
 }
+
+// ═══════════════════════════════════════════════════════
+//  NAV SWITCH — wires left nav to map layer + right panel
+// ═══════════════════════════════════════════════════════
+function switchNav(view, btn){
+  // 1. Update nav active state
+  document.querySelectorAll('.nav-item[data-nav]').forEach(n=>n.classList.remove('active'));
+  btn.classList.add('active');
+
+  // 2. Map layer + right panel tab mapping
+  const MAP = {
+    overview:   { layer:'rainfall',    rpTab:'weather' },
+    weather:    { layer:'rainfall',    rpTab:'weather' },
+    crophealth: { layer:'crophealth',  rpTab:'health'  },
+    markets:    { layer:'crophealth',  rpTab:'alerts'  },
+    alerts:     { layer:'crophealth',  rpTab:'alerts'  },
+  };
+  const cfg = MAP[view] || MAP.overview;
+
+  // 3. Switch map layer
+  setLayer(cfg.layer, true);
+
+  // 4. Switch right panel tab
+  const rpTabEl = document.querySelector(`.rp-tab:nth-child(${cfg.rpTab==='weather'?1:cfg.rpTab==='health'?2:3})`);
+  if(rpTabEl) switchRPTab(cfg.rpTab, rpTabEl);
+
+  // 5. Close any open detail panel
+  closeDetail();
+}
+
 document.addEventListener('DOMContentLoaded',()=>{ lucide.createIcons(); init(); });
 </script>
 </body>
