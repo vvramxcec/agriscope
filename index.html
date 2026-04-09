@@ -373,6 +373,56 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
 .imd-body{font-size:10px;color:var(--color-text-muted);line-height:1.4;margin-top:2px;}
 .imd-meta{font-size:9px;color:var(--color-text-faint);margin-top:3px;}
 
+
+/* ── AI ADVISORY ── */
+#ai-view{display:none;flex:1;overflow:hidden;flex-direction:column;}
+#ai-view.active{display:flex;}
+.ai-wrap{display:flex;flex:1;overflow:hidden;}
+.ai-chat-panel{display:flex;flex-direction:column;width:58%;border-right:1px solid var(--color-border);overflow:hidden;}
+.ai-quick-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;}
+.ai-panel-head{padding:7px 14px 6px;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:7px;flex-shrink:0;}
+.ai-panel-title{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);}
+.ai-chat-history{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
+.ai-bubble{max-width:85%;padding:8px 11px;border-radius:10px;font-size:11px;line-height:1.5;}
+.ai-bubble.user{background:var(--color-primary-dim);border:1px solid rgba(74,222,128,.25);color:var(--color-text);align-self:flex-end;border-bottom-right-radius:3px;}
+.ai-bubble.bot{background:var(--color-surface-2);border:1px solid var(--color-border);color:var(--color-text);align-self:flex-start;border-bottom-left-radius:3px;}
+.ai-bubble.bot strong{color:var(--color-primary);}
+.ai-bubble-meta{font-size:9px;color:var(--color-text-faint);margin-top:3px;}
+.ai-bubble.thinking{color:var(--color-text-faint);font-style:italic;animation:pulse 1.2s infinite;}
+.ai-input-bar{padding:8px 10px;border-top:1px solid var(--color-border);display:flex;gap:6px;align-items:flex-end;flex-shrink:0;}
+.ai-district-sel{font-size:10px;padding:4px 7px;background:var(--color-surface-2);border:1px solid var(--color-border);color:var(--color-text);border-radius:var(--radius);cursor:pointer;flex-shrink:0;}
+.ai-textarea{flex:1;background:var(--color-surface-2);border:1px solid var(--color-border);color:var(--color-text);border-radius:var(--radius);padding:6px 9px;font-size:11px;font-family:inherit;resize:none;min-height:34px;max-height:90px;line-height:1.4;}
+.ai-textarea:focus{outline:none;border-color:rgba(74,222,128,.4);}
+.ai-send-btn{background:var(--color-primary);color:#0b1410;border:none;border-radius:var(--radius);padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s;}
+.ai-send-btn:hover{opacity:.85;}
+.ai-send-btn:disabled{opacity:.4;cursor:not-allowed;}
+.ai-chips{display:flex;gap:5px;padding:5px 10px 4px;flex-wrap:wrap;border-bottom:1px solid var(--color-border);flex-shrink:0;}
+.ai-chip{font-size:9px;padding:3px 8px;border-radius:10px;background:var(--color-surface-2);border:1px solid var(--color-border);color:var(--color-text-muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.ai-chip:hover{background:var(--color-primary-dim);color:var(--color-primary);border-color:rgba(74,222,128,.3);}
+.ai-key-bar{padding:5px 10px;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.ai-key-input{flex:1;background:var(--color-surface-2);border:1px solid var(--color-border);color:var(--color-text);border-radius:var(--radius);padding:4px 8px;font-size:10px;font-family:inherit;}
+.ai-key-input:focus{outline:none;border-color:rgba(74,222,128,.4);}
+.ai-key-badge{font-size:9px;padding:2px 6px;border-radius:8px;font-weight:700;}
+.ai-key-badge.connected{background:rgba(74,222,128,.18);color:#4ade80;}
+.ai-key-badge.disconnected{background:rgba(239,68,68,.18);color:#f87171;}
+.ai-quick-scroll{flex:1;overflow-y:auto;padding:6px 10px 10px;}
+.ai-qcard{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;}
+.ai-qcard-head{display:flex;align-items:center;gap:5px;margin-bottom:4px;}
+.ai-qcard-icon{font-size:14px;}
+.ai-qcard-title{font-size:11px;font-weight:700;color:var(--color-text);}
+.ai-qcard-sev{font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:auto;}
+.sev-c{background:rgba(239,68,68,.18);color:#f87171;}
+.sev-w{background:rgba(251,146,60,.18);color:#fb923c;}
+.sev-g{background:rgba(74,222,128,.18);color:#4ade80;}
+.ai-qcard-body{font-size:10px;color:var(--color-text-muted);line-height:1.45;}
+.ai-qcard-actions{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;}
+.ai-qcard-btn{font-size:9px;padding:2px 7px;border-radius:4px;background:var(--color-surface-3);color:var(--color-text-muted);border:1px solid var(--color-border);cursor:pointer;}
+.ai-qcard-btn:hover{border-color:rgba(74,222,128,.3);color:var(--color-primary);}
+.ai-welcome{text-align:center;padding:20px 10px;color:var(--color-text-faint);}
+.ai-welcome-icon{font-size:32px;margin-bottom:8px;}
+.ai-welcome-title{font-size:13px;font-weight:700;color:var(--color-text-muted);margin-bottom:4px;}
+.ai-welcome-sub{font-size:10px;line-height:1.5;}
+
 </style>
 </head>
 <body>
@@ -405,6 +455,7 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
   <div class="nav-item" data-nav="alerts" onclick="switchNav('alerts',this)" style="position:relative"><i data-lucide="triangle-alert"></i><span class="nav-tooltip">Alerts</span><span class="alert-count" id="nav-alert-count">0</span></div>
   <div class="nav-item" data-nav="flood" onclick="switchNav('flood',this)"><i data-lucide="waves"></i><span class="nav-tooltip">Flood Risk</span></div>
   <div class="nav-item" data-nav="news" onclick="switchNav('news',this)"><i data-lucide="newspaper"></i><span class="nav-tooltip">News Hub</span></div>
+  <div class="nav-item" data-nav="ai" onclick="switchNav('ai',this)"><i data-lucide="bot"></i><span class="nav-tooltip">AI Advisory</span></div>
   <div class="nav-spacer"></div>
   <div class="nav-item" onclick="switchNav('overview',document.querySelector('[data-nav=overview]'))"><i data-lucide="settings"></i><span class="nav-tooltip">Settings</span></div>
 </nav>
@@ -612,6 +663,62 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
 
   </div>
 </div>
+
+<!-- AI ADVISORY VIEW -->
+<div id="ai-view">
+  <div class="ai-wrap">
+    <div class="ai-chat-panel">
+      <div class="ai-panel-head">
+        <i data-lucide="bot" style="width:13px;height:13px;color:var(--color-primary)"></i>
+        <span class="ai-panel-title">AI Crop Advisor</span>
+        <span id="ai-mode-badge" class="ai-key-badge disconnected" style="margin-left:auto;">Rule Engine</span>
+      </div>
+      <div class="ai-key-bar">
+        <i data-lucide="key" style="width:10px;height:10px;color:var(--color-text-faint);flex-shrink:0"></i>
+        <input class="ai-key-input" id="ai-key-input" type="password" placeholder="Optional: paste Gemini API key for full AI chat (aistudio.google.com — free)" oninput="onApiKeyInput(this.value)"/>
+        <span id="ai-key-status" class="ai-key-badge disconnected">No Key</span>
+      </div>
+      <div class="ai-chips">
+        <span style="font-size:9px;color:var(--color-text-faint);align-self:center;flex-shrink:0;">Ask:</span>
+        <span class="ai-chip" onclick="aiChip('What should I do for my crops today?')">📋 Today</span>
+        <span class="ai-chip" onclick="aiChip('What diseases should I watch out for?')">🐛 Disease</span>
+        <span class="ai-chip" onclick="aiChip('When and how much should I irrigate?')">💧 Irrigation</span>
+        <span class="ai-chip" onclick="aiChip('What fertilizer should I apply this week?')">🌱 Fertilizer</span>
+        <span class="ai-chip" onclick="aiChip('Is it a good time to sell my produce?')">📈 Market</span>
+        <span class="ai-chip" onclick="aiChip('What are the flood risks for my district?')">🌊 Flood</span>
+        <span class="ai-chip" onclick="aiChip('What crops should I plant next season?')">🌾 Crop plan</span>
+        <span class="ai-chip" onclick="aiChip('What govt schemes am I eligible for?')">🏛️ Schemes</span>
+      </div>
+      <div class="ai-chat-history" id="ai-chat-history">
+        <div class="ai-welcome">
+          <div class="ai-welcome-icon">🌾</div>
+          <div class="ai-welcome-title">AgroScope AI Advisory</div>
+          <div class="ai-welcome-sub">Select your district below, then tap a chip or type any farming question.<br>Instant answers offline · Connect Gemini API key for full conversational AI.</div>
+        </div>
+      </div>
+      <div class="ai-input-bar">
+        <select class="ai-district-sel" id="ai-district-sel">
+          <option value="">All Kerala</option>
+        </select>
+        <textarea class="ai-textarea" id="ai-textarea" rows="1" placeholder="Ask about crops, weather, pests, irrigation, markets…" onkeydown="aiKeydown(event)"></textarea>
+        <button class="ai-send-btn" id="ai-send-btn" onclick="aiSend()">Send</button>
+      </div>
+    </div>
+    <div class="ai-quick-panel">
+      <div class="ai-panel-head">
+        <i data-lucide="clipboard-list" style="width:13px;height:13px;color:#fb923c"></i>
+        <span class="ai-panel-title">Smart Advisories</span>
+        <span class="news-col-badge" id="ai-adv-count" style="margin-left:auto;">—</span>
+      </div>
+      <div class="ai-quick-scroll" id="ai-quick-list">
+        <div class="ai-welcome" style="padding:14px 8px;">
+          <div style="font-size:10px;color:var(--color-text-faint);">Select a district or ask a question to see smart advisory cards here.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 
 
 </div>
@@ -1938,6 +2045,18 @@ function populateDDFlood(name){
   <div style="margin-top:10px;padding:8px 10px;border-radius:6px;background:var(--color-surface);font-size:11px;line-height:1.5;border-left:3px solid ${floodColor(score)}">${adv}</div>
   <div style="margin-top:5px;font-size:9px;color:var(--color-text-faint)">Score:${score}/100 · KSDMA · IMD · Open-Meteo</div>`;
 }
+function showAIView(on){
+  const av=document.getElementById('ai-view');
+  const mc=document.getElementById('map-container');
+  if(on){
+    av.classList.add('active');
+    if(mc) mc.style.display='none';
+    initAIAdvisory();
+  } else {
+    av.classList.remove('active');
+    if(mc) mc.style.display='';
+  }
+}
 function showNewsView(on){
   const nv=document.getElementById('news-view');
   const mc=document.getElementById('map-container');
@@ -1965,6 +2084,7 @@ function switchNav(view, btn){
   showMarketsView(false);
   showFloodView(false);
   showNewsView(false);
+  showAIView(false);
   if(view==='markets'){
     showMarketsView(true);
   } else if(view==='flood'){
@@ -1972,11 +2092,13 @@ function switchNav(view, btn){
     setLayer('floodrisk',true);
   } else if(view==='news'){
     showNewsView(true);
+  } else if(view==='ai'){
+    showAIView(true);
   } else {
     const layerMap={overview:'rainfall',weather:'rainfall',crophealth:'crophealth',alerts:'pestmap'};
     setLayer(layerMap[view]||'rainfall',true);
   }
-  const rpMap={overview:'weather',weather:'weather',crophealth:'health',markets:'prices',alerts:'alerts',flood:'flood',news:'alerts'};
+  const rpMap={overview:'weather',weather:'weather',crophealth:'health',markets:'prices',alerts:'alerts',flood:'flood',news:'alerts',ai:'health'};
   const rpTab=rpMap[view]||'weather';
   const rpBtns=document.querySelectorAll('.rp-tab');
   const rpOrder=['weather','health','alerts','flood','prices'];
@@ -1984,6 +2106,7 @@ function switchNav(view, btn){
   if(rpBtns[ri]) switchRPTab(rpTab,rpBtns[ri]);
   closeDetail();
 }
+
 
 document.addEventListener('DOMContentLoaded',()=>{ lucide.createIcons(); init(); });
 
@@ -2299,6 +2422,221 @@ function initNewsHub(){
   }
 }
 
+
+
+/* ══════════════════════════════════════════════════════
+   AI ADVISORY — Rule Engine + optional Gemini API
+   ══════════════════════════════════════════════════════ */
+const CROP_KB = {
+  'Paddy':{ irrigate:'2–5cm standing water during tillering & panicle initiation. Drain 1 week before harvest. Skip if rainfall >20mm/day.', fertilize:'NPK 90:45:45 kg/ha. Basal: DAP+MOP before transplanting. Top-dress Urea at 21 & 42 DAT. Zinc sulphate 25kg/ha if deficiency.', disease:'Watch for Blast (grey lesions), BLB (yellow leaf margins), Brown Spot. Spray Tricyclazole 0.6g/L for Blast; Copper Oxychloride for BLB.', pest:'Stem borer (dead hearts), BPH (hopper burn), Leaf folder. Chlorpyrifos 20EC 2ml/L for stem borer. Drain field to control BPH.', harvest:'Harvest at 80–85% grain maturity. Dry to 14% moisture for safe storage.', market:'Paddy MSP ₹2,300/qt (Common). Kerala procurement via SUPPLYCO/SFC. Best price: Nov–Jan.', season:'Kharif (Virippu): Jun–Nov. Rabi (Mundakan): Nov–Mar. Summer (Puncha): Jan–May.' },
+  'Rice':{ irrigate:'Same as Paddy — 2–5cm standing water. Critical periods: transplanting, tillering, flowering.', fertilize:'NPK 90:45:45 kg/ha split 3 times. Zinc sulphate 25kg/ha basal if deficient.', disease:'Blast, BLB, Sheath Blight. Tricyclazole for Blast; Validamycin 3ml/L for Sheath Blight.', pest:'Yellow stem borer, BPH. Use pheromone traps. Drain field for BPH control.', harvest:'20–25% grain moisture at harvest. Use combine or power thresher.', market:'Paddy MSP ₹2,300/qt. Kuttanad rice (Alappuzha) premium market.', season:'Kharif: Jun–Nov. Rabi: Nov–Mar.' },
+  'Coconut':{ irrigate:'200L/palm every 4–7 days in summer. Drip: 25L/day/palm. Critical: Feb–May. Skip if >30mm/week rain.', fertilize:'1.3kg N + 0.9kg P + 3.4kg K per palm/year. Split May–Jun and Sep–Oct. Add FYM 25kg/palm.', disease:'Bud Rot: Metalaxyl 1g/L drench. Root Wilt (phytoplasma): remove infected palms. Stem Bleeding: Bordeaux paste.', pest:'Rhinoceros Beetle: pheromone traps + Metarhizium. Red Palm Weevil: ethyl acetate trap. Eriophyid mite: sulfur dust.', harvest:'Harvest mature nuts every 45 days. Green nuts for tender coconut: 7–8 months. Target 100+ nuts/palm/year.', market:'Coconut ₹32–38 each. Copra ₹110–130/kg. Best price: Mar–May.', season:'Perennial. Peak harvest: Jan–Apr. Planting: Jun–Oct.' },
+  'Rubber':{ irrigate:'Rain-fed. Supplement only in severe drought (>30 dry days). Young trees: 15L/tree twice weekly.', fertilize:'N:P:K 10:10:4 + Mg 1.5 kg/tree/yr. Two splits: May–Jun and Sep–Oct.', disease:'Abnormal Leaf Fall: Aliette 3g/L before rains. Corynespora: Mancozeb 2.5g/L. Oidium: sulfur dust.', pest:'Mealybug: dimethoate 1.5ml/L. Scale insects: white oil emulsion. Bird\'s eye spot: copper fungicide.', harvest:'Tapping season Nov–Jun. Alternate day tapping. Target 1,500–2,000 kg/ha/yr.', market:'RSS4 ₹160–190/kg. KRRDB procurement. Best prices: Dec–Mar.', season:'Tapping: Nov–Jun. Rest (wintering): Jul–Aug. New planting: Jun–Jul.' },
+  'Pepper':{ irrigate:'Drip: 8–10L/vine/day in summer. Critical: Feb–May. Avoid waterlogging at all times.', fertilize:'NPK 50:50:150 g/vine/yr + FYM 10kg. Two splits: May & Sep. MgSO4 100g/vine for yellowing.', disease:'Phytophthora/Quick Wilt: Potassium Phosphonate 3ml/L. Anthracnose: Copper Oxychloride 2.5g/L.', pest:'Pollu beetle: pheromone traps + Carbaryl 3g/L. Pepper weevil: endosulfan 2ml/L.', harvest:'Harvest when 1–2 berries/spike turn red. Dry to 10% moisture. 3kg green → 1kg dry.', market:'Black Pepper ₹520–580/kg (Kochi). Best export quality: Nov–Feb harvest.', season:'Flowering: Feb–Mar. Harvest: Nov–Feb. Planting: Jun–Jul.' },
+  'Banana':{ irrigate:'25–30L/plant/day via drip. Critical: bunch development. Stop 2 weeks before harvest.', fertilize:'NPK 200:60:300 g/plant + FYM 10kg in 3 splits. Extra K for Nendran finger filling.', disease:'Panama Wilt (Fusarium): remove & destroy — no cure. Sigatoka: Propiconazole 1ml/L. Bunchy Top: rogue infected plants.', pest:'Corm weevil: chlorpyrifos at planting. Pseudostem borer: inject Monocrotophos. Thrips: imidacloprid.', harvest:'Harvest when fingers are 3/4 round. Nendran: 12–14 months. Robusta: 9–10 months.', market:'Nendran ₹35–55/kg retail. Best price: Onam season (Aug–Sep).', season:'Plant Jun–Jul. Harvest ~12 months for Nendran.' },
+  'Tapioca':{ irrigate:'Drought tolerant. Supplement only in severe dry spells: 30L/plant every 10 days.', fertilize:'NPK 100:50:100 kg/ha. Basal K at planting, top-dress N at 2 months. MOP critical for starch.', disease:'Mosaic Virus (CMD): use virus-free stakes only. Bacterial Blight: remove infected.', pest:'Whitefly: yellow sticky traps + imidacloprid. Red spider mite: sulfur dust.', harvest:'8–12 months. Fresh market: 7–8 months. Processing: 10–12 months. Yield: 25–35 t/ha.', market:'Fresh ₹15–25/kg farm gate. Starch ₹28–35/kg. Thiruvananthapuram & Kollam main markets.', season:'Plant Jun–Jul with monsoon onset. Also Oct–Nov for summer harvest.' },
+  'Cardamom':{ irrigate:'Shade + moisture critical. Drip: 8L/plant/day. Maintain mulch to conserve soil moisture.', fertilize:'NPK 75:75:150 g/plant/yr + FYM 5kg. Apply Jun and Sep.', disease:'Katte Virus (Mosaic): no cure — remove infected clumps. Capsule rot (Phytophthora): Copper Oxychloride.', pest:'Thrips: spray thiamethoxam. Cardamom shoot borer: chlorpyrifos.', harvest:'Harvest capsules when 3/4 mature (green). Dry in curing chambers to 12% moisture.', market:'Cardamom ₹1,400–1,600/kg (Kumily). Premium grade exports through SPICE BOARD.', season:'Flowering: Mar–May. Harvest: Aug–Jan. Replanting: Jun–Jul.' },
+  'Coffee':{ irrigate:'Rain-fed but supplement in Feb–Apr (flowering). 15L/tree every 5 days during dry spell.', fertilize:'NPK 40:20:40 g/plant/yr for Robusta. Apply May and Sep. Borax spray 0.2% at flowering.', disease:'White Stem Borer: inject endosulfan in stem holes. Berry Borer: pheromone traps. Leaf Rust: Copper fungicide.', pest:'Mealy bug: dimethoate spray. Nematodes: soil treatment with carbofuran.', harvest:'Robusta: Nov–Jan. Arabica: Dec–Feb. Pulp immediately or dry as parchment.', market:'Robusta ₹165–195/kg (Wayanad). Arabica premium ₹250–300/kg. Coffee Board procurement.', season:'Flowering: Feb–Mar after pre-monsoon showers. Harvest: Nov–Feb.' },
+  'Tea':{ irrigate:'Well-distributed rainfall ideal. Supplement if >15 dry days: sprinkler irrigation essential.', fertilize:'High N demand: 150–180 kg N/ha/yr in 4 splits. Pruning years: reduce by 30%.', disease:'Blister Blight: copper spray. Die-back: prune infected stems. Red spider mite: miticide.', pest:'Tea mosquito bug: carbaryl spray. Looper caterpillar: endosulfan.', harvest:'Pluck 2 leaves + bud every 7–10 days in active season. Quality: young shoots only.', market:'Munnar tea ₹90–120/kg auction (factory). Orthodox tea: ₹180–250/kg.', season:'Active flush: Mar–Nov. Pruning: Nov–Dec. Light pruning alternate years.' },
+  'Ginger':{ irrigate:'Well-drained soils essential. 35–40mm/week. Avoid waterlogging — causes rhizome rot.', fertilize:'NPK 75:50:50 kg/ha + FYM 30t/ha. Top-dress N at 45 & 90 days.', disease:'Rhizome Rot (Pythium): Metalaxyl + Mancozeb 2.5g/L soil drench. Bacterial Wilt: no chemical control — rogue.', pest:'Shoot borer: chlorpyrifos 2ml/L. Red spider mite: sulfur dust. White grubs: soil treatment.', harvest:'8–9 months. Fresh ginger: 6 months. Dry ginger: 8–9 months. Yield: 15–25 t/ha.', market:'Fresh ginger ₹35–60/kg. Dry ginger ₹120–180/kg. Kozhikode & Ernakulam main markets.', season:'Plant Apr–May. Harvest Dec–Feb.' },
+  'Vegetables':{ irrigate:'Drip/sprinkler: 25–30mm/week. Sandy soils: every 2 days. Clay: every 4–5 days.', fertilize:'Leafy: NPK 60:30:30. Fruiting: NPK 60:60:60 + Ca for blossom-end rot. Organic mulching reduces need by 30%.', disease:'Downy Mildew: Mancozeb 2.5g/L. Fusarium Wilt: Carbendazim drench. Rotate crops every season.', pest:'Fruit borer: pheromone traps + Spinosad 0.5ml/L. Aphids: soap solution or imidacloprid.', harvest:'Harvest at physiological maturity. Early morning harvest. Pre-cool before market.', market:'Peak prices: Mar–May (summer scarcity). VFPCK procurement across Kerala.', season:'Kharif: Jun–Sep. Rabi (best): Oct–Feb. Summer: Mar–May (irrigation-intensive).' },
+  'Cashew':{ irrigate:'Drought tolerant. Young trees: 30L/tree twice weekly in summer. Mature: rain-fed.', fertilize:'NPK 500:125:125 g/tree/yr. Two splits: Sep–Oct and Jan–Feb. Borax spray 0.2% at flowering.', disease:'Die-back: prune, copper paste. Powdery Mildew: wettable sulfur during flowering. Anthracnose: Copper Oxychloride.', pest:'Tea Mosquito Bug (key pest): Carbaryl 2g/L during flushing. Stem/Root borer: chlorpyrifos.', harvest:'Fallen nuts + apple: May–Jun. Kernel recovery 22–25%. Dry nuts to <9% moisture.', market:'Raw cashew ₹120–180/kg. Kernels (W320) ₹800–1,200/kg. Kollam is cashew capital.', season:'Flowering: Dec–Feb. Harvest: Mar–May. Prune: Jun–Jul.' },
+  'Spices':{ irrigate:'Varies by spice. Most need well-drained moist soils. Drip irrigation preferred.', fertilize:'Follow individual crop schedules. Generally: high K for quality. Organic inputs improve flavour.', disease:'Fungal diseases dominant in monsoon. Copper-based fungicides as preventive.', pest:'Pollu beetle (pepper), thrips (cardamom), mealy bug (vanilla). Pheromone traps recommended.', harvest:'Harvest at right maturity for maximum essential oil/flavour content.', market:'Kerala spices command premium prices. Kochi Spice Exchange for black pepper, cardamom.', season:'Most spices: harvest Oct–Feb after monsoon.' },
+  'Arecanut':{ irrigate:'Drip: 15L/palm/day in summer. Basin: 100L every 5 days. Critical: Feb–Apr.', fertilize:'NPK 100:40:140 g/palm/yr + FYM 12kg. Two splits: Jun and Sep.', disease:'Mahali (Phytophthora): Metalaxyl drench. Koleroga (fruit rot): Copper Oxychloride spray during monsoon.', pest:'Mites: sulfur dust. Mealy bug: dimethoate. Spindle bug: chlorpyrifos.', harvest:'Harvest every 40 days. Soft arecanut (chali): immature stage. Dry: fully mature & dried.', market:'Arecanut ₹350–450/kg (whole). Kannur & Kasaragod main trading centres.', season:'Perennial. Main harvest: Oct–Feb.' },
+  'Coir':{ irrigate:'Coir is processed coconut husk — no irrigation needed.', fertilize:'N/A — processing industry, not direct cultivation.', disease:'N/A', pest:'N/A', harvest:'Retting of coconut husks: 6–10 months in backwaters. Mechanical retting 3–4 days.', market:'Coir yarn ₹60–90/kg. Coir geotextiles export premium. Alappuzha main coir hub.', season:'Year-round processing. Peak: Jan–Apr (dry season for sun-drying).' },
+};
+
+const SCHEME_KB = [
+  {name:'PM-KISAN',eligibility:'Small/marginal farmers (<2ha). Aadhaar + bank account required.',benefit:'₹6,000/year in 3 instalments',apply:'pmkisan.gov.in or nearest CSC'},
+  {name:'PMFBY Crop Insurance',eligibility:'Any farmer growing notified crops. Mandatory for KCC holders.',benefit:'Insurance cover — premium 2% Kharif, 1.5% Rabi',apply:'Bank or CSC before sowing cutoff'},
+  {name:'Kisan Credit Card',eligibility:'Farmers/fishermen/SHGs with land records. Crop loan up to ₹3 lakh.',benefit:'4% effective interest. ATM card access.',apply:'Any nationalized or cooperative bank'},
+  {name:'Kerala Karshaka Kshemanidhi',eligibility:'Registered Kerala farmers aged 60+.',benefit:'₹1,200/month pension',apply:'Krishi Bhavan with land records + age proof'},
+  {name:'RKVY Subsidy',eligibility:'Farmers, FPOs for mechanization/irrigation/cold storage.',benefit:'30–50% capital subsidy on approved projects',apply:'District Agriculture Office or KSAMB'},
+  {name:'PM Kisan Maandhan',eligibility:'Small/marginal farmers aged 18–40.',benefit:'₹3,000/month pension at 60. Govt matches contribution.',apply:'CSC with Aadhaar + bank details'},
+  {name:'Soil Health Card',eligibility:'All farmers — free.',benefit:'Crop-wise fertilizer recommendations + micro-nutrient analysis',apply:'Nearest Krishi Bhavan — valid 2 years'},
+  {name:'Kerala Horticulture Mission',eligibility:'Farmers growing vegetables/fruits in Kerala.',benefit:'50–75% subsidy on drip irrigation, shade nets, mulching',apply:'District Horticulture Officer by Jun 2026'},
+  {name:'e-NAM',eligibility:'All farmers — free registration.',benefit:'Online market for better price discovery',apply:'KSAMB portal or nearest e-NAM facilitation centre'},
+];
+
+let _geminiKey = '';
+let _aiHistory = [];
+let _aiInited  = false;
+
+function ruleEngineAnswer(question, districtName){
+  const q = question.toLowerCase();
+  const dist = DISTRICTS.find(d=>d.name===districtName)||null;
+  const hs   = dist ? (healthScores[dist.name]||{score:50,rain:0,temp:30,hum:70,dryDays:0}) : {score:50,rain:0,temp:30,hum:70,dryDays:0};
+  const wd   = dist ? weatherData[dist.name] : null;
+  const rain = wd?.daily?.precipitation_sum?.[0]||hs.rain||0;
+  const temp = wd?.daily?.temperature_2m_max?.[0]||hs.temp||30;
+  const hum  = hs.hum||70;
+  const score= hs.score||50;
+  const dryDays = hs.dryDays||0;
+  const crops = dist?.crops||['Paddy','Coconut','Rubber'];
+  const crop  = crops[0];
+  const kb    = CROP_KB[crop]||CROP_KB['Vegetables'];
+  const today = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+  const flood = dist ? (floodComposite(dist.name)||0) : 0;
+  const pest  = dist ? (pestMapScore(dist.name)||0) : 0;
+  const month = new Date().getMonth();
+  const loc   = districtName||'Kerala';
+
+  if(/irrigat|water|moisture|drip/.test(q)){
+    const urg = dryDays>4?'🔴 URGENT':dryDays>2?'🟠 Recommended':'🟢 Monitor';
+    return `**💧 Irrigation Advisory — ${loc}** (${today})\n\n**Status:** ${urg} — ${dryDays} dry day(s)\n**Rainfall today:** ${rain.toFixed(1)}mm · **Humidity:** ${hum}%\n\n**${crop}:** ${kb.irrigate}\n\n${dryDays>4?'⚠️ Dry spell — irrigate all crops today immediately.':rain>20?'✅ Adequate rainfall — skip irrigation to prevent waterlogging.':'Monitor topsoil moisture — irrigate if dry 2cm down.'}\n\n${crops.length>1?`**Other crops (${crops.slice(1).join(', ')}):** Check individual water needs based on growth stage.`:''}`;
+  }
+  if(/disease|pest|fungal|insect|spray|blight|rot|wilt|attack|pathogen/.test(q)){
+    const lvl = pest>=70?'🔴 HIGH':pest>=40?'🟠 MODERATE':'🟢 LOW';
+    const active = (typeof DISEASE_KB!=='undefined'?DISEASE_KB:[]).filter(d=>{
+      const cm=!d.crops?.length||d.crops.some(c=>crops.includes(c));
+      const mm=!d.peakMonths?.length||d.peakMonths.includes(month+1);
+      return cm&&mm;
+    }).slice(0,3);
+    const dList = active.length ? active.map(d=>`• **${d.emoji||'🌿'} ${d.name}:** ${d.action}`).join('\n') : '• No major disease alerts for this season.';
+    return `**🐛 Disease & Pest Advisory — ${loc}** (${today})\n\n**Risk Level:** ${lvl} (score ${pest}/100)\n**Conditions:** ${rain.toFixed(1)}mm rain · ${temp.toFixed(0)}°C · ${hum}% humidity\n\n**Active threats for ${crop}:**\n${dList}\n\n**Disease management:** ${kb.disease}\n**Pest management:** ${kb.pest}\n\n${hum>85&&rain>10?'⚠️ High humidity + rain = elevated fungal risk. Apply preventive fungicide immediately.':'Conditions moderate — scout fields twice weekly and maintain field hygiene.'}`;
+  }
+  if(/fertiliz|manure|npk|nutrient|urea|dap|potash|zinc|deficien/.test(q)){
+    return `**🌱 Fertilizer Advisory — ${loc}** (${today})\n\n**Primary crop:** ${crop} · **Health score:** ${score}/100\n**Conditions:** ${rain.toFixed(1)}mm rain · ${temp.toFixed(0)}°C\n\n**${crop} schedule:** ${kb.fertilize}\n\n${rain>30?'⚠️ Heavy rain forecast — delay top-dressing to avoid runoff loss.':dryDays>3?'⚠️ Dry conditions — irrigate before applying to prevent root burn.':'✅ Good conditions for fertilizer application today.'}\n\n**Organic tip:** Vermicompost 2t/ha + FYM 10t/ha improves soil health and reduces chemical input by 25–30%.`;
+  }
+  if(/market|price|sell|buy|mandi|rate|profit|value|trade/.test(q)){
+    const pp = window._prices ? window._prices.filter(p=>crops.some(c=>p.name.toLowerCase().includes(c.toLowerCase().slice(0,4)))).slice(0,3) : [];
+    const pl = pp.length ? pp.map(p=>`• **${p.name}:** ₹${p.price} ${p.unit} (${p.change>=0?'+':''}${p.change} today)`).join('\n') : '• Live prices loading — check Markets tab.';
+    return `**📈 Market Advisory — ${loc}** (${today})\n\n**Your crops:** ${crops.join(', ')}\n\n**Live prices:**\n${pl}\n\n**${crop} market:** ${kb.market}\n\n**Tips:**\n• Check KSAMB daily bulletin: ksamb.kerala.gov.in\n• Trade on e-NAM for better price discovery\n• Form/join FPO for collective bargaining\n• Store if below seasonal average — usually recovers in 3–4 weeks`;
+  }
+  if(/flood|waterlog|drain|river|alert|inundat/.test(q)){
+    const fl = flood>=70?'🔴 HIGH RISK':flood>=40?'🟠 MODERATE':'🟢 LOW';
+    const fv = (typeof FLOOD_VULN!=='undefined'&&FLOOD_VULN)?FLOOD_VULN[districtName]:null;
+    return `**🌊 Flood Risk Advisory — ${loc}** (${today})\n\n**Risk:** ${fl} (score ${flood}/100)\n**Rainfall today:** ${rain.toFixed(1)}mm\n${fv?`**Vulnerability:** ${fv.vuln} | Rivers: ${fv.rivers?.join(', ')||'N/A'}\n`:''}\n**Actions:**\n${flood>=70?'• 🛑 Halt all field operations\n• Move machinery & produce to high ground\n• Monitor KSDMA every 2 hours\n• Ensure pump drainage is functional':flood>=40?'• Prepare drainage channels in low-lying fields\n• Delay transplanting/direct sowing\n• Secure light equipment and inputs\n• Monitor river levels if near floodplains':'• Routine monitoring — normal precautions\n• Keep drainage channels clear\n• Ensure field bunds are intact'}\n\n**KSDMA helpline:** 0471-2364424`;
+  }
+  if(/plant|sow|crop plan|next season|cultivat|variety|which crop/.test(q)){
+    const sn = month>=5&&month<=8?'Kharif (Virippu)':month>=9&&month<=11?'Rabi (Mundakan)':'Summer (Puncha/Pre-Kharif)';
+    return `**🌾 Crop Planning — ${loc}** (${today})\n\n**Current season:** ${sn}\n**District crops:** ${crops.join(', ')}\n\n**Season guide for your crops:**\n${crops.map(c=>`• **${c}:** ${(CROP_KB[c]||CROP_KB['Vegetables']).season}`).join('\n')}\n\n**High-value options to consider:**\n• Vegetables (Rabi Oct–Feb): high returns, 60–90 day cycle\n• Banana (Nendran): ₹35–55/kg, strong Onam demand\n• Pepper: premium prices, semi drought-tolerant\n• Cardamom (Idukki belt): ₹1,400+/kg\n\n**This season:** ${month>=5&&month<=8?'Complete paddy transplanting before July 15. Ensure seed treatment done.':month>=9&&month<=11?'Harvest kharif crops. Prepare land for rabi vegetables and pulses.':'Focus on perennial crop maintenance. Plan summer irrigation schedule.'}`;
+  }
+  if(/scheme|subsid|govern|benefit|eligib|apply|pension|insurance|kisan/.test(q)){
+    return `**🏛️ Govt Schemes — ${loc}**\n\n${SCHEME_KB.slice(0,5).map(s=>`**${s.name}**\n• ${s.eligibility}\n• Benefit: ${s.benefit}\n• Apply: ${s.apply}`).join('\n\n')}\n\n**More:** Kerala Horticulture Mission (50–75% subsidy), RKVY grants, e-NAM registration.\n\nVisit your **Krishi Bhavan** with Aadhaar + land records to apply for most schemes.`;
+  }
+  // General / today
+  const acts=[];
+  if(dryDays>3) acts.push(`💧 Irrigate ${crop} — ${dryDays} dry days`);
+  if(rain>30) acts.push(`🌊 Check drainage — ${rain.toFixed(0)}mm rain today`);
+  if(temp>36) acts.push(`🌡️ Heat stress — mulch soil and shade nurseries`);
+  if(pest>=60) acts.push(`🐛 Scout for disease — risk score ${pest}/100`);
+  if(flood>=60) acts.push(`⚠️ Flood precautions — risk score ${flood}/100`);
+  if(score<50) acts.push(`🔴 Crop health critical (${score}/100) — urgent intervention`);
+  if(!acts.length) acts.push('✅ Conditions moderate — routine monitoring','📋 Check soil moisture','🌿 Inspect for early pest signs');
+  return `**📋 Today's Advisory — ${loc}** (${today})\n\n**Health:** ${score}/100 · **Crop:** ${crop}${crops.length>1?` + ${crops.slice(1).join(', ')}`:''}\n**Weather:** ${rain.toFixed(1)}mm · ${temp.toFixed(0)}°C · ${hum}% humidity\n\n**Priority actions today:**\n${acts.map(a=>`• ${a}`).join('\n')}\n\n**${crop} seasonal note:** ${kb.season}\n\n_Based on Open-Meteo live weather · ${today}_`;
+}
+
+async function geminiAnswer(question, districtName){
+  const dist = DISTRICTS.find(d=>d.name===districtName);
+  const hs   = dist?(healthScores[dist.name]||{score:50,hum:70}):{score:50,hum:70};
+  const wd   = dist?weatherData[dist.name]:null;
+  const rain = wd?.daily?.precipitation_sum?.[0]||0;
+  const temp = wd?.daily?.temperature_2m_max?.[0]||30;
+  const crops= dist?.crops?.join(', ')||'Paddy, Coconut, Rubber';
+  const today= new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  const ctx  = `You are AgroScope, an expert AI agricultural advisor for Kerala, India. Today: ${today}. Location: ${districtName||'Kerala'}. Crops: ${crops}. Crop health: ${hs.score}/100. Rainfall: ${rain.toFixed(1)}mm. Temp: ${temp.toFixed(0)}°C. Humidity: ${hs.hum||70}%. Flood risk: ${dist?(floodComposite(dist.name)||0):0}/100. Disease risk: ${dist?(pestMapScore(dist.name)||0):0}/100. Provide concise actionable advice for Kerala farmers. Use Indian units (kg/ha, ₹/qt). Reference KAU recommendations and Kerala-specific schemes. Format with bold headers and bullets. Max 250 words.`;
+  const url  = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${_geminiKey}`;
+  const body = {
+    contents:[
+      {role:'user',parts:[{text:ctx}]},
+      ..._aiHistory.slice(-6).map(h=>({role:h.role,parts:[{text:h.text}]})),
+      {role:'user',parts:[{text:question}]}
+    ],
+    generationConfig:{maxOutputTokens:450,temperature:0.4}
+  };
+  const res = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`HTTP ${res.status}`);}
+  const data = await res.json();
+  return data.candidates?.[0]?.content?.parts?.[0]?.text||'No response received.';
+}
+
+function aiKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend();}}
+
+function onApiKeyInput(val){
+  _geminiKey=val.trim();
+  const s=document.getElementById('ai-key-status');
+  const m=document.getElementById('ai-mode-badge');
+  if(_geminiKey.length>20){s.textContent='Key set ✓';s.className='ai-key-badge connected';m.textContent='Gemini AI';m.className='ai-key-badge connected';}
+  else{s.textContent='No Key';s.className='ai-key-badge disconnected';m.textContent='Rule Engine';m.className='ai-key-badge disconnected';}
+}
+
+function aiChip(text){
+  const ta=document.getElementById('ai-textarea');
+  ta.value=text;
+  aiSend();
+}
+
+async function aiSend(){
+  const ta=document.getElementById('ai-textarea');
+  const btn=document.getElementById('ai-send-btn');
+  const sel=document.getElementById('ai-district-sel');
+  const hist=document.getElementById('ai-chat-history');
+  const q=ta.value.trim();if(!q)return;
+  const district=sel.value||'';
+  const welcome=hist.querySelector('.ai-welcome');if(welcome)welcome.remove();
+  hist.innerHTML+=`<div class="ai-bubble user">${escHtml(q)}<div class="ai-bubble-meta">${district||'All Kerala'} · ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div></div>`;
+  ta.value='';btn.disabled=true;
+  const tid='t'+Date.now();
+  hist.innerHTML+=`<div class="ai-bubble bot thinking" id="${tid}">⟳ Thinking…</div>`;
+  hist.scrollTop=hist.scrollHeight;
+  _aiHistory.push({role:'user',text:q});
+  let ans='';
+  try{
+    if(_geminiKey.length>20) ans=await geminiAnswer(q,district);
+    else ans=ruleEngineAnswer(q,district);
+  }catch(e){
+    ans=`⚠️ ${e.message}\n\nFalling back to rule engine:\n\n${ruleEngineAnswer(q,district)}`;
+  }
+  _aiHistory.push({role:'model',text:ans});
+  const th=document.getElementById(tid);if(th)th.remove();
+  const fmt=ans.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
+  hist.innerHTML+=`<div class="ai-bubble bot">${fmt}<div class="ai-bubble-meta">${_geminiKey.length>20?'Gemini AI':'Rule Engine'} · ${district||'All Kerala'} · ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div></div>`;
+  hist.scrollTop=hist.scrollHeight;
+  btn.disabled=false;
+  renderAIQuickCards(district);
+}
+
+function renderAIQuickCards(districtName){
+  const list=document.getElementById('ai-quick-list');if(!list)return;
+  const dist=DISTRICTS.find(d=>d.name===districtName);
+  const cards=[];
+  if(dist){
+    const hs=healthScores[dist.name]||{score:50,rain:0,temp:30,hum:70,dryDays:0};
+    const flood=floodComposite(dist.name)||0;
+    const pest=pestMapScore(dist.name)||0;
+    const crops=dist.crops;
+    cards.push({icon:'🌿',title:`${crops[0]} Health`,sev:hs.score<40?'Critical':hs.score<65?'Warning':'Good',sc:hs.score<40?'c':hs.score<65?'w':'g',body:`Score ${hs.score}/100 · ${(hs.rain||0).toFixed(1)}mm rain · ${(hs.temp||30).toFixed(0)}°C · ${hs.hum||70}% humidity`,acts:[{l:'💧 Irrigate',q:`Irrigation advice for ${crops[0]} in ${districtName}`},{l:'🌱 Fertilize',q:`Fertilizer schedule for ${crops[0]} in ${districtName}`},{l:'🐛 Scout',q:`Disease risk for ${crops[0]} in ${districtName}`}]});
+    cards.push({icon:'🌊',title:'Flood Risk',sev:flood>=70?'High':flood>=40?'Moderate':'Low',sc:flood>=70?'c':flood>=40?'w':'g',body:`Composite score ${flood}/100 · ${(hs.rain||0).toFixed(1)}mm today`,acts:[{l:'Precautions',q:`Flood precautions for ${districtName}`}]});
+    cards.push({icon:'🐛',title:'Disease Risk',sev:pest>=70?'High':pest>=40?'Moderate':'Low',sc:pest>=70?'c':pest>=40?'w':'g',body:`Risk score ${pest}/100 · ${hs.hum||70}% humidity · ${(hs.rain||0).toFixed(1)}mm rain`,acts:crops.slice(0,2).map(c=>({l:`${c} diseases`,q:`Disease risks for ${c} in ${districtName}`}))});
+    const pp=window._prices?window._prices.filter(p=>crops.some(c=>p.name.toLowerCase().includes(c.toLowerCase().slice(0,4)))).slice(0,2):[];
+    cards.push({icon:'📈',title:'Market',sev:'',sc:'g',body:pp.length?pp.map(p=>`${p.name}: ₹${p.price} (${p.change>=0?'+':''}${p.change})`).join(' · '):'Tap for live prices',acts:[{l:'Sell timing',q:`Market timing for ${crops[0]} in ${districtName}`}]});
+    cards.push({icon:'🌾',title:'Crop Planning',sev:'',sc:'g',body:`Season: ${new Date().getMonth()>=5&&new Date().getMonth()<=8?'Kharif active':new Date().getMonth()>=9?'Rabi season':'Pre-monsoon'} · Crops: ${crops.join(', ')}`,acts:[{l:'What to plant',q:`What crops to plant next season in ${districtName}`},{l:'Harvest timing',q:`Harvest timing for ${crops[0]} in ${districtName}`}]});
+  } else {
+    const avg=Object.values(healthScores).reduce((s,h)=>s+(h?.score||50),0)/14;
+    const crit=DISTRICTS.filter(d=>(healthScores[d.name]?.score||50)<50);
+    cards.push({icon:'🗺️',title:'Kerala Overview',sev:'',sc:'g',body:`Avg health ${avg.toFixed(0)}/100 · ${crit.length} district(s) need attention`,acts:[{l:'Highest risk district',q:'Which district has highest crop risk today?'},{l:'Today\'s overview',q:'Give me an overview of Kerala farming conditions today'}]});
+    DISTRICTS.slice(0,4).forEach(d=>{
+      const hs=healthScores[d.name]||{score:50};
+      cards.push({icon:'📍',title:d.name,sev:`${hs.score}/100`,sc:hs.score<50?'c':hs.score<70?'w':'g',body:`${d.crops.slice(0,2).join(', ')} · Score ${hs.score}/100`,acts:[{l:'Full advisory',q:`Full farming advisory for ${d.name}`}]});
+    });
+  }
+  document.getElementById('ai-adv-count').textContent=cards.length;
+  list.innerHTML=cards.map(c=>`<div class="ai-qcard"><div class="ai-qcard-head"><span class="ai-qcard-icon">${c.icon}</span><span class="ai-qcard-title">${c.title}</span>${c.sev?`<span class="ai-qcard-sev sev-${c.sc}">${c.sev}</span>`:''}</div><div class="ai-qcard-body">${c.body}</div><div class="ai-qcard-actions">${c.acts.map(a=>`<button class="ai-qcard-btn" onclick="aiChipQ(${JSON.stringify(a.q)})">${a.l}</button>`).join('')}</div></div>`).join('');
+}
+
+function aiChipQ(q){
+  const ta=document.getElementById('ai-textarea');
+  ta.value=q;aiSend();
+}
+
+function initAIAdvisory(){
+  const sel=document.getElementById('ai-district-sel');
+  if(sel&&sel.options.length===1){
+    DISTRICTS.forEach(d=>{const o=document.createElement('option');o.value=d.name;o.textContent=d.name;sel.appendChild(o);});
+  }
+  renderAIQuickCards('');
+}
 
 </script>
 </body>
