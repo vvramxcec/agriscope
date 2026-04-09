@@ -424,6 +424,41 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
 .ai-welcome-sub{font-size:10px;line-height:1.5;}
 
 </style>
+
+  <!-- Firebase AI Logic SDK -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js';
+    import { getAI, getGenerativeModel, GoogleAIBackend }
+      from 'https://www.gstatic.com/firebasejs/11.6.0/firebase-ai.js';
+
+    // ── PASTE YOUR FIREBASE CONFIG HERE ──────────────────────────────────────
+    // Get this from: Firebase Console → Project Settings → Your apps → Web app
+    const firebaseConfig = {
+      apiKey:            "AIzaSyAS_hmjgoi9hD4Ke5HZ0F2su-Mf4w3E49g",
+      authDomain:        "agroscope-d37d9.firebaseapp.com",
+      projectId:         "agroscope-d37d9",
+      storageBucket:     "agroscope-d37d9.firebasestorage.app",
+      messagingSenderId: "205928366585",
+      appId:             "1:205928366585:web:cd23a8a9cccbb97ca97d28"
+    };
+    // ─────────────────────────────────────────────────────────────────────────
+
+    try {
+      const firebaseApp = initializeApp(firebaseConfig);
+      const ai = getAI(firebaseApp, { backend: new GoogleAIBackend() });
+      const model = getGenerativeModel(ai, {
+        model: 'gemini-2.0-flash',
+        generationConfig: { maxOutputTokens: 450, temperature: 0.4 }
+      });
+      window._firebaseModel = model;
+      window._firebaseReady = true;
+      console.log('[AgroScope] Firebase AI Logic ready ✓');
+    } catch(e) {
+      console.warn('[AgroScope] Firebase AI init failed:', e.message);
+      window._firebaseReady = false;
+    }
+  </script>
+
 </head>
 <body>
 
@@ -674,9 +709,9 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
         <span id="ai-mode-badge" class="ai-key-badge disconnected" style="margin-left:auto;">Rule Engine</span>
       </div>
       <div class="ai-key-bar">
-        <i data-lucide="key" style="width:10px;height:10px;color:var(--color-text-faint);flex-shrink:0"></i>
-        <input class="ai-key-input" id="ai-key-input" type="password" placeholder="Optional: paste Gemini API key for full AI chat (aistudio.google.com — free)" oninput="onApiKeyInput(this.value)"/>
-        <span id="ai-key-status" class="ai-key-badge disconnected">No Key</span>
+        <i data-lucide="shield-check" style="width:10px;height:10px;color:var(--color-text-faint);flex-shrink:0"></i>
+        <span style="flex:1;font-size:10px;color:var(--color-text-faint);">Powered by Firebase AI Logic — API key secured on server</span>
+        <span id="ai-key-status" class="ai-key-badge disconnected">Checking…</span>
       </div>
       <div class="ai-chips">
         <span style="font-size:9px;color:var(--color-text-faint);align-self:center;flex-shrink:0;">Ask:</span>
@@ -693,7 +728,7 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
         <div class="ai-welcome">
           <div class="ai-welcome-icon">🌾</div>
           <div class="ai-welcome-title">AgroScope AI Advisory</div>
-          <div class="ai-welcome-sub">Select your district below, then tap a chip or type any farming question.<br>Instant answers offline · Connect Gemini API key for full conversational AI.</div>
+          <div class="ai-welcome-sub">Select your district below, then tap a chip or type any farming question.<br>Instant answers offline with rule engine · Full AI powered by Firebase (no key needed).</div>
         </div>
       </div>
       <div class="ai-input-bar">
@@ -2528,27 +2563,58 @@ function ruleEngineAnswer(question, districtName){
 }
 
 async function geminiAnswer(question, districtName){
-  const dist = DISTRICTS.find(d=>d.name===districtName);
-  const hs   = dist?(healthScores[dist.name]||{score:50,hum:70}):{score:50,hum:70};
-  const wd   = dist?weatherData[dist.name]:null;
-  const rain = wd?.daily?.precipitation_sum?.[0]||0;
-  const temp = wd?.daily?.temperature_2m_max?.[0]||30;
-  const crops= dist?.crops?.join(', ')||'Paddy, Coconut, Rubber';
-  const today= new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-  const ctx  = `You are AgroScope, an expert AI agricultural advisor for Kerala, India. Today: ${today}. Location: ${districtName||'Kerala'}. Crops: ${crops}. Crop health: ${hs.score}/100. Rainfall: ${rain.toFixed(1)}mm. Temp: ${temp.toFixed(0)}°C. Humidity: ${hs.hum||70}%. Flood risk: ${dist?(floodComposite(dist.name)||0):0}/100. Disease risk: ${dist?(pestMapScore(dist.name)||0):0}/100. Provide concise actionable advice for Kerala farmers. Use Indian units (kg/ha, ₹/qt). Reference KAU recommendations and Kerala-specific schemes. Format with bold headers and bullets. Max 250 words.`;
-  const url  = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${_geminiKey}`;
-  const body = {
-    contents:[
-      {role:'user',parts:[{text:ctx}]},
-      ..._aiHistory.slice(-6).map(h=>({role:h.role,parts:[{text:h.text}]})),
-      {role:'user',parts:[{text:question}]}
-    ],
-    generationConfig:{maxOutputTokens:450,temperature:0.4}
-  };
-  const res = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-  if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`HTTP ${res.status}`);}
-  const data = await res.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text||'No response received.';
+  // ── Firebase AI Logic path (key lives on Firebase servers, never exposed) ──
+  if(window._firebaseReady && window._firebaseModel){
+    const dist  = DISTRICTS.find(d=>d.name===districtName);
+    const hs    = dist?(healthScores[dist.name]||{score:50,hum:70}):{score:50,hum:70};
+    const wd    = dist?weatherData[dist.name]:null;
+    const rain  = wd?.daily?.precipitation_sum?.[0]||0;
+    const temp  = wd?.daily?.temperature_2m_max?.[0]||30;
+    const crops = dist?.crops?.join(', ')||'Paddy, Coconut, Rubber';
+    const today = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const flood = dist?(floodComposite(dist.name)||0):0;
+    const pest  = dist?(pestMapScore(dist.name)||0):0;
+
+    const prompt = `You are AgroScope, an expert AI agricultural advisor for Kerala, India.
+Today: ${today}. District: ${districtName||'Kerala'}. Crops: ${crops}.
+Crop health: ${hs.score||50}/100. Rainfall: ${rain.toFixed(1)}mm. Temp: ${temp.toFixed(0)}°C. Humidity: ${hs.hum||70}%.
+Flood risk: ${flood}/100. Disease/pest risk: ${pest}/100.
+Provide concise actionable advice specific to Kerala farmers. Use Indian units (kg/ha, ₹/qt).
+Reference KAU (Kerala Agricultural University) recommendations and Kerala govt schemes where relevant.
+Format with bold headers (**text**) and bullet points. Keep under 250 words.
+
+Farmer's question: ${question}`;
+
+    const result = await window._firebaseModel.generateContent(prompt);
+    return result.response.text();
+  }
+
+  // ── Fallback: direct Gemini REST API (if user has manually set a key) ──────
+  if(_geminiKey && _geminiKey.length>20){
+    const dist  = DISTRICTS.find(d=>d.name===districtName);
+    const hs    = dist?(healthScores[dist.name]||{score:50,hum:70}):{score:50,hum:70};
+    const wd    = dist?weatherData[dist.name]:null;
+    const rain  = wd?.daily?.precipitation_sum?.[0]||0;
+    const temp  = wd?.daily?.temperature_2m_max?.[0]||30;
+    const crops = dist?.crops?.join(', ')||'Paddy, Coconut, Rubber';
+    const today = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+    const ctx   = `You are AgroScope, an expert AI agricultural advisor for Kerala, India. Today: ${today}. District: ${districtName||'Kerala'}. Crops: ${crops}. Crop health: ${hs.score||50}/100. Rainfall: ${rain.toFixed(1)}mm. Temp: ${temp.toFixed(0)}°C. Humidity: ${hs.hum||70}%. Provide concise actionable Kerala farming advice in under 250 words.`;
+    const url   = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${_geminiKey}`;
+    const body  = {
+      contents:[
+        {role:'user',parts:[{text:ctx}]},
+        ..._aiHistory.slice(-6).map(h=>({role:h.role,parts:[{text:h.text}]})),
+        {role:'user',parts:[{text:question}]}
+      ],
+      generationConfig:{maxOutputTokens:450,temperature:0.4}
+    };
+    const res = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`HTTP ${res.status}`);}
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text||'No response received.';
+  }
+
+  throw new Error('No AI backend available');
 }
 
 function aiKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend();}}
@@ -2583,7 +2649,7 @@ async function aiSend(){
   _aiHistory.push({role:'user',text:q});
   let ans='';
   try{
-    if(_geminiKey.length>20) ans=await geminiAnswer(q,district);
+    if(window._firebaseReady || _geminiKey.length>20) ans=await geminiAnswer(q,district);
     else ans=ruleEngineAnswer(q,district);
   }catch(e){
     ans=`⚠️ ${e.message}\n\nFalling back to rule engine:\n\n${ruleEngineAnswer(q,district)}`;
@@ -2591,7 +2657,7 @@ async function aiSend(){
   _aiHistory.push({role:'model',text:ans});
   const th=document.getElementById(tid);if(th)th.remove();
   const fmt=ans.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>').replace(/\n/g,'<br>');
-  hist.innerHTML+=`<div class="ai-bubble bot">${fmt}<div class="ai-bubble-meta">${_geminiKey.length>20?'Gemini AI':'Rule Engine'} · ${district||'All Kerala'} · ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div></div>`;
+  hist.innerHTML+=`<div class="ai-bubble bot">${fmt}<div class="ai-bubble-meta">${window._firebaseReady?'Firebase AI':_geminiKey.length>20?'Gemini AI':'Rule Engine'} · ${district||'All Kerala'} · ${new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit'})}</div></div>`;
   hist.scrollTop=hist.scrollHeight;
   btn.disabled=false;
   renderAIQuickCards(district);
@@ -2631,6 +2697,16 @@ function aiChipQ(q){
 }
 
 function initAIAdvisory(){
+  // Update status badge based on Firebase readiness
+  const statusBadge = document.getElementById('ai-key-status');
+  const modeBadge   = document.getElementById('ai-mode-badge');
+  if(window._firebaseReady){
+    if(statusBadge){statusBadge.textContent='Connected ✓';statusBadge.className='ai-key-badge connected';}
+    if(modeBadge){modeBadge.textContent='Firebase AI';modeBadge.className='ai-key-badge connected';}
+  } else {
+    if(statusBadge){statusBadge.textContent='Config needed';statusBadge.className='ai-key-badge disconnected';}
+    if(modeBadge){modeBadge.textContent='Rule Engine';modeBadge.className='ai-key-badge disconnected';}
+  }
   const sel=document.getElementById('ai-district-sel');
   if(sel&&sel.options.length===1){
     DISTRICTS.forEach(d=>{const o=document.createElement('option');o.value=d.name;o.textContent=d.name;sel.appendChild(o);});
