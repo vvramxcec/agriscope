@@ -314,6 +314,65 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
 .vuln-bg{flex:1;height:4px;background:var(--color-surface-3);border-radius:99px;overflow:hidden;}
 .vuln-fill{height:100%;border-radius:99px;}
 .vuln-val{font-size:10px;font-weight:600;width:28px;text-align:right;}
+
+/* ── NEWS HUB ── */
+#news-view{display:none;flex:1;overflow:hidden;flex-direction:column;}
+#news-view.active{display:flex;}
+.news-wrap{display:flex;flex:1;overflow:hidden;gap:0;}
+.news-col{flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--color-border);}
+.news-col:last-child{border-right:none;}
+.news-col-head{padding:8px 14px 6px;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:6px;flex-shrink:0;}
+.news-col-title{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);}
+.news-col-badge{font-size:9px;background:var(--color-primary-dim);color:var(--color-primary);border-radius:8px;padding:1px 6px;margin-left:auto;}
+.news-scroll{flex:1;overflow-y:auto;padding:6px 10px 10px;}
+.news-card{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;cursor:pointer;transition:border-color .15s;}
+.news-card:hover{border-color:rgba(74,222,128,0.3);}
+.news-card-top{display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;}
+.news-tag{font-size:8px;font-weight:700;letter-spacing:.05em;padding:1px 5px;border-radius:4px;flex-shrink:0;margin-top:1px;}
+.tag-critical{background:rgba(239,68,68,.18);color:#f87171;}
+.tag-warning{background:rgba(251,146,60,.18);color:#fb923c;}
+.tag-watch{background:rgba(251,191,36,.18);color:#fbbf24;}
+.tag-news{background:rgba(56,189,248,.18);color:#38bdf8;}
+.tag-scheme{background:rgba(167,139,250,.18);color:#a78bfa;}
+.tag-market{background:rgba(74,222,128,.18);color:#4ade80;}
+.tag-pest{background:rgba(251,113,133,.18);color:#fb7185;}
+.news-card-title{font-size:11px;font-weight:600;color:var(--color-text);line-height:1.35;}
+.news-card-body{font-size:10px;color:var(--color-text-muted);line-height:1.4;margin-bottom:4px;}
+.news-card-meta{display:flex;gap:8px;font-size:9px;color:var(--color-text-faint);}
+.news-source{font-weight:600;color:var(--color-text-muted);}
+.news-card-link{font-size:9px;color:var(--color-primary);text-decoration:none;margin-left:auto;}
+.news-card-link:hover{text-decoration:underline;}
+.news-empty{font-size:11px;color:var(--color-text-faint);padding:16px 4px;text-align:center;}
+.news-spinner{font-size:10px;color:var(--color-text-faint);padding:12px 4px;text-align:center;animation:pulse 1.5s infinite;}
+.news-filter-bar{display:flex;gap:4px;padding:5px 10px;border-bottom:1px solid var(--color-border);flex-wrap:wrap;flex-shrink:0;}
+.nf-btn{font-size:9px;padding:2px 7px;border-radius:10px;border:1px solid var(--color-border);background:transparent;color:var(--color-text-muted);cursor:pointer;transition:all .15s;}
+.nf-btn.active,.nf-btn:hover{background:var(--color-primary-dim);color:var(--color-primary);border-color:rgba(74,222,128,.3);}
+.adv-card{background:var(--color-surface-2);border-left:3px solid #3f5c47;border-radius:0 var(--radius) var(--radius) 0;padding:7px 10px;margin-bottom:5px;}
+.adv-card.sev-critical{border-left-color:#ef4444;}
+.adv-card.sev-warning{border-left-color:#f97316;}
+.adv-card.sev-watch{border-left-color:#eab308;}
+.adv-card.sev-ok{border-left-color:#4ade80;}
+.adv-card-top{display:flex;align-items:center;gap:5px;margin-bottom:2px;}
+.adv-icon{font-size:13px;flex-shrink:0;}
+.adv-district{font-size:10px;font-weight:700;color:var(--color-text);}
+.adv-crop{font-size:9px;color:var(--color-primary);margin-left:auto;}
+.adv-msg{font-size:10px;color:var(--color-text-muted);line-height:1.4;}
+.adv-actions{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
+.adv-action-btn{font-size:8px;padding:1px 6px;border-radius:4px;background:var(--color-surface-3);color:var(--color-text-muted);border:1px solid var(--color-border);cursor:pointer;}
+.scheme-card{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;}
+.scheme-title{font-size:11px;font-weight:700;color:var(--color-text);margin-bottom:2px;}
+.scheme-body{font-size:10px;color:var(--color-text-muted);line-height:1.4;margin-bottom:4px;}
+.scheme-meta{font-size:9px;color:var(--color-text-faint);display:flex;gap:8px;}
+.scheme-badge{font-size:8px;font-weight:700;padding:1px 6px;border-radius:4px;background:rgba(167,139,250,.18);color:#a78bfa;}
+.imd-card{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;}
+.imd-card.imd-red{border-left:3px solid #ef4444;}
+.imd-card.imd-orange{border-left:3px solid #f97316;}
+.imd-card.imd-yellow{border-left:3px solid #eab308;}
+.imd-card.imd-green{border-left:3px solid #4ade80;}
+.imd-title{font-size:11px;font-weight:700;color:var(--color-text);}
+.imd-body{font-size:10px;color:var(--color-text-muted);line-height:1.4;margin-top:2px;}
+.imd-meta{font-size:9px;color:var(--color-text-faint);margin-top:3px;}
+
 </style>
 </head>
 <body>
@@ -345,6 +404,7 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
   <div class="nav-item" data-nav="markets" onclick="switchNav('markets',this)"><i data-lucide="trending-up"></i><span class="nav-tooltip">Markets</span></div>
   <div class="nav-item" data-nav="alerts" onclick="switchNav('alerts',this)" style="position:relative"><i data-lucide="triangle-alert"></i><span class="nav-tooltip">Alerts</span><span class="alert-count" id="nav-alert-count">0</span></div>
   <div class="nav-item" data-nav="flood" onclick="switchNav('flood',this)"><i data-lucide="waves"></i><span class="nav-tooltip">Flood Risk</span></div>
+  <div class="nav-item" data-nav="news" onclick="switchNav('news',this)"><i data-lucide="newspaper"></i><span class="nav-tooltip">News Hub</span></div>
   <div class="nav-spacer"></div>
   <div class="nav-item" onclick="switchNav('overview',document.querySelector('[data-nav=overview]'))"><i data-lucide="settings"></i><span class="nav-tooltip">Settings</span></div>
 </nav>
@@ -487,6 +547,72 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
     </table>
   </div>
 </div>
+
+<!-- NEWS HUB VIEW -->
+<div id="news-view">
+  <div class="news-wrap">
+
+    <!-- COL 1: Live News Feed -->
+    <div class="news-col" style="flex:1.2;">
+      <div class="news-col-head">
+        <i data-lucide="newspaper" style="width:12px;height:12px;color:var(--color-primary)"></i>
+        <span class="news-col-title">Live News</span>
+        <span class="news-col-badge" id="news-live-count">—</span>
+      </div>
+      <div class="news-filter-bar">
+        <button class="nf-btn active" onclick="filterNews('all',this)">All</button>
+        <button class="nf-btn" onclick="filterNews('agri',this)">🌾 Agri</button>
+        <button class="nf-btn" onclick="filterNews('weather',this)">🌦️ Weather</button>
+        <button class="nf-btn" onclick="filterNews('market',this)">📈 Market</button>
+        <button class="nf-btn" onclick="filterNews('pest',this)">🐛 Pest</button>
+      </div>
+      <div class="news-scroll" id="news-feed-list">
+        <div class="news-spinner">⟳ Fetching latest news…</div>
+      </div>
+    </div>
+
+    <!-- COL 2: District Advisories -->
+    <div class="news-col">
+      <div class="news-col-head">
+        <i data-lucide="triangle-alert" style="width:12px;height:12px;color:#fb923c"></i>
+        <span class="news-col-title">District Advisories</span>
+        <span class="news-col-badge" id="news-adv-count">—</span>
+      </div>
+      <div class="news-filter-bar">
+        <button class="nf-btn active" onclick="filterAdvisories('all',this)">All</button>
+        <button class="nf-btn" onclick="filterAdvisories('critical',this)">🔴 Critical</button>
+        <button class="nf-btn" onclick="filterAdvisories('warning',this)">🟠 Warning</button>
+        <button class="nf-btn" onclick="filterAdvisories('watch',this)">🟡 Watch</button>
+        <button class="nf-btn" onclick="filterAdvisories('ok',this)">🟢 OK</button>
+      </div>
+      <div class="news-scroll" id="news-adv-list"></div>
+    </div>
+
+    <!-- COL 3: IMD Bulletins -->
+    <div class="news-col">
+      <div class="news-col-head">
+        <i data-lucide="cloud-lightning" style="width:12px;height:12px;color:#38bdf8"></i>
+        <span class="news-col-title">IMD Bulletins</span>
+        <span class="news-col-badge" id="news-imd-count">—</span>
+      </div>
+      <div class="news-scroll" id="news-imd-list">
+        <div class="news-spinner">⟳ Generating from live weather…</div>
+      </div>
+    </div>
+
+    <!-- COL 4: Govt Schemes -->
+    <div class="news-col">
+      <div class="news-col-head">
+        <i data-lucide="landmark" style="width:12px;height:12px;color:#a78bfa"></i>
+        <span class="news-col-title">Govt Schemes</span>
+        <span class="news-col-badge">Kerala</span>
+      </div>
+      <div class="news-scroll" id="news-schemes-list"></div>
+    </div>
+
+  </div>
+</div>
+
 
 </div>
 
@@ -1812,6 +1938,18 @@ function populateDDFlood(name){
   <div style="margin-top:10px;padding:8px 10px;border-radius:6px;background:var(--color-surface);font-size:11px;line-height:1.5;border-left:3px solid ${floodColor(score)}">${adv}</div>
   <div style="margin-top:5px;font-size:9px;color:var(--color-text-faint)">Score:${score}/100 · KSDMA · IMD · Open-Meteo</div>`;
 }
+function showNewsView(on){
+  const nv=document.getElementById('news-view');
+  const mc=document.getElementById('map-container');
+  if(on){
+    nv.classList.add('active');
+    if(mc) mc.style.display='none';
+    initNewsHub();
+  } else {
+    nv.classList.remove('active');
+    if(mc) mc.style.display='';
+  }
+}
 function showFloodView(on){
   const fv=document.getElementById('flood-view');
   const mc=document.getElementById('map-container');
@@ -1826,16 +1964,19 @@ function switchNav(view, btn){
   if(navBtn) navBtn.classList.add('active');
   showMarketsView(false);
   showFloodView(false);
+  showNewsView(false);
   if(view==='markets'){
     showMarketsView(true);
   } else if(view==='flood'){
     showFloodView(true);
     setLayer('floodrisk',true);
+  } else if(view==='news'){
+    showNewsView(true);
   } else {
     const layerMap={overview:'rainfall',weather:'rainfall',crophealth:'crophealth',alerts:'pestmap'};
     setLayer(layerMap[view]||'rainfall',true);
   }
-  const rpMap={overview:'weather',weather:'weather',crophealth:'health',markets:'prices',alerts:'alerts',flood:'flood'};
+  const rpMap={overview:'weather',weather:'weather',crophealth:'health',markets:'prices',alerts:'alerts',flood:'flood',news:'alerts'};
   const rpTab=rpMap[view]||'weather';
   const rpBtns=document.querySelectorAll('.rp-tab');
   const rpOrder=['weather','health','alerts','flood','prices'];
@@ -1845,6 +1986,320 @@ function switchNav(view, btn){
 }
 
 document.addEventListener('DOMContentLoaded',()=>{ lucide.createIcons(); init(); });
+
+/* ══════════════════════════════════════════════
+   NEWS HUB — data, renderers, fetchers
+   ══════════════════════════════════════════════ */
+
+// ── Govt Schemes (static, Kerala-specific) ──────────────────────────────────
+const SCHEMES = [
+  { title:'PM-KISAN Samman Nidhi', body:'₹6,000/year direct income support to eligible farmer families in 3 instalments. Registration open at nearest CSC.', deadline:'Rolling', ministry:'Govt of India', link:'https://pmkisan.gov.in' },
+  { title:'Pradhan Mantri Fasal Bima Yojana (PMFBY)', body:'Crop insurance against natural calamities, pests & disease. Kharif premium 2%, Rabi 1.5%. Enroll through bank or CSC before sowing season.', deadline:'Before sowing', ministry:'Govt of India', link:'https://pmfby.gov.in' },
+  { title:'Kerala Karshaka Kshemanidhi', body:'Welfare pension ₹1,200/month for registered farmers aged 60+. Apply at Krishi Bhavan with land records & age proof.', deadline:'Open', ministry:'Kerala Govt', link:'https://www.kerala.gov.in' },
+  { title:'Kisan Credit Card (KCC)', body:'Short-term crop loans up to ₹3 lakh at 4% effective interest (after subvention). Available at all nationalized banks & cooperative banks.', deadline:'Open', ministry:'Govt of India', link:'https://www.nabard.org' },
+  { title:'Rashtriya Krishi Vikas Yojana (RKVY)', body:'Infrastructure grants for farm mechanization, irrigation, cold storage & processing units in Kerala. Apply through KSAMB or District Agriculture Office.', deadline:'Apr–Jun 2026', ministry:'Kerala Govt', link:'https://rkvy.nic.in' },
+  { title:'PM Kisan Maandhan Yojana', body:'Pension scheme for small & marginal farmers — ₹3,000/month at age 60. Monthly contribution ₹55–₹200 based on age of entry. Enroll via CSC.', deadline:'Open', ministry:'Govt of India', link:'https://maandhan.in' },
+  { title:'Soil Health Card Scheme', body:'Free soil health card with crop-wise nutrient recommendations. Collect from nearest Krishi Bhavan. Valid for 2 years.', deadline:'Open', ministry:'Govt of India', link:'https://soilhealth.dac.gov.in' },
+  { title:'NABARD Watershed Development', body:'Funding for watershed treatment, farm bunding & drip irrigation in drought-prone Kerala districts. Apply through District Collector office.', deadline:'May 2026', ministry:'NABARD', link:'https://www.nabard.org' },
+  { title:'Kerala Horticulture Mission', body:'50–75% subsidy on vegetable cultivation inputs, shade nets, mulching film & micro-irrigation for horticulture crops in Kerala.', deadline:'Jun 2026', ministry:'Kerala Govt', link:'https://www.keralaagriculture.gov.in' },
+  { title:'e-NAM (National Agriculture Market)', body:'Trade paddy, coconut, pepper & rubber on the online national market platform — better price discovery. Register at KSAMB portal.', deadline:'Open', ministry:'Govt of India', link:'https://www.enam.gov.in' },
+];
+
+// ── News state ───────────────────────────────────────────────────────────────
+let _allNewsItems = [];
+let _advFilter = 'all';
+let _newsFilter = 'all';
+
+// ── RSS feeds via allorigins proxy ───────────────────────────────────────────
+// NEWS_FEEDS replaced by inline FEEDS array in fetchNewsFeeds()
+
+async function fetchNewsFeeds(){
+  // Step 1: always render synthetic items immediately so feed is never blank
+  try {
+    const syn = [];
+    syn.push(...buildWeatherNewsItems());
+    syn.push(...buildMarketNewsItems());
+    syn.push(...buildPestNewsItems());
+    _allNewsItems = syn.sort((a,b)=>(b.ts||0)-(a.ts||0));
+    document.getElementById('news-live-count').textContent = _allNewsItems.length;
+    renderNewsFeed();
+  } catch(e){ console.warn('Synthetic news error:', e); }
+
+  // Step 2: fetch RSS in background, append results
+  const FEEDS = [
+    { url:'https://www.thehindu.com/sci-tech/agriculture/feeder/default.rss', label:'The Hindu', cat:'agri' },
+    { url:'https://agriculturepost.com/feed/', label:'Agriculture Post', cat:'agri' },
+    { url:'https://indianexpress.com/section/india/feed/', label:'Indian Express', cat:'agri' },
+  ];
+  const AGRI_KW = /farm|crop|agri|paddy|rice|wheat|kisan|harvest|monsoon|irrigation|soil|pest|fertiliz|vegetable|fruit|coconut|rubber|spice|kerala/i;
+  const proxy = url => `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(url)}`;
+
+  const feedPromises = FEEDS.map(async feed => {
+    try {
+      const res = await fetch(proxy(feed.url));
+      if(!res.ok) return [];
+      const data = await res.json();
+      if(data.status !== 'ok' || !data.items?.length) return [];
+      return data.items
+        .filter(it => AGRI_KW.test(it.title + ' ' + (it.description||'')))
+        .slice(0, 6)
+        .map(it => ({
+          title:  it.title?.trim() || '—',
+          body:   (it.description||'').replace(/<[^>]+>/g,'').trim().slice(0,160),
+          link:   it.link || '#',
+          source: feed.label,
+          cat:    feed.cat,
+          tag:    'news',
+          time:   it.pubDate ? new Date(it.pubDate).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '',
+          ts:     it.pubDate ? new Date(it.pubDate).getTime() : Date.now(),
+        }));
+    } catch(e){ return []; }
+  });
+
+  try {
+    const feedResults = await Promise.all(feedPromises);
+    const rssItems = feedResults.flat();
+    if(rssItems.length > 0){
+      _allNewsItems = [..._allNewsItems, ...rssItems].sort((a,b)=>(b.ts||0)-(a.ts||0));
+      document.getElementById('news-live-count').textContent = _allNewsItems.length;
+      renderNewsFeed();
+    }
+  } catch(e){ console.warn('RSS fetch error:', e); }
+}
+
+function buildWeatherNewsItems(){
+  const items = [];
+  const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  DISTRICTS.forEach(d => {
+    const w = weatherData[d.name]; if(!w||!w.daily) return;
+    const rain = w.daily.precipitation_sum?.[0]||0;
+    const temp = w.daily.temperature_2m_max?.[0]||0;
+    const wind = w.daily.windspeed_10m_max?.[0]||0;
+    if(rain > 50) items.push({ title:`Heavy rain warning — ${d.name}`, body:`${rain.toFixed(1)}mm rainfall expected today. IMD issues heavy rain alert. Farmers advised to halt field operations and secure harvested produce.`, source:'IMD/Open-Meteo', cat:'weather', tag:'warning', time:today, ts:Date.now()-Math.random()*3600000, link:'https://mausam.imd.gov.in' });
+    else if(rain > 25) items.push({ title:`Moderate rain forecast — ${d.name}`, body:`${rain.toFixed(1)}mm forecast. Avoid spraying pesticides. Check drainage in paddy fields.`, source:'IMD/Open-Meteo', cat:'weather', tag:'watch', time:today, ts:Date.now()-Math.random()*7200000, link:'https://mausam.imd.gov.in' });
+    if(temp > 37) items.push({ title:`Heatwave alert — ${d.name}`, body:`Max temperature ${temp.toFixed(1)}°C. Extreme heat stress risk for crops and livestock. Increase irrigation frequency.`, source:'IMD/Open-Meteo', cat:'weather', tag:'critical', time:today, ts:Date.now()-Math.random()*3600000, link:'https://mausam.imd.gov.in' });
+    if(wind > 40) items.push({ title:`Strong wind advisory — ${d.name}`, body:`Winds up to ${wind.toFixed(0)} km/h. Risk of lodging in standing crops. Secure banana and arecanut plantations.`, source:'IMD/Open-Meteo', cat:'weather', tag:'warning', time:today, ts:Date.now()-Math.random()*5400000, link:'https://mausam.imd.gov.in' });
+  });
+  // Always add a general daily outlook so feed is never empty
+  const avgTemp = DISTRICTS.reduce((s,d)=>s+(weatherData[d.name]?.daily?.temperature_2m_max?.[0]||30),0)/DISTRICTS.length;
+  const avgRainAll = DISTRICTS.reduce((s,d)=>s+(weatherData[d.name]?.daily?.precipitation_sum?.[0]||0),0)/DISTRICTS.length;
+  const dominantCrop = 'Paddy, Coconut & Rubber';
+  items.push({
+    title: `Kerala Daily Agricultural Outlook — ${today}`,
+    body: `Average temperature across Kerala: ${avgTemp.toFixed(1)}°C. Average rainfall: ${avgRainAll.toFixed(1)}mm. ${avgTemp>33?'Heat stress conditions — ensure irrigation.':avgRainAll>20?'Moist conditions — watch for fungal outbreaks.':'Moderate conditions — routine crop management advised.'} Primary crops: ${dominantCrop}.`,
+    source:'AgroScope AI', cat:'weather', tag:'watch', time:today, ts:Date.now()-1000, link:'#'
+  });
+  return items.slice(0,10);
+}
+
+function buildMarketNewsItems(){
+  const items = [];
+  if(!window._prices||!window._prices.length) return items;
+  const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  _prices.forEach(p => {
+    const chg = p.change; if(!chg) return;
+    const pct = ((chg/p.price)*100).toFixed(1);
+    if(chg > 0 && Math.abs(pct) > 2) items.push({ title:`${p.name} prices up ${pct}% today`, body:`${p.name} trading at ₹${p.price}/qt in Kerala mandis. Bullish trend — good time to sell if storage available. 7-day high: ₹${p.high}.`, source:'KSAMB/Agmarknet', cat:'market', tag:'market', time:today, ts:Date.now()-Math.random()*7200000, link:'https://www.agmarknet.gov.in' });
+    else if(chg < 0 && Math.abs(pct) > 2) items.push({ title:`${p.name} prices dip ${Math.abs(pct)}% today`, body:`${p.name} at ₹${p.price}/qt. Consider holding stock if storage permits. 7-day low: ₹${p.low}. Watch for recovery.`, source:'KSAMB/Agmarknet', cat:'market', tag:'market', time:today, ts:Date.now()-Math.random()*7200000, link:'https://www.agmarknet.gov.in' });
+  });
+  return items.slice(0,6);
+}
+
+function buildPestNewsItems(){
+  const items = [];
+  const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
+  DISTRICTS.forEach(d => {
+    const score = pestMapScore(d.name);
+    if(score >= 60) items.push({ title:`High disease risk — ${d.name}`, body:`Conditions highly favourable for fungal/bacterial outbreaks in ${d.crops[0]}. Scout fields immediately and apply preventive fungicide.`, source:'AgroScope AI', cat:'pest', tag:'pest', time:today, ts:Date.now()-Math.random()*3600000, link:'#' });
+    else if(score >= 30) items.push({ title:`Moderate pest pressure — ${d.name}`, body:`Watch for early signs of disease in ${d.crops[0]}. High humidity and warmth favour pathogen spread. Apply neem-based spray as precaution.`, source:'AgroScope AI', cat:'pest', tag:'pest', time:today, ts:Date.now()-Math.random()*7200000, link:'#' });
+  });
+  return items.slice(0,8);
+}
+
+function renderNewsFeed(){
+  const list = document.getElementById('news-feed-list');
+  if(!list) return;
+  const filtered = _newsFilter === 'all' ? _allNewsItems : _allNewsItems.filter(i=>i.cat===_newsFilter);
+  if(!filtered.length){ list.innerHTML='<div class="news-empty">No news items found.<br>Check network connection.</div>'; return; }
+  list.innerHTML = filtered.map(item => {
+    const timeStr = item.time ? `<span>${item.time}</span>` : '';
+    return `<div class="news-card" onclick="window.open('${item.link}','_blank')">
+      <div class="news-card-top">
+        <span class="news-tag tag-${item.tag||'news'}">${tagLabel(item.tag)}</span>
+        <span class="news-card-title">${escHtml(item.title)}</span>
+      </div>
+      ${item.body ? `<div class="news-card-body">${escHtml(item.body.slice(0,150))}${item.body.length>150?'…':''}</div>` : ''}
+      <div class="news-card-meta">
+        <span class="news-source">${escHtml(item.source||'')}</span>
+        ${timeStr}
+        ${item.link&&item.link!=='#'?`<a class="news-card-link" href="${item.link}" target="_blank" onclick="event.stopPropagation()">Read →</a>`:''}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function tagLabel(tag){
+  const map={critical:'🔴 Critical',warning:'🟠 Warning',watch:'🟡 Watch',news:'📰 News',scheme:'🏛️ Scheme',market:'📈 Market',pest:'🐛 Pest'};
+  return map[tag]||'📰 News';
+}
+function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function filterNews(cat, btn){
+  _newsFilter = cat;
+  document.querySelectorAll('.news-filter-bar .nf-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderNewsFeed();
+}
+
+// ── District Advisories (full-page enriched) ─────────────────────────────────
+function renderNewsAdvisories(){
+  const list = document.getElementById('news-adv-list');
+  if(!list) return;
+  const items = [];
+  DISTRICTS.forEach(d => {
+    const hs = healthScores[d.name]; if(!hs) return;
+    const {rain,temp,hum,dryDays,score} = hs;
+    const crop = d.crops[0];
+    const flood = floodComposite(d.name)||0;
+    const pest  = pestMapScore(d.name)||0;
+    let sev='ok', icon='✅', msgs=[], actions=[];
+    if(score<40){sev='critical';icon='🔴';msgs.push(`${crop} health critical (${score}/100)`);actions.push('Emergency irrigation','Soil test','Contact KVK');}
+    else if(flood>70){sev='critical';icon='🌊';msgs.push(`Extreme flood risk (score ${flood})`);actions.push('Halt field ops','Secure produce','Check KSDMA');}
+    else if(pest>70){sev='critical';icon='🐛';msgs.push(`High disease/pest pressure`);actions.push('Scout fields','Apply fungicide','Isolate affected');}
+    else if(rain>50){sev='warning';icon='🌧️';msgs.push(`Heavy rain ${rain.toFixed(0)}mm today`);actions.push('Check drainage','Delay harvest','Secure inputs');}
+    else if(temp>36){sev='warning';icon='🌡️';msgs.push(`Heatwave ${temp.toFixed(1)}°C`);actions.push('Irrigate urgently','Mulch soil','Shade nurseries');}
+    else if(hum>85&&rain>15){sev='warning';icon='🍄';msgs.push(`Fungal risk — high moisture`);actions.push('Reduce canopy density','Spray copper','Improve drainage');}
+    else if(dryDays>4){sev='watch';icon='💧';msgs.push(`Dry spell — ${dryDays} days without rain`);actions.push('Irrigation due','Conserve soil moisture');}
+    else if(score<60){sev='watch';icon='🟡';msgs.push(`${crop} under mild stress (${score}/100)`);actions.push('Monitor closely','Check soil nutrients');}
+    else{msgs.push(`${crop} conditions normal (${score}/100)`);actions.push('Routine monitoring');}
+    if(_advFilter!=='all'&&_advFilter!==sev) return;
+    items.push({d, sev, icon, msgs, actions, crop, score});
+  });
+  items.sort((a,b)=>{'critical,warning,watch,ok'.split(',').indexOf(a.sev)-'critical,warning,watch,ok'.split(',').indexOf(b.sev);
+    return ['critical','warning','watch','ok'].indexOf(a.sev)-['critical','warning','watch','ok'].indexOf(b.sev);
+  });
+  document.getElementById('news-adv-count').textContent = items.length;
+  list.innerHTML = items.map(({d,sev,icon,msgs,actions,crop,score})=>`
+    <div class="adv-card sev-${sev}" onclick="showDistrictDetail('${d.name}','crophealth')">
+      <div class="adv-card-top">
+        <span class="adv-icon">${icon}</span>
+        <span class="adv-district">${d.name}</span>
+        <span class="adv-crop">${crop}</span>
+      </div>
+      <div class="adv-msg">${msgs.join(' · ')}</div>
+      <div class="adv-actions">${actions.map(a=>`<span class="adv-action-btn">${a}</span>`).join('')}</div>
+    </div>`).join('');
+}
+
+function filterAdvisories(sev, btn){
+  _advFilter = sev;
+  document.querySelectorAll('#news-adv-list').forEach(()=>{});
+  const bar = btn?.closest('.news-filter-bar');
+  if(bar) bar.querySelectorAll('.nf-btn').forEach(b=>b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderNewsAdvisories();
+}
+
+// ── IMD Bulletins (generated from live weather) ──────────────────────────────
+function renderIMDBulletins(){
+  const list = document.getElementById('news-imd-list'); if(!list) return;
+  const today = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
+  const bulletins = [];
+
+  // General Kerala outlook
+  const allRain = DISTRICTS.map(d=>weatherData[d.name]?.daily?.precipitation_sum?.[0]||0);
+  const maxRain = Math.max(...allRain);
+  const avgRain = allRain.reduce((a,b)=>a+b,0)/allRain.length;
+  const rainDistricts = DISTRICTS.filter(d=>(weatherData[d.name]?.daily?.precipitation_sum?.[0]||0)>30).map(d=>d.name);
+
+  let color='green', headline='Normal conditions across Kerala';
+  if(maxRain>80){color='red';headline='Extremely heavy rain warning issued for Kerala';}
+  else if(maxRain>50){color='orange';headline='Heavy rain alert for parts of Kerala';}
+  else if(maxRain>25){color='yellow';headline='Moderate rain expected in several districts';}
+
+  bulletins.push({color,title:`Kerala Weather Bulletin — ${today}`,body:`${headline}. Average rainfall: ${avgRain.toFixed(1)}mm.${rainDistricts.length?` Districts on alert: ${rainDistricts.slice(0,4).join(', ')}.`:''} Farmers advised to monitor IMD updates regularly.`,meta:'Source: IMD / Open-Meteo live data'});
+
+  // 7-day outlook
+  const d0 = DISTRICTS[0]; const w0 = weatherData[d0.name];
+  if(w0?.daily?.precipitation_sum){
+    const days = w0.daily.precipitation_sum;
+    const heavyDays = days.filter(r=>r>30).length;
+    const body7 = heavyDays>3 ? `Active monsoon conditions forecast — ${heavyDays} of next 7 days expected to see heavy rainfall. Delay land preparation and harvesting activities.`
+      : heavyDays>1 ? `Intermittent heavy rain on ${heavyDays} days in the next week. Plan field operations around dry windows.`
+      : `Mostly dry conditions expected over next 7 days. Ensure irrigation readiness.`;
+    bulletins.push({color:heavyDays>3?'orange':'green',title:'7-Day Rainfall Outlook — Kerala',body:body7,meta:'Source: Open-Meteo 7-day forecast'});
+  }
+
+  // Monsoon onset status — always push based on current month
+  const monMonth = new Date().getMonth();
+  const monPhases = ['Pre-Monsoon','Pre-Monsoon','Pre-Monsoon','Pre-Monsoon','Pre-Monsoon',
+    'SW Monsoon Early Phase','SW Monsoon Active Phase','SW Monsoon Active Phase',
+    'SW Monsoon Withdrawal','Post-Monsoon (NE Monsoon)','NE Monsoon','Winter'];
+  const monAdvice = ['Prepare land, apply basal fertilizer.',
+    'Start nursery preparation for kharif crops.',
+    'Complete pre-kharif soil health check.',
+    'Last chance for rabi crop planning.',
+    'Pre-monsoon showers expected — prepare drainage.',
+    'SW Monsoon onset expected Jun 1. Complete sowing preparation.',
+    'Active monsoon — ideal for transplanting paddy. Ensure field drainage.',
+    'Peak monsoon — monitor flood risk daily via KSDMA.',
+    'Monsoon withdrawal underway — harvest kharif, plan rabi.',
+    'NE Monsoon active — rice harvest season. Protect from rain damage.',
+    'NE Monsoon — irrigate rabi crops, watch for fungal disease.',
+    'Dry season — focus on irrigation and soil preparation.'];
+  bulletins.push({color: monMonth>=5&&monMonth<=8?'yellow':'green',
+    title:`Monsoon Status — ${monPhases[monMonth]}`,
+    body: `Kerala is currently in the ${monPhases[monMonth]} period. ${monAdvice[monMonth]} Normal SW Monsoon onset: June 1. Monitor IMD district bulletins daily.`,
+    meta:'Source: IMD Seasonal Outlook'});
+
+  // District-level top alerts
+  DISTRICTS.forEach(d=>{
+    const w=weatherData[d.name]; if(!w?.daily) return;
+    const r=w.daily.precipitation_sum?.[0]||0;
+    const t=w.daily.temperature_2m_max?.[0]||0;
+    if(r>60) bulletins.push({color:'red',title:`Red Alert — ${d.name}`,body:`IMD Red Alert issued. Expected rainfall >115mm in 24 hours. All outdoor agricultural activities must be suspended. Seek shelter immediately.`,meta:`District: ${d.name} · ${new Date().toLocaleDateString('en-IN')}`});
+    else if(r>45) bulletins.push({color:'orange',title:`Orange Alert — ${d.name}`,body:`Heavy to very heavy rain (${r.toFixed(0)}mm) expected. Avoid river/canal areas. Secure harvested produce.`,meta:`District: ${d.name}`});
+    else if(t>38) bulletins.push({color:'red',title:`Heatwave Warning — ${d.name}`,body:`Maximum temperature ${t.toFixed(1)}°C. IMD heatwave criteria met. Restrict outdoor work 11am–4pm. Increase irrigation.`,meta:`District: ${d.name}`});
+  });
+
+  document.getElementById('news-imd-count').textContent = bulletins.length;
+  list.innerHTML = bulletins.map(b=>`
+    <div class="imd-card imd-${b.color}">
+      <div class="imd-title">${escHtml(b.title)}</div>
+      <div class="imd-body">${escHtml(b.body)}</div>
+      <div class="imd-meta">${escHtml(b.meta)}</div>
+    </div>`).join('');
+}
+
+// ── Govt Schemes renderer ────────────────────────────────────────────────────
+function renderSchemes(){
+  const list = document.getElementById('news-schemes-list'); if(!list) return;
+  list.innerHTML = SCHEMES.map(s=>`
+    <div class="scheme-card">
+      <div class="scheme-title"><span class="scheme-badge">Scheme</span> ${escHtml(s.title)}</div>
+      <div class="scheme-body">${escHtml(s.body)}</div>
+      <div class="scheme-meta">
+        <span>🏛️ ${escHtml(s.ministry)}</span>
+        <span>📅 ${escHtml(s.deadline)}</span>
+        ${s.link?`<a href="${s.link}" target="_blank" class="news-card-link">Details →</a>`:''}
+      </div>
+    </div>`).join('');
+}
+
+// ── News Hub init ────────────────────────────────────────────────────────────
+let _newsHubInited = false;
+function initNewsHub(){
+  renderSchemes();
+  renderNewsAdvisories();
+  renderIMDBulletins();
+  fetchNewsFeeds();
+  if(!_newsHubInited){
+    _newsHubInited = true;
+    setInterval(()=>{ fetchNewsFeeds(); renderNewsAdvisories(); renderIMDBulletins(); }, 600000);
+  }
+}
+
+
 </script>
 </body>
 </html>
