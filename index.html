@@ -164,10 +164,11 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
 /* District Detail Overlay */
 #district-detail{position:fixed;top:calc(var(--topbar-h) + 8px);left:calc(var(--nav-w) + 8px);width:288px;z-index:800;background:var(--color-surface-3);border:1px solid var(--color-border);border-radius:var(--radius);box-shadow:0 16px 40px rgba(0,0,0,0.5);display:none;overflow:hidden;}
 #district-detail.visible{display:block;}
-.dd-header{display:flex;align-items:center;gap:8px;padding:12px 14px 10px;border-bottom:1px solid var(--color-border);}
-.dd-name{font-size:15px;font-weight:700;flex:1;}
-.dd-tabs{display:flex;gap:2px;margin-right:6px;}
-.dd-tab{padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--color-text-faint);background:none;border:1px solid transparent;font-weight:600;transition:all var(--transition);}
+.dd-header{display:flex;align-items:center;gap:8px;padding:10px 14px 8px;border-bottom:1px solid var(--color-border);min-width:0;}
+.dd-name{font-size:14px;font-weight:700;white-space:nowrap;flex-shrink:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;}
+.dd-tabs{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;flex:1;min-width:0;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:1px;}
+.dd-tabs::-webkit-scrollbar{display:none;}
+.dd-tab{padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--color-text-faint);background:none;border:1px solid transparent;font-weight:600;transition:all var(--transition);;flex-shrink:0;white-space:nowrap;}
 .dd-tab.active{background:var(--color-primary-dim);color:var(--color-primary);border-color:rgba(74,222,128,0.3);}
 .dd-close{cursor:pointer;color:var(--color-text-faint);width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:background var(--transition);}
 .dd-close:hover{background:var(--color-surface);color:var(--color-text);}
@@ -430,7 +431,7 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
     <span style="font-size:20px" id="dd-icon">🌤️</span>
     <span class="dd-name" id="dd-name">District</span>
     <div class="dd-tabs">
-      <button class="dd-tab active" onclick="switchDDTab('weather',this)">Weather</button>
+      <button class="dd-tab active" onclick="switchDDTab('weather',this)">🌤️ Weather</button>
       <button class="dd-tab" onclick="switchDDTab('health',this)">🌾 Health</button>
       <button class="dd-tab" onclick="switchDDTab('pests',this)">🦠 Pests</button>
     </div>
