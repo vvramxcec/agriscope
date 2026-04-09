@@ -277,6 +277,43 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
 .dd-pest-row1{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
 .dd-pest-action{font-size:10px;color:var(--color-text-faint);font-style:italic;line-height:1.4;}
 
+
+/* ═══ FLOOD / DISASTER RISK ═══ */
+#flood-view{display:none;flex-direction:column;flex:1;overflow:hidden;}
+#flood-view.active{display:flex;}
+.flood-bar{display:flex;align-items:center;gap:14px;padding:8px 16px;background:var(--color-surface);border-bottom:1px solid var(--color-border);flex-shrink:0;flex-wrap:wrap;}
+.flood-bar .fb-label{font-size:9px;color:var(--color-text-faint);text-transform:uppercase;letter-spacing:0.5px;}
+.fb-count{font-size:12px;font-weight:700;}
+.flood-table-wrap{flex:1;overflow-y:auto;}
+.flood-table-wrap::-webkit-scrollbar{width:4px;}
+.flood-table-wrap::-webkit-scrollbar-thumb{background:var(--color-surface-3);}
+.flood-tbl{width:100%;border-collapse:collapse;}
+.flood-tbl thead th{position:sticky;top:0;background:var(--color-surface);padding:7px 14px;font-size:9px;text-transform:uppercase;letter-spacing:0.6px;color:var(--color-text-faint);font-weight:700;border-bottom:1px solid var(--color-border);text-align:left;white-space:nowrap;z-index:2;}
+.flood-tbl thead th:not(:first-child){text-align:right;}
+.flood-tbl tbody tr{border-bottom:1px solid var(--color-border);cursor:pointer;transition:background var(--transition);}
+.flood-tbl tbody tr:hover{background:var(--color-surface-2);}
+.flood-tbl td{padding:7px 14px;font-size:12px;vertical-align:middle;}
+.flood-tbl td:not(:first-child){text-align:right;}
+.imd-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;white-space:nowrap;}
+.imd-red{background:rgba(248,113,113,0.18);color:#f87171;border:1px solid rgba(248,113,113,0.35);}
+.imd-orange{background:rgba(251,146,60,0.18);color:#fb923c;border:1px solid rgba(251,146,60,0.35);}
+.imd-yellow{background:rgba(250,204,21,0.13);color:#facc15;border:1px solid rgba(250,204,21,0.28);}
+.imd-green{background:rgba(74,222,128,0.10);color:#4ade80;border:1px solid rgba(74,222,128,0.2);}
+.risk-type-pill{display:inline-block;font-size:9px;padding:1px 6px;border-radius:4px;background:var(--color-surface-3);color:var(--color-text-muted);}
+.flood-card{padding:7px 14px;border-bottom:1px solid var(--color-border);cursor:pointer;transition:background var(--transition);}
+.flood-card:hover{background:var(--color-surface-2);}
+.flood-detail-wrap{display:none;}
+.flood-detail-wrap.active{display:block;}
+.ff-bars{display:flex;gap:3px;align-items:flex-end;height:56px;margin:6px 0 10px;}
+.ff-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
+.ff-bar{width:100%;border-radius:2px 2px 0 0;min-height:2px;}
+.ff-lbl{font-size:8px;color:var(--color-text-faint);}
+.ff-val{font-size:9px;font-weight:600;}
+.vuln-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
+.vuln-name{font-size:11px;color:var(--color-text-muted);width:88px;flex-shrink:0;}
+.vuln-bg{flex:1;height:4px;background:var(--color-surface-3);border-radius:99px;overflow:hidden;}
+.vuln-fill{height:100%;border-radius:99px;}
+.vuln-val{font-size:10px;font-weight:600;width:28px;text-align:right;}
 </style>
 </head>
 <body>
@@ -307,6 +344,7 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
   <div class="nav-item" data-nav="crophealth" onclick="switchNav('crophealth',this)"><i data-lucide="wheat"></i><span class="nav-tooltip">Crop Health</span></div>
   <div class="nav-item" data-nav="markets" onclick="switchNav('markets',this)"><i data-lucide="trending-up"></i><span class="nav-tooltip">Markets</span></div>
   <div class="nav-item" data-nav="alerts" onclick="switchNav('alerts',this)" style="position:relative"><i data-lucide="triangle-alert"></i><span class="nav-tooltip">Alerts</span><span class="alert-count" id="nav-alert-count">0</span></div>
+  <div class="nav-item" data-nav="flood" onclick="switchNav('flood',this)"><i data-lucide="waves"></i><span class="nav-tooltip">Flood Risk</span></div>
   <div class="nav-spacer"></div>
   <div class="nav-item" onclick="switchNav('overview',document.querySelector('[data-nav=overview]'))"><i data-lucide="settings"></i><span class="nav-tooltip">Settings</span></div>
 </nav>
@@ -378,6 +416,7 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
       <button class="layer-btn"        id="btn-crophealth"  onclick="setLayer('crophealth')">🌾 Crop Health</button>
       <button class="layer-btn"        id="btn-nasa"        onclick="toggleNASA()">🛰️ NASA NDVI</button>
       <button class="layer-btn" id="btn-pestmap" onclick="setLayer('pestmap')">🦠 Disease Risk</button>
+      <button class="layer-btn" id="btn-floodrisk" onclick="setLayer('floodrisk')">🌊 Flood Risk</button>
     </div>
     <div id="nasa-badge">🛰️ NASA MODIS Terra — Live Vegetation</div>
     <div id="map-legend">
@@ -423,6 +462,32 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
     </div>
   </div>
 
+<!-- FLOOD VIEW -->
+<div id="flood-view">
+  <div class="flood-bar">
+    <span class="fb-label">IMD Alerts</span>
+    <span class="fb-count" id="fs-red"    style="color:#f87171">🔴 0 Red</span>
+    <span class="fb-count" id="fs-orange" style="color:#fb923c">🟠 0 Orange</span>
+    <span class="fb-count" id="fs-yellow" style="color:#facc15">🟡 0 Yellow</span>
+    <span class="fb-count" id="fs-green"  style="color:#4ade80">🟢 0 Green</span>
+    <span style="margin-left:auto;font-size:9px;color:var(--color-text-faint)">IMD thresholds · KSDMA · Open-Meteo · Phase 2: Google Flood API</span>
+  </div>
+  <div class="flood-table-wrap">
+    <table class="flood-tbl">
+      <thead><tr>
+        <th style="min-width:130px">District</th>
+        <th>IMD Alert</th>
+        <th>24h Rain</th>
+        <th>3D Forecast</th>
+        <th>Vulnerability</th>
+        <th>Risk Type</th>
+        <th>Score</th>
+      </tr></thead>
+      <tbody id="flood-tbody"></tbody>
+    </table>
+  </div>
+</div>
+
 </div>
 
 <!-- DISTRICT DETAIL OVERLAY -->
@@ -434,6 +499,7 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
       <button class="dd-tab active" onclick="switchDDTab('weather',this)">🌤️ Weather</button>
       <button class="dd-tab" onclick="switchDDTab('health',this)">🌾 Health</button>
       <button class="dd-tab" onclick="switchDDTab('pests',this)">🦠 Pests</button>
+      <button class="dd-tab" onclick="switchDDTab('flood',this)">🌊 Flood</button>
     </div>
     <div class="dd-close" onclick="closeDetail()"><i data-lucide="x" style="width:14px;height:14px"></i></div>
   </div>
@@ -459,6 +525,10 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
       </div>
       <div class="breakdown-list" id="dd-breakdown"></div>
       <div class="dd-advisory-box" style="margin-top:10px;border-left-color:var(--color-health-great)" id="dd-health-advisory"></div>
+    </div>
+    <!-- FLOOD TAB -->
+    <div class="flood-detail-wrap" id="dd-flood-tab">
+      <div id="dd-flood-body"></div>
     </div>
     <!-- PESTS TAB -->
     <div class="pest-detail-wrap" id="dd-pest-tab">
@@ -489,6 +559,7 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
     <div class="rp-tab active" onclick="switchRPTab('weather',this)">🌦️ Weather</div>
     <div class="rp-tab" onclick="switchRPTab('health',this)">🌾 Crops</div>
     <div class="rp-tab" onclick="switchRPTab('alerts',this)">⚠️ Alerts</div>
+    <div class="rp-tab" onclick="switchRPTab('flood',this)">🌊 Flood</div>
     <div class="rp-tab" onclick="switchRPTab('prices',this)">💰 Prices</div>
   </div>
 
@@ -532,8 +603,19 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
     <div style="padding:8px 14px;font-size:9px;color:var(--color-text-faint);border-top:1px solid var(--color-border);margin-top:auto;flex-shrink:0;">
       Seeded Kerala mandi prices · ticks every 5 min.<br>Real Agmarknet API — Phase 2.
     </div>
+  <!-- FLOOD RIGHT PANEL TAB -->
+  <div class="rp-tab-content" id="rp-flood">
+    <div style="padding:5px 14px 3px;font-size:9px;color:var(--color-text-faint);display:flex;justify-content:space-between;">
+      <span>DISTRICT · RISK TYPE</span><span>ALERT</span>
+    </div>
+    <div id="flood-cards-list" style="overflow-y:auto;flex:1;min-height:0;"></div>
+    <div style="padding:5px 14px;font-size:9px;color:var(--color-text-faint);border-top:1px solid var(--color-border);">
+      KSDMA vulnerability · IMD thresholds · Phase 2: Google Flood API
+    </div>
+  </div>
   </div>
 </div>
+
 
 <script>
 // ═══════════════════════════════════════════════════════
@@ -687,6 +769,7 @@ function getTodayVal(name, metric){
   }
   if(metric==='crophealth')  return healthScores[name]?.score||null;
   if(metric==='pestmap')     return pestMapScore(name);
+  if(metric==='floodrisk')   return floodComposite(name);
   return null;
 }
 
@@ -720,6 +803,8 @@ function districtFill(name){
     if(v<80) return '#7c3aed'; return '#a78bfa';
   }
   if(currentLayer==='crophealth') return healthColor(v);
+  if(currentLayer==='pestmap')    return pestMapColor(v);
+  if(currentLayer==='floodrisk')  return floodColor(floodComposite(name));
   return '#1c2a20';
 }
 
@@ -735,7 +820,7 @@ function renderGeoLayer(geojson){
       layer.on({
         mouseover:e=>{e.target.setStyle({weight:2,color:'rgba(255,255,255,0.5)',fillOpacity:0.95});},
         mouseout:e=>{geoLayer.resetStyle(e.target);},
-        click:()=>showDistrictDetail(name, currentLayer==='crophealth'?'health':currentLayer==='pestmap'?'pests':'weather'),
+        click:()=>showDistrictDetail(name, currentLayer==='crophealth'?'health':currentLayer==='pestmap'?'pests':currentLayer==='floodrisk'?'flood':'weather'),
       });
     }
   }).addTo(map);
@@ -774,6 +859,7 @@ function toggleNASA(){
 //  LAYER TOGGLE
 // ═══════════════════════════════════════════════════════
 const LEGENDS = {
+  floodrisk:{title:'Flood / Disaster Risk',bar:'linear-gradient(90deg,#1a2f22,#facc15,#fb923c,#f87171)',min:'Low',max:'Extreme'},
   pestmap:     {title:'Disease Risk Level', bar:'linear-gradient(90deg,#1a2f22,#854d0e,#fb923c,#f87171)', min:'None', max:'High'},
   rainfall:    {title:'Rainfall (mm/day)',      bar:'linear-gradient(90deg,#1a2f22,#164e63,#0ea5e9,#38bdf8,#bae6fd)', min:'0',   max:'50mm+'},
   temperature: {title:'Max Temperature (°C)',   bar:'linear-gradient(90deg,#1e3a5f,#854d0e,#ea580c,#ef4444)',         min:'25°',  max:'38°+'},
@@ -784,7 +870,7 @@ function setLayer(type, forceOn=false){
   // Toggle off if same layer clicked again (unless forced on by nav)
   if(currentLayer===type && !forceOn){
     currentLayer='none';
-    ['rainfall','temperature','humidity','crophealth','pestmap'].forEach(t=>{
+    ['rainfall','temperature','humidity','crophealth','pestmap','floodrisk'].forEach(t=>{
       const b=document.getElementById('btn-'+t); if(b) b.className='layer-btn';
     });
     // reset map to neutral dark fill
@@ -800,7 +886,7 @@ function setLayer(type, forceOn=false){
     const b=document.getElementById('btn-'+t);
     b.className='layer-btn';
   });
-  const classes={rainfall:'l-blue',temperature:'l-orange',humidity:'l-purple',crophealth:'l-green',pestmap:'l-orange'};
+  const classes={rainfall:'l-blue',temperature:'l-orange',humidity:'l-purple',crophealth:'l-green',pestmap:'l-orange',floodrisk:'l-blue'};
   const _ab=document.getElementById('btn-'+type); if(_ab) _ab.classList.add(classes[type]||'l-orange');
   const leg=LEGENDS[type];
   document.getElementById('legend-title').textContent=leg.title;
@@ -946,8 +1032,9 @@ function showDistrictDetail(name, tab='weather'){
     bkEl.innerHTML+=`<div class="breakdown-item"><span class="breakdown-label">${label}</span><div class="breakdown-bar-bg"><div class="breakdown-bar-fill" style="width:${pct}%;background:${col}"></div></div><span class="breakdown-val" style="color:${col}">${val}</span></div>`;
   });
   document.getElementById('dd-health-advisory').innerHTML=generateHealthAdvisory(name,hs);
-  // populate pest tab
+  // populate pest + flood tabs
   populateDDPests(name);
+  populateDDFlood(name);
   // switch tab
   switchDDTab(tab, null);
   document.getElementById('district-detail').classList.add('visible');
@@ -960,19 +1047,20 @@ function showDistrictDetail(name, tab='weather'){
 
 function switchDDTab(tab, btn){
   document.querySelectorAll('.dd-tab').forEach(b=>b.classList.remove('active'));
-  if(btn){
-    btn.classList.add('active');
-  } else {
+  if(btn){ btn.classList.add('active'); }
+  else {
     document.querySelectorAll('.dd-tab').forEach(b=>{
       const t=b.textContent;
       if(tab==='weather'&&t.includes('Weather')) b.classList.add('active');
-      if(tab==='health'&&t.includes('Health'))  b.classList.add('active');
-      if(tab==='pests'&&t.includes('Pests'))    b.classList.add('active');
+      if(tab==='health' &&t.includes('Health'))  b.classList.add('active');
+      if(tab==='pests'  &&t.includes('Pests'))   b.classList.add('active');
+      if(tab==='flood'  &&t.includes('Flood'))   b.classList.add('active');
     });
   }
   const w=document.getElementById('dd-weather-tab'); if(w) w.className='weather-detail-wrap'+(tab==='weather'?' active':'');
   const h=document.getElementById('dd-health-tab');  if(h) h.className='health-detail-wrap'+(tab==='health'?' active':'');
   const p=document.getElementById('dd-pest-tab');    if(p) p.className='pest-detail-wrap'+(tab==='pests'?' active':'');
+  const f=document.getElementById('dd-flood-tab');   if(f) f.className='flood-detail-wrap'+(tab==='flood'?' active':'');
 }
 
 function closeDetail(){
@@ -1112,11 +1200,13 @@ function switchChart(type,el){
 // ═══════════════════════════════════════════════════════
 //  RIGHT PANEL TAB SWITCH
 // ═══════════════════════════════════════════════════════
-function switchRPTab(tab,btn){
+function switchRPTab(tab, btn){
   document.querySelectorAll('.rp-tab').forEach(t=>t.classList.remove('active'));
-  btn.classList.add('active');
+  if(btn) btn.classList.add('active');
   document.querySelectorAll('.rp-tab-content').forEach(c=>c.classList.remove('active'));
-  document.getElementById('rp-'+tab).classList.add('active');
+  const el=document.getElementById('rp-'+tab); if(el) el.classList.add('active');
+  if(tab==='flood' && typeof renderFloodCards==='function') renderFloodCards();
+  if(tab==='alerts' && typeof renderPestCards==='function') renderPestCards();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1143,15 +1233,18 @@ async function init(){
     const loader=document.getElementById('loading');
     loader.classList.add('hidden'); setTimeout(()=>loader.style.display='none',600);
     window._geojson=geojson;
+    switchRPTab('weather', document.querySelector(".rp-tab"));
     initPrices();
     renderPriceCards();
     renderPestCards();
+    renderFloodCards();
 
     setInterval(async()=>{
       await fetchWeather(); computeAllHealth();
       refreshMap(); updateKPIs(); updateDistrictList(); updateHealthList(); updateAdvisories();
       buildChart(currentChartType);
       renderPestCards();
+      renderFloodCards();
       setLastUpdated();
     },600000);
 
@@ -1351,6 +1444,7 @@ function updatePriceKPIs(){
 
 // ── Markets view toggle ──
 function showMarketsView(on){
+  const _fv=document.getElementById('flood-view'); if(_fv&&on) _fv.classList.remove('active');
   const mv=document.getElementById('markets-view');
   const mc=document.getElementById('map-container');
   const cp=document.getElementById('chart-panel');
@@ -1576,32 +1670,177 @@ function populateDDPests(districtName){
   }).join('');
 }
 
+
+// ═══════════════════════════════════════════════════════
+//  FLOOD & DISASTER RISK ENGINE (KSDMA + IMD)
+// ═══════════════════════════════════════════════════════
+const FLOOD_VULN = {
+  'Alappuzha':         {flood:95,landslide:10,wind:70,primary:'flood'},
+  'Idukki':            {flood:55,landslide:95,wind:20,primary:'landslide'},
+  'Wayanad':           {flood:50,landslide:92,wind:15,primary:'landslide'},
+  'Ernakulam':         {flood:78,landslide:35,wind:55,primary:'flood'},
+  'Pathanamthitta':    {flood:72,landslide:65,wind:25,primary:'flood'},
+  'Kottayam':          {flood:70,landslide:55,wind:30,primary:'flood'},
+  'Kozhikode':         {flood:60,landslide:40,wind:70,primary:'wind'},
+  'Thrissur':          {flood:65,landslide:30,wind:45,primary:'flood'},
+  'Malappuram':        {flood:58,landslide:48,wind:50,primary:'flood'},
+  'Palakkad':          {flood:55,landslide:35,wind:40,primary:'flood'},
+  'Kollam':            {flood:60,landslide:40,wind:55,primary:'flood'},
+  'Kannur':            {flood:50,landslide:45,wind:65,primary:'wind'},
+  'Kasaragod':         {flood:45,landslide:35,wind:70,primary:'wind'},
+  'Thiruvananthapuram':{flood:48,landslide:40,wind:60,primary:'wind'},
+};
+function imdAlert(r){
+  if(r>204.4) return {level:'red',   label:'🔴 RED',   cls:'imd-red',   score:100};
+  if(r>115.6) return {level:'orange',label:'🟠 ORANGE',cls:'imd-orange',score:70};
+  if(r>64.5)  return {level:'yellow',label:'🟡 YELLOW',cls:'imd-yellow',score:40};
+  return             {level:'green', label:'🟢 GREEN', cls:'imd-green', score:10};
+}
+function getFc3d(name){
+  const wd=weatherData[name]; if(!wd||!wd.daily) return 0;
+  const p=wd.daily.precipitation_sum||[]; return (p[1]||0)+(p[2]||0)+(p[3]||0);
+}
+function floodComposite(name){
+  const wd=weatherData[name]; if(!wd||!wd.daily) return 0;
+  const rain=wd.daily.precipitation_sum?.[0]||0;
+  const v=FLOOD_VULN[name]||{flood:40,landslide:30,wind:30};
+  const fc=getFc3d(name);
+  return Math.min(100,Math.round(
+    imdAlert(rain).score*0.5 + Math.max(v.flood,v.landslide,v.wind)*0.3 +
+    (fc>150?80:fc>80?50:fc>40?30:10)*0.2
+  ));
+}
+function floodColor(s){ return s>=80?'#f87171':s>=55?'#fb923c':s>=35?'#facc15':'#1a2f22'; }
+function riskTypeLabel(name){
+  const v=FLOOD_VULN[name]; if(!v) return '🌊 Flood';
+  return v.primary==='landslide'?'🏔️ Landslide':v.primary==='wind'?'💨 Wind':'🌊 Flood';
+}
+function buildFloodRows(){
+  return DISTRICTS.map(d=>{
+    const wd=weatherData[d.name];
+    const rain=wd?.daily?.precipitation_sum?.[0]||0;
+    const imd=imdAlert(rain); const fc=getFc3d(d.name);
+    const v=FLOOD_VULN[d.name]||{flood:40,landslide:30,wind:30};
+    const vm=Math.max(v.flood,v.landslide,v.wind);
+    const score=floodComposite(d.name);
+    return {name:d.name,rain,imd,fc,vm,score};
+  }).sort((a,b)=>b.score-a.score);
+}
+function renderFloodTable(){
+  const tb=document.getElementById('flood-tbody'); if(!tb) return;
+  if(!weatherData||Object.keys(weatherData).length===0){
+    tb.innerHTML='<tr><td colspan="7" style="padding:14px;text-align:center;color:var(--color-text-faint)">⏳ Loading weather data…</td></tr>';
+    return;
+  }
+  const rows=buildFloodRows();
+  const cnt={red:0,orange:0,yellow:0,green:0};
+  rows.forEach(r=>cnt[r.imd.level]++);
+  ['red','orange','yellow','green'].forEach(l=>{
+    const el=document.getElementById('fs-'+l); if(el) el.textContent={red:'🔴',orange:'🟠',yellow:'🟡',green:'🟢'}[l]+' '+cnt[l]+' '+l.charAt(0).toUpperCase()+l.slice(1);
+  });
+  tb.innerHTML=rows.map(r=>`<tr onclick="showDistrictDetail('${r.name}','flood')">
+    <td><strong>${r.name}</strong><div style="font-size:10px;color:var(--color-text-faint)">${riskTypeLabel(r.name)}</div></td>
+    <td><span class="imd-badge ${r.imd.cls}">${r.imd.label}</span></td>
+    <td style="font-weight:600">${r.rain.toFixed(1)} mm</td>
+    <td>${r.fc.toFixed(0)} mm</td>
+    <td><div style="display:flex;align-items:center;gap:5px"><div style="width:44px;height:4px;background:var(--color-surface-3);border-radius:99px;overflow:hidden"><div style="width:${r.vm}%;height:100%;background:#fb923c;border-radius:99px"></div></div><span style="font-size:10px;color:var(--color-text-faint)">${r.vm}</span></div></td>
+    <td><span class="risk-type-pill">${riskTypeLabel(r.name)}</span></td>
+    <td><div style="display:flex;align-items:center;gap:5px"><div style="width:44px;height:4px;background:var(--color-surface-3);border-radius:99px;overflow:hidden"><div style="width:${r.score}%;height:100%;background:${floodColor(r.score)};border-radius:99px"></div></div><span style="font-size:11px;font-weight:700;color:${floodColor(r.score)}">${r.score}</span></div></td>
+  </tr>`).join('');
+}
+function renderFloodCards(){
+  const list = document.getElementById('flood-cards-list');
+  if(!list) return;
+
+  // Guard: no weather data yet
+  const distNames = Object.keys(weatherData||{});
+  if(distNames.length === 0){
+    list.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--color-text-faint)">⏳ Weather data loading…</div>';
+    return;
+  }
+
+  const rows = DISTRICTS.map(d => {
+    const wd  = weatherData[d.name] || {};
+    const rain = (wd.daily && wd.daily.precipitation_sum) ? (wd.daily.precipitation_sum[0]||0) : 0;
+    const imd  = imdAlert(rain);
+    const score = floodComposite(d.name);
+    return {name:d.name, rain, imd, score};
+  }).sort((a,b) => b.score - a.score);
+
+  list.innerHTML = rows.map(r => {
+    const col = floodColor(r.score);
+    const rtl = riskTypeLabel(r.name);
+    const nm  = r.name.replace(/'/g,"\'");
+    return '<div class="flood-card" onclick="showDistrictDetail(\'' + nm + '\',\'flood\')">'
+      + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'
+      + '<span style="font-size:11px;font-weight:600;flex:1;">' + r.name + '</span>'
+      + '<span class="imd-badge ' + r.imd.cls + '" style="font-size:9px;padding:1px 6px;">' + r.imd.label + '</span>'
+      + '</div>'
+      + '<div style="display:flex;justify-content:space-between;">'
+      + '<span style="font-size:10px;color:var(--color-text-faint);">' + rtl + ' · ' + r.rain.toFixed(1) + 'mm</span>'
+      + '<span style="font-size:10px;font-weight:700;color:' + col + ';">' + r.score + '</span>'
+      + '</div></div>';
+  }).join('');
+}
+function populateDDFlood(name){
+  const body=document.getElementById('dd-flood-body'); if(!body) return;
+  const wd=weatherData[name];
+  if(!wd||!wd.daily){body.innerHTML='<div style="font-size:11px;color:var(--color-text-faint);padding:8px 0">No weather data available</div>';return;}
+  const rain=wd.daily.precipitation_sum?.[0]||0;
+  const imd=imdAlert(rain);
+  const v=FLOOD_VULN[name]||{flood:40,landslide:30,wind:30};
+  const score=floodComposite(name);
+  const days=wd.daily.precipitation_sum||[];
+  const maxR=Math.max(...days.slice(0,7),1);
+  const dayL=['Today','D+1','D+2','D+3','D+4','D+5','D+6'];
+  const adv=score>=80?'🔴 HIGH — Evacuate low-lying areas. Avoid river crossings. Follow KSDMA advisories.'
+    :score>=55?'🟠 ELEVATED — Stay alert. Avoid waterlogged roads. Monitor dam levels.'
+    :score>=35?'🟡 WATCH — Be prepared. Check IMD updates. Avoid flood-prone zones.'
+    :'🟢 NORMAL — Conditions within safe thresholds.';
+  body.innerHTML=`<div style="margin-bottom:10px">
+    <span class="imd-badge ${imd.cls}" style="font-size:12px;padding:4px 12px">${imd.label} ALERT</span>
+    <span style="font-size:11px;color:var(--color-text-faint);margin-left:8px">${rain.toFixed(1)} mm/24h</span>
+  </div>
+  <div style="font-size:9px;color:var(--color-text-faint);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">7-Day Rainfall Forecast</div>
+  <div class="ff-bars">${days.slice(0,7).map((v2,i)=>{
+    const h=Math.max(2,Math.round((v2/maxR)*48));
+    const col=imdAlert(v2).level==='red'?'#f87171':imdAlert(v2).level==='orange'?'#fb923c':imdAlert(v2).level==='yellow'?'#facc15':'#4ade80';
+    return `<div class="ff-col"><div class="ff-val">${v2.toFixed(0)}</div><div class="ff-bar" style="height:${h}px;background:${col}"></div><div class="ff-lbl">${dayL[i]}</div></div>`;
+  }).join('')}</div>
+  <div style="font-size:9px;color:var(--color-text-faint);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">KSDMA Vulnerability</div>
+  ${[['🌊 Flood',v.flood,'#38bdf8'],['🏔️ Landslide',v.landslide,'#fb923c'],['💨 Wind',v.wind,'#a78bfa']].map(([lbl,vl,col])=>`<div class="vuln-row"><span class="vuln-name">${lbl}</span><div class="vuln-bg"><div class="vuln-fill" style="width:${vl}%;background:${col}"></div></div><span class="vuln-val" style="color:${col}">${vl}</span></div>`).join('')}
+  <div style="margin-top:10px;padding:8px 10px;border-radius:6px;background:var(--color-surface);font-size:11px;line-height:1.5;border-left:3px solid ${floodColor(score)}">${adv}</div>
+  <div style="margin-top:5px;font-size:9px;color:var(--color-text-faint)">Score:${score}/100 · KSDMA · IMD · Open-Meteo</div>`;
+}
+function showFloodView(on){
+  const fv=document.getElementById('flood-view');
+  const mc=document.getElementById('map-container');
+  if(fv) fv.classList.toggle('active',on);
+  if(on){ if(mc) mc.classList.add('hidden'); renderFloodTable(); renderFloodCards(); }
+  else   { if(mc) mc.classList.remove('hidden'); }
+}
 // ═══════════════════════════════════════════════════════
 function switchNav(view, btn){
   document.querySelectorAll('.nav-item[data-nav]').forEach(n=>n.classList.remove('active'));
-  btn.classList.add('active');
-
-  const MAP = {
-    overview:   { layer:'rainfall',   rpTab:'weather' },
-    weather:    { layer:'rainfall',   rpTab:'weather' },
-    crophealth: { layer:'crophealth', rpTab:'health'  },
-    markets:    { layer:'rainfall',   rpTab:'prices'  },
-    alerts:     { layer:'crophealth', rpTab:'alerts'  },
-  };
-  const cfg = MAP[view] || MAP.overview;
-
-  // Show/hide markets view
-  showMarketsView(view==='markets');
-
-  if(view!=='markets'){
-    setLayer(cfg.layer, true);
+  const navBtn=btn||document.querySelector('[data-nav="'+view+'"]');
+  if(navBtn) navBtn.classList.add('active');
+  showMarketsView(false);
+  showFloodView(false);
+  if(view==='markets'){
+    showMarketsView(true);
+  } else if(view==='flood'){
+    showFloodView(true);
+    setLayer('floodrisk',true);
+  } else {
+    const layerMap={overview:'rainfall',weather:'rainfall',crophealth:'crophealth',alerts:'pestmap'};
+    setLayer(layerMap[view]||'rainfall',true);
   }
-
-  // Switch right panel tab (4 tabs now)
-  const tabMap={weather:1,health:2,alerts:3,prices:4};
-  const rpTabEl=document.querySelector(`.rp-tab:nth-child(${tabMap[cfg.rpTab]||1})`);
-  if(rpTabEl) switchRPTab(cfg.rpTab, rpTabEl);
-
+  const rpMap={overview:'weather',weather:'weather',crophealth:'health',markets:'prices',alerts:'alerts',flood:'flood'};
+  const rpTab=rpMap[view]||'weather';
+  const rpBtns=document.querySelectorAll('.rp-tab');
+  const rpOrder=['weather','health','alerts','flood','prices'];
+  const ri=rpOrder.indexOf(rpTab);
+  if(rpBtns[ri]) switchRPTab(rpTab,rpBtns[ri]);
   closeDetail();
 }
 
