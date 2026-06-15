@@ -1,20 +1,33 @@
----
 name: Documentation Improvement
-about: Suggest improvements to the project documentation
-title: '[DOCS] '
-labels: documentation
-assignees: ''
+description: Suggest improvements to the project documentation
+title: "[DOCS]: "
+labels: ["documentation"]
 
----
+body:
+  - type: checkboxes
+    id: docs_area
+    attributes:
+      label: Which documentation needs improvement?
+      options:
+        - label: README.md
+        - label: CONTRIBUTING.md
+        - label: Specific language guide
+        - label: Other
+    validations:
+      required: true
 
-**Which documentation needs improvement?**
-- [ ] README.md
-- [ ] CONTRIBUTING.md
-- [ ] Specific language guide
-- [ ] Other:
+  - type: textarea
+    id: improvement
+    attributes:
+      label: Describe the improvement
+      description: Tell us what is missing or what can be better.
+    validations:
+      required: true
 
-**Describe the improvement**
-Tell us what is missing or what can be better!
-
-**Proposed changes**
-Describe the changes you would like to make.
+  - type: textarea
+    id: proposed_changes
+    attributes:
+      label: Proposed changes
+      description: Describe the changes you would like to make.
+    validations:
+      required: true
