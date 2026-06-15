@@ -164,12 +164,6 @@ Future service worker will enable:
 3. **Test locally**: `python -m http.server`
 4. **PR** with description of changes
 
-**Good first issues:**
-- Add more Kerala crops to CROP_KB
-- Integrate live Agmarknet API
-- Malayalam language support
-- Village-level hyperlocal weather
-
 ## 📄 Knowledge Bases (Embedded)
 
 **CROP_KB** (15 crops): irrigation schedules, fertilizer, harvest windows  
