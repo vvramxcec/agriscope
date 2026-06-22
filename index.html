@@ -124,7 +124,7 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
 .rp-tab:hover{color:var(--color-text-muted);}
 .rp-tab.active{color:var(--color-primary);border-bottom-color:var(--color-primary);}
 .rp-tab-content{display:none;flex:1;overflow-y:auto;flex-direction:column;}
-.rp-tab-content.active{display:flex;}
+.rp-tab-content.active{display:flex; flex:1; min-height:0;overflow-y: auto;flex-direction: column;}
 .rp-tab-content::-webkit-scrollbar{width:4px;}
 .rp-tab-content::-webkit-scrollbar-thumb{background:var(--color-surface-3);border-radius:2px;}
 
@@ -899,17 +899,7 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
       KAU/ICAR thresholds · Phase 2: NPSS API
     </div>
   </div>
-
-  <!-- PRICES TAB -->
-  <div class="rp-tab-content" id="rp-prices">
-    <div style="padding:6px 14px 4px;font-size:9px;color:var(--color-text-faint);display:flex;justify-content:space-between;">
-      <span>COMMODITY · MANDI</span><span>PRICE · CHANGE</span>
-    </div>
-    <div id="price-cards-list"></div>
-    <div style="padding:8px 14px;font-size:9px;color:var(--color-text-faint);border-top:1px solid var(--color-border);margin-top:auto;flex-shrink:0;">
-      Seeded Kerala mandi prices · ticks every 5 min.<br>Real Agmarknet API — Phase 2.
-    </div>
-  <!-- FLOOD RIGHT PANEL TAB -->
+   <!-- FLOOD RIGHT PANEL TAB -->
   <div class="rp-tab-content" id="rp-flood">
     <div style="padding:5px 14px 3px;font-size:9px;color:var(--color-text-faint);display:flex;justify-content:space-between;">
       <span>DISTRICT · RISK TYPE</span><span>ALERT</span>
@@ -919,6 +909,15 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
       KSDMA vulnerability · IMD thresholds · Phase 2: Google Flood API
     </div>
   </div>
+  <!-- PRICES TAB -->
+  <div class="rp-tab-content" id="rp-prices">
+    <div style="padding:6px 14px 4px;font-size:9px;color:var(--color-text-faint);display:flex;justify-content:space-between;">
+      <span>COMMODITY · MANDI</span><span>PRICE · CHANGE</span>
+    </div>
+    <div id="price-cards-list"></div>
+    <div style="padding:8px 14px;font-size:9px;color:var(--color-text-faint);border-top:1px solid var(--color-border);margin-top:auto;flex-shrink:0;">
+      Seeded Kerala mandi prices · ticks every 5 min.<br>Real Agmarknet API — Phase 2.
+    </div> 
   </div>
 </div>
 
@@ -1534,6 +1533,12 @@ function switchRPTab(tab, btn){
   const el=document.getElementById('rp-'+tab); if(el) el.classList.add('active');
   if(tab==='flood' && typeof renderFloodCards==='function') renderFloodCards();
   if(tab==='alerts' && typeof renderPestCards==='function') renderPestCards();
+const activeName = document.getElementById('dd-name')?.textContent;
+  const validDistrict = DISTRICTS.find(d => d.name === activeName);
+  if(tab === 'flood' && validDistrict){
+    populateDDFlood(activeName);
+    switchDDTab('flood', null);
+  }
 }
 
 // ═══════════════════════════════════════════════════════
