@@ -2023,13 +2023,23 @@ const API_NORMALISE_MAX = 345 ; // worst case kerala monsoon( 200m(today)+ 0.7 *
 
 function savePrecipHistory(districtName, mmToday){
   try{
-    const today = new Date().toISOString().slice(0,10);
+    const today = new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});
     const key = 'agroscope_precip'+ districtName;
     let hist = JSON.parse(localStorage.getItem(key) || '[]');
     if(hist.length && hist[hist.length-1].date === today){
       hist[hist.length - 1].mm = mmToday; //update same day entry
       } else{
-        hist.push({date:today, mm:mmToday});
+         if (hist.length > 0) {
+    const lastDate = new Date(hist[hist.length-1].date + 'T00:00:00');
+    const currentDate = new Date(today + 'T00:00:00');
+    const diffDays = Math.round((currentDate - lastDate) / (1000 * 60 * 60 * 24));
+    for (let i = 1; i < diffDays; i++) {
+      const d = new Date(lastDate);
+      d.setDate(d.getDate() + i);
+      hist.push({ date: d.toISOString().slice(0, 10), mm: 0 });
+    }
+  }
+  hist.push({date:today, mm:mmToday});
       }
       if(hist.length > 7) hist = hist.slice(-7); // keep last 7 days max
       localStorage.setItem(key,JSON.stringify(hist));
@@ -2139,7 +2149,7 @@ function renderFloodTable(){
   ['red','orange','yellow','green'].forEach(l=>{
     const el=document.getElementById('fs-'+l); if(el) el.textContent={red:'🔴',orange:'🟠',yellow:'🟡',green:'🟢'}[l]+' '+cnt[l]+' '+l.charAt(0).toUpperCase()+l.slice(1);
   });
-   tb.innerHTML=rows.map(r=>`<tr onclick="showDistrictDetail('${r.name}','flood')">
+   tb.innerHTML=rows.map(r=>`<tr onclick="showDistrictDetail('${r.name.replace(/'/g, "&apos;")}','flood')">
     <td><strong>${r.name}</strong><div style="font-size:10px;color:var(--color-text-faint)">${riskTypeLabel(r.name)}</div></td>
     <td><span class="imd-badge ${r.imd.cls}">${r.imd.label}</span></td>
     <td style="font-weight:600">${r.rain.toFixed(1)} mm</td>
@@ -2175,7 +2185,7 @@ function renderFloodCards(){
     const col = floodColor(r.score);
     const apiCol = r.apiScore>=70?'#f87171':r.apiScore>=40?'#fb923c':'#4ade80';
     const rtl = riskTypeLabel(r.name);
-    const nm  = r.name.replace(/'/g,"\'");
+    const nm  = r.name.replace(/'/g,"&apos;");
     return '<div class="flood-card" onclick="showDistrictDetail(\'' + nm + '\',\'flood\')">'
       + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'
       + '<span style="font-size:11px;font-weight:600;flex:1;">' + r.name + '</span>'
@@ -2229,7 +2239,7 @@ function populateDDFlood(name){
     ${rain>=EXTREME_RAIN_THRESHOLD?'<div style="font-size:10px;color:#f87171;margin-top:3px;font-weight:600">⚠️ Extreme override — >'+EXTREME_RAIN_THRESHOLD+'mm threshold triggered</div>':''}
   </div>
   <div style="margin-top:10px;padding:8px 10px;border-radius:6px;background:var(--color-surface);font-size:11px;line-height:1.5;border-left:3px solid ${floodColor(score)}">${adv}</div>
-  <div style="margin-top:5px;font-size:9px;color:var(--color-text-faint)">Score:${score}/100 · API+KSDMA+IMD · Open-Meteo</div>`;
+ <div style="margin-top:5px;font-size:9px;color:var(--color-text-faint)">Score:${score}/100 · 40% API + 30% IMD + 20% KSDMA + 10% 3D Forecast · Open-Meteo</div>`;
 
 }
 function showAIView(on){
@@ -2497,7 +2507,7 @@ function renderNewsAdvisories(){
   });
   document.getElementById('news-adv-count').textContent = items.length;
   list.innerHTML = items.map(({d,sev,icon,msgs,actions,crop,score})=>`
-    <div class="adv-card sev-${sev}" onclick="showDistrictDetail('${d.name}','crophealth')">
+    <div class="adv-card sev-${sev}" onclick="showDistrictDetail('${d.name.replace(/'/g, "&apos;")}','crophealth')">
       <div class="adv-card-top">
         <span class="adv-icon">${icon}</span>
         <span class="adv-district">${d.name}</span>
