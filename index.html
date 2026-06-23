@@ -11,7 +11,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
 
-
   <!-- Gemini AI Shim (firebase-ai.js CDN unavailable; using Gemini REST API directly) -->
   <script>
   (function(){
@@ -205,9 +204,9 @@
     <div class="panel-header">
       <span class="panel-title">📈 District Trends</span>
       <div class="chart-tabs">
-        <button class="chart-tab active" onclick="switchChart('rainfall',this)">Rainfall</button>
-        <button class="chart-tab" onclick="switchChart('temperature',this)">Temperature</button>
-        <button class="chart-tab" onclick="switchChart('humidity',this)">Humidity</button>
+        <button class="chart-tab active" onclick="switchChart('rainfall',this)">🌧️ Rainfall</button>
+        <button class="chart-tab" onclick="switchChart('temperature',this)">🌡️ Temperature</button>
+        <button class="chart-tab" onclick="switchChart('humidity',this)">💧 Humidity</button>
         <button class="chart-tab" onclick="switchChart('crophealth',this)">🌾 Crop Health</button>
         <button class="chart-tab" onclick="switchChart('prices',this)">💰 Prices</button>
       </div>
@@ -249,6 +248,7 @@
         <th style="min-width:130px">District</th>
         <th>IMD Alert</th>
         <th>24h Rain</th>
+        <th>API Score</th>
         <th>3D Forecast</th>
         <th>Vulnerability</th>
         <th>Risk Type</th>
@@ -486,17 +486,7 @@
       KAU/ICAR thresholds · Phase 2: NPSS API
     </div>
   </div>
-
-  <!-- PRICES TAB -->
-  <div class="rp-tab-content" id="rp-prices">
-    <div style="padding:6px 14px 4px;font-size:9px;color:var(--color-text-faint);display:flex;justify-content:space-between;">
-      <span>COMMODITY · MANDI</span><span>PRICE · CHANGE</span>
-    </div>
-    <div id="price-cards-list"></div>
-    <div style="padding:8px 14px;font-size:9px;color:var(--color-text-faint);border-top:1px solid var(--color-border);margin-top:auto;flex-shrink:0;">
-      Seeded Kerala mandi prices · ticks every 5 min.<br>Real Agmarknet API — Phase 2.
-    </div>
-  <!-- FLOOD RIGHT PANEL TAB -->
+   <!-- FLOOD RIGHT PANEL TAB -->
   <div class="rp-tab-content" id="rp-flood">
     <div style="padding:5px 14px 3px;font-size:9px;color:var(--color-text-faint);display:flex;justify-content:space-between;">
       <span>DISTRICT · RISK TYPE</span><span>ALERT</span>
@@ -506,6 +496,15 @@
       KSDMA vulnerability · IMD thresholds · Phase 2: Google Flood API
     </div>
   </div>
+  <!-- PRICES TAB -->
+  <div class="rp-tab-content" id="rp-prices">
+    <div style="padding:6px 14px 4px;font-size:9px;color:var(--color-text-faint);display:flex;justify-content:space-between;">
+      <span>COMMODITY · MANDI</span><span>PRICE · CHANGE</span>
+    </div>
+    <div id="price-cards-list"></div>
+    <div style="padding:8px 14px;font-size:9px;color:var(--color-text-faint);border-top:1px solid var(--color-border);margin-top:auto;flex-shrink:0;">
+      Seeded Kerala mandi prices · ticks every 5 min.<br>Real Agmarknet API — Phase 2.
+    </div> 
   </div>
 </div>
 
@@ -592,7 +591,14 @@ async function fetchWeather(){
     const pct = Math.round((i/DISTRICTS.length)*100);
     document.getElementById('load-step').textContent=`Weather ${pct}% (${i+1}–${Math.min(i+BATCH,DISTRICTS.length)} of ${DISTRICTS.length})…`;
     const results = await Promise.all(batch.map(d=>fetchOne(d)));
-    results.forEach(r=>{ if(r.data) weatherData[r.district]=r.data; });
+    results.forEach(r=>{ 
+      if(r.data){
+      weatherData[r.district]=r.data;
+    //persist today's rainfall for API soil saturation memory
+    const todayRain = r.data.daily?.precipitation_sum?.[0] ?? 0;
+    savePrecipHistory(r.district,todayRain);
+    }
+     });
     if(i+BATCH < DISTRICTS.length) await sleep(1200);
   }
   document.getElementById('load-step').textContent='Weather loaded ✓';
@@ -1121,6 +1127,12 @@ function switchRPTab(tab, btn){
   const el=document.getElementById('rp-'+tab); if(el) el.classList.add('active');
   if(tab==='flood' && typeof renderFloodCards==='function') renderFloodCards();
   if(tab==='alerts' && typeof renderPestCards==='function') renderPestCards();
+const activeName = document.getElementById('dd-name')?.textContent;
+  const validDistrict = DISTRICTS.find(d => d.name === activeName);
+  if(tab === 'flood' && validDistrict){
+    populateDDFlood(activeName);
+    switchDDTab('flood', null);
+  }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1131,10 +1143,14 @@ setInterval(updateClock,1000); updateClock();
 function setLastUpdated(){document.getElementById('last-updated').textContent='Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Kolkata'});}
 
 // ═══════════════════════════════════════════════════════
+let SCHEMES = [];
+
+
 //  INIT
 // ═══════════════════════════════════════════════════════
 async function init(){
   try{
+    await loadSchemes();
     await fetchWeather();
     document.getElementById('load-step').textContent='Computing crop health scores…';
     computeAllHealth();
@@ -1153,6 +1169,7 @@ async function init(){
     renderPriceCards();
     renderPestCards();
     renderFloodCards();
+   
 
     setInterval(async()=>{
       await fetchWeather(); computeAllHealth();
@@ -1182,8 +1199,8 @@ const COMMODITIES = [
   { id:'rubber',      emoji:'🌳', name:'Rubber RSS4',   unit:'₹/kg',       mandi:'Kottayam',        base:218,  vol:0.010, crop:'Rubber' },
   { id:'coffee',      emoji:'☕', name:'Coffee Robusta',unit:'₹/kg',       mandi:'Wayanad',         base:165,  vol:0.015, crop:'Coffee' },
   { id:'tea',         emoji:'🍵', name:'Tea',           unit:'₹/kg',       mandi:'Munnar',          base:92,   vol:0.012, crop:'Tea' },
-  { id:'coconutoil',  emoji:'🫚', name:'Coconut Oil',   unit:'₹/kg',       mandi:'Kozhikode',       base:196,  vol:0.009, crop:'Coconut' },
-  { id:'ginger',      emoji:'🌾', name:'Ginger',        unit:'₹/kg',       mandi:'Ernakulam',       base:38,   vol:0.020, crop:'Ginger' },
+  { id:'coconutoil',  emoji:'🥥', name:'Coconut Oil',   unit:'₹/kg',       mandi:'Kozhikode',       base:196,  vol:0.009, crop:'Coconut' },
+  { id:'ginger',      emoji:'🫚', name:'Ginger',        unit:'₹/kg',       mandi:'Ernakulam',       base:38,   vol:0.020, crop:'Ginger' },
   { id:'turmeric',    emoji:'🟡', name:'Turmeric',      unit:'₹/kg',       mandi:'Ernakulam',       base:148,  vol:0.018, crop:'Turmeric' },
   { id:'banana',      emoji:'🍌', name:'Banana',        unit:'₹/kg',       mandi:'Thrissur',        base:32,   vol:0.008, crop:'Banana' },
   { id:'tapioca',     emoji:'🍠', name:'Tapioca',       unit:'₹/kg',       mandi:'Alappuzha',       base:24,   vol:0.007, crop:'Tapioca' },
@@ -1589,6 +1606,71 @@ function populateDDPests(districtName){
 // ═══════════════════════════════════════════════════════
 //  FLOOD & DISASTER RISK ENGINE (KSDMA + IMD)
 // ═══════════════════════════════════════════════════════
+
+
+
+// soi saturation engine - Antecedent Precipitation Index (API)
+// Formula (IMD/KSDMA hydrological practice):
+// API = P_t + 0.7 * P_(t-1) + 0.4 * P_(t-2)
+
+const EXTREME_RAIN_THRESHOLD = 150; // IMD extreme heavyrainfall in active monsoon zones
+
+const API_NORMALISE_MAX = 345 ; // worst case kerala monsoon( 200m(today)+ 0.7 * 150 + 0.4 * 100) = 345mm ), 
+
+function savePrecipHistory(districtName, mmToday){
+  try{
+    const today = new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});
+    const key = 'agroscope_precip'+ districtName;
+    let hist = JSON.parse(localStorage.getItem(key) || '[]');
+    if(hist.length && hist[hist.length-1].date === today){
+      hist[hist.length - 1].mm = mmToday; //update same day entry
+      } else{
+         if (hist.length > 0) {
+    const lastDate = new Date(hist[hist.length-1].date + 'T00:00:00');
+    const currentDate = new Date(today + 'T00:00:00');
+    const diffDays = Math.round((currentDate - lastDate) / (1000 * 60 * 60 * 24));
+    for (let i = 1; i < diffDays; i++) {
+      const d = new Date(lastDate);
+      d.setDate(d.getDate() + i);
+      hist.push({ date: d.toISOString().slice(0, 10), mm: 0 });
+    }
+  }
+  hist.push({date:today, mm:mmToday});
+      }
+      if(hist.length > 7) hist = hist.slice(-7); // keep last 7 days max
+      localStorage.setItem(key,JSON.stringify(hist));
+  } catch(e) {
+  console.warn("localStorage is unavailable or full. History won't be saved across sessions:", e.message);
+}
+
+}
+
+function loadPrecipHistory(districtName){
+  try{
+    return JSON.parse(localStorage.getItem('agroscope_precip'+districtName) || '[]');
+  }
+  catch(e){
+    return [];
+  }
+}
+
+// compute the Antecedent Precipitation Index for a distric
+// uses live Open-Meteo data for today (P_t = precipitation_sum[0] and localstorage for P_(t-1) and P_(t-2)
+// on first load there will be no history, so the formula degrades to  just today's rain, After 3d, it reaches the 3 day memory
+// @param {string}   districtName @param {number[]} precipSum   - daily.precipitation_sum from Open-Meteo, @returns {{ api: number, pt: number, pt1: number, pt2: number, apiScore: number }}
+
+function  computeAPIndex(districtName,precipSum){
+  const pt = precipSum?.[0] ?? 0; //today's
+  const hist = loadPrecipHistory(districtName) //sorted old->new
+  const pt1 = hist.length >= 2 ? (hist[hist.length -2 ].mm ?? 0) : 0;
+  const pt2 = hist.length >= 3 ? (hist[hist.length - 3].mm??0):0;
+  const api = pt + (0.7 * pt1) + (0.4*pt2);
+  const apiScore = Math.max(0,Math.min(100,Math.round((api/API_NORMALISE_MAX)*100)));
+  return {api,pt,pt1,pt2,apiScore};
+
+}
+
+
 const FLOOD_VULN = {
   'Alappuzha':         {flood:95,landslide:10,wind:70,primary:'flood'},
   'Idukki':            {flood:55,landslide:95,wind:20,primary:'landslide'},
@@ -1619,11 +1701,20 @@ function floodComposite(name){
   const wd=weatherData[name]; if(!wd||!wd.daily) return 0;
   const rain=wd.daily.precipitation_sum?.[0]||0;
   const v=FLOOD_VULN[name]||{flood:40,landslide:30,wind:30};
+
+  if(rain >= EXTREME_RAIN_THRESHOLD) return 100;
+  //api weighted composite formula
+  // weight alloc, 40% soil saturation(API),30% IMD alert tier, 20% KSDMA baseline vuln, 10% 3day forecast
+  const {apiScore} = computeAPIndex(name,wd.daily.precipitation_sum);
+  const imdScore = imdAlert(rain).score ;
+  const ksdmascore = Math.max(v.flood,v.landslide,v.wind);
+  
   const fc=getFc3d(name);
-  return Math.min(100,Math.round(
-    imdAlert(rain).score*0.5 + Math.max(v.flood,v.landslide,v.wind)*0.3 +
-    (fc>150?80:fc>80?50:fc>40?30:10)*0.2
-  ));
+  const fcScore = fc > 150 ? 80: fc > 80? 50: fc > 40 ? 30: 10;
+
+  return Math.max(0,Math.min(100,Math.round(
+    (apiScore*0.40) + (imdScore * 0.30) + (ksdmascore*0.20) + (fcScore * 0.10)
+  )));
 }
 function floodColor(s){ return s>=80?'#f87171':s>=55?'#fb923c':s>=35?'#facc15':'#1a2f22'; }
 function riskTypeLabel(name){
@@ -1638,13 +1729,14 @@ function buildFloodRows(){
     const v=FLOOD_VULN[d.name]||{flood:40,landslide:30,wind:30};
     const vm=Math.max(v.flood,v.landslide,v.wind);
     const score=floodComposite(d.name);
-    return {name:d.name,rain,imd,fc,vm,score};
+    const {apiScore} = computeAPIndex(d.name,wd?.daily?.precipitation_sum || [])
+    return {name:d.name,rain,imd,fc,vm,score,apiScore};
   }).sort((a,b)=>b.score-a.score);
 }
 function renderFloodTable(){
   const tb=document.getElementById('flood-tbody'); if(!tb) return;
   if(!weatherData||Object.keys(weatherData).length===0){
-    tb.innerHTML='<tr><td colspan="7" style="padding:14px;text-align:center;color:var(--color-text-faint)">⏳ Loading weather data…</td></tr>';
+    tb.innerHTML='<tr><td colspan="8" style="padding:14px;text-align:center;color:var(--color-text-faint)">⏳ Loading weather data…</td></tr>';
     return;
   }
   const rows=buildFloodRows();
@@ -1653,15 +1745,17 @@ function renderFloodTable(){
   ['red','orange','yellow','green'].forEach(l=>{
     const el=document.getElementById('fs-'+l); if(el) el.textContent={red:'🔴',orange:'🟠',yellow:'🟡',green:'🟢'}[l]+' '+cnt[l]+' '+l.charAt(0).toUpperCase()+l.slice(1);
   });
-  tb.innerHTML=rows.map(r=>`<tr onclick="showDistrictDetail('${r.name}','flood')">
+   tb.innerHTML=rows.map(r=>`<tr onclick="showDistrictDetail('${r.name.replace(/'/g, "&apos;")}','flood')">
     <td><strong>${r.name}</strong><div style="font-size:10px;color:var(--color-text-faint)">${riskTypeLabel(r.name)}</div></td>
     <td><span class="imd-badge ${r.imd.cls}">${r.imd.label}</span></td>
     <td style="font-weight:600">${r.rain.toFixed(1)} mm</td>
+    <td><span style="font-size:11px;font-weight:700;color:${r.apiScore>=70?'#f87171':r.apiScore>=40?'#fb923c':'#7a9982'}">${r.apiScore}</span><span style="font-size:9px;color:var(--color-text-faint)">/100</span></td>
     <td>${r.fc.toFixed(0)} mm</td>
     <td><div style="display:flex;align-items:center;gap:5px"><div style="width:44px;height:4px;background:var(--color-surface-3);border-radius:99px;overflow:hidden"><div style="width:${r.vm}%;height:100%;background:#fb923c;border-radius:99px"></div></div><span style="font-size:10px;color:var(--color-text-faint)">${r.vm}</span></div></td>
     <td><span class="risk-type-pill">${riskTypeLabel(r.name)}</span></td>
     <td><div style="display:flex;align-items:center;gap:5px"><div style="width:44px;height:4px;background:var(--color-surface-3);border-radius:99px;overflow:hidden"><div style="width:${r.score}%;height:100%;background:${floodColor(r.score)};border-radius:99px"></div></div><span style="font-size:11px;font-weight:700;color:${floodColor(r.score)}">${r.score}</span></div></td>
   </tr>`).join('');
+
 }
 function renderFloodCards(){
   const list = document.getElementById('flood-cards-list');
@@ -1679,23 +1773,28 @@ function renderFloodCards(){
     const rain = (wd.daily && wd.daily.precipitation_sum) ? (wd.daily.precipitation_sum[0]||0) : 0;
     const imd  = imdAlert(rain);
     const score = floodComposite(d.name);
-    return {name:d.name, rain, imd, score};
+    const {apiScore} = computeAPIndex(d.name,wd?.daily?.precipitation_sum || [])
+    return {name:d.name, rain, imd, score,apiScore};
   }).sort((a,b) => b.score - a.score);
 
   list.innerHTML = rows.map(r => {
     const col = floodColor(r.score);
+    const apiCol = r.apiScore>=70?'#f87171':r.apiScore>=40?'#fb923c':'#4ade80';
     const rtl = riskTypeLabel(r.name);
-    const nm  = r.name.replace(/'/g,"\'");
+    const nm  = r.name.replace(/'/g,"&apos;");
     return '<div class="flood-card" onclick="showDistrictDetail(\'' + nm + '\',\'flood\')">'
       + '<div style="display:flex;align-items:center;gap:6px;margin-bottom:3px;">'
       + '<span style="font-size:11px;font-weight:600;flex:1;">' + r.name + '</span>'
       + '<span class="imd-badge ' + r.imd.cls + '" style="font-size:9px;padding:1px 6px;">' + r.imd.label + '</span>'
       + '</div>'
-      + '<div style="display:flex;justify-content:space-between;">'
+      + '<div style="display:flex;justify-content:space-between;align-items:center;">'
       + '<span style="font-size:10px;color:var(--color-text-faint);">' + rtl + ' · ' + r.rain.toFixed(1) + 'mm</span>'
+      + '<div style="display:flex;align-items:center;gap:6px;">'
+      + '<span style="font-size:9px;color:' + apiCol + '" title="Soil saturation (API)">💧' + r.apiScore + '</span>'
       + '<span style="font-size:10px;font-weight:700;color:' + col + ';">' + r.score + '</span>'
-      + '</div></div>';
+      + '</div></div></div>';
   }).join('');
+
 }
 function populateDDFlood(name){
   const body=document.getElementById('dd-flood-body'); if(!body) return;
@@ -1705,13 +1804,15 @@ function populateDDFlood(name){
   const imd=imdAlert(rain);
   const v=FLOOD_VULN[name]||{flood:40,landslide:30,wind:30};
   const score=floodComposite(name);
+  const {api,pt,pt1,pt2,apiScore} = computeAPIndex(name,wd.daily.precipitation_sum|| []);
   const days=wd.daily.precipitation_sum||[];
   const maxR=Math.max(...days.slice(0,7),1);
   const dayL=['Today','D+1','D+2','D+3','D+4','D+5','D+6'];
-  const adv=score>=80?'🔴 HIGH — Evacuate low-lying areas. Avoid river crossings. Follow KSDMA advisories.'
+    const adv=score>=80?'🔴 HIGH — Evacuate low-lying areas. Avoid river crossings. Follow KSDMA advisories.'
     :score>=55?'🟠 ELEVATED — Stay alert. Avoid waterlogged roads. Monitor dam levels.'
     :score>=35?'🟡 WATCH — Be prepared. Check IMD updates. Avoid flood-prone zones.'
     :'🟢 NORMAL — Conditions within safe thresholds.';
+  const apiCol = apiScore>=70?'#f87171':apiScore>=40?'#fb923c':'#4ade80';
   body.innerHTML=`<div style="margin-bottom:10px">
     <span class="imd-badge ${imd.cls}" style="font-size:12px;padding:4px 12px">${imd.label} ALERT</span>
     <span style="font-size:11px;color:var(--color-text-faint);margin-left:8px">${rain.toFixed(1)} mm/24h</span>
@@ -1724,8 +1825,18 @@ function populateDDFlood(name){
   }).join('')}</div>
   <div style="font-size:9px;color:var(--color-text-faint);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:6px">KSDMA Vulnerability</div>
   ${[['🌊 Flood',v.flood,'#38bdf8'],['🏔️ Landslide',v.landslide,'#fb923c'],['💨 Wind',v.wind,'#a78bfa']].map(([lbl,vl,col])=>`<div class="vuln-row"><span class="vuln-name">${lbl}</span><div class="vuln-bg"><div class="vuln-fill" style="width:${vl}%;background:${col}"></div></div><span class="vuln-val" style="color:${col}">${vl}</span></div>`).join('')}
+  <div style="margin-top:8px;padding:8px 10px;border-radius:6px;background:var(--color-surface);border-left:3px solid ${apiCol}">
+    <div style="font-size:9px;color:var(--color-text-faint);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:4px">🌱 Soil Saturation (API)</div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
+      <div style="flex:1;height:5px;background:var(--color-surface-3);border-radius:99px;overflow:hidden"><div style="width:${apiScore}%;height:100%;background:${apiCol};border-radius:99px"></div></div>
+      <span style="font-size:12px;font-weight:700;color:${apiCol}">${apiScore}/100</span>
+    </div>
+    <div style="font-size:10px;color:var(--color-text-muted)">API = ${api.toFixed(1)}mm &nbsp;·&nbsp; T=${pt.toFixed(0)} T-1=${pt1.toFixed(0)} T-2=${pt2.toFixed(0)}</div>
+    ${rain>=EXTREME_RAIN_THRESHOLD?'<div style="font-size:10px;color:#f87171;margin-top:3px;font-weight:600">⚠️ Extreme override — >'+EXTREME_RAIN_THRESHOLD+'mm threshold triggered</div>':''}
+  </div>
   <div style="margin-top:10px;padding:8px 10px;border-radius:6px;background:var(--color-surface);font-size:11px;line-height:1.5;border-left:3px solid ${floodColor(score)}">${adv}</div>
-  <div style="margin-top:5px;font-size:9px;color:var(--color-text-faint)">Score:${score}/100 · KSDMA · IMD · Open-Meteo</div>`;
+ <div style="margin-top:5px;font-size:9px;color:var(--color-text-faint)">Score:${score}/100 · 40% API + 30% IMD + 20% KSDMA + 10% 3D Forecast · Open-Meteo</div>`;
+
 }
 function showAIView(on){
   const av=document.getElementById('ai-view');
@@ -1797,18 +1908,7 @@ document.addEventListener('DOMContentLoaded',()=>{ lucide.createIcons(); init();
    ══════════════════════════════════════════════ */
 
 // ── Govt Schemes (static, Kerala-specific) ──────────────────────────────────
-const SCHEMES = [
-  { title:'PM-KISAN Samman Nidhi', body:'₹6,000/year direct income support to eligible farmer families in 3 instalments. Registration open at nearest CSC.', deadline:'Rolling', ministry:'Govt of India', link:'https://pmkisan.gov.in' },
-  { title:'Pradhan Mantri Fasal Bima Yojana (PMFBY)', body:'Crop insurance against natural calamities, pests & disease. Kharif premium 2%, Rabi 1.5%. Enroll through bank or CSC before sowing season.', deadline:'Before sowing', ministry:'Govt of India', link:'https://pmfby.gov.in' },
-  { title:'Kerala Karshaka Kshemanidhi', body:'Welfare pension ₹1,200/month for registered farmers aged 60+. Apply at Krishi Bhavan with land records & age proof.', deadline:'Open', ministry:'Kerala Govt', link:'https://www.kerala.gov.in' },
-  { title:'Kisan Credit Card (KCC)', body:'Short-term crop loans up to ₹3 lakh at 4% effective interest (after subvention). Available at all nationalized banks & cooperative banks.', deadline:'Open', ministry:'Govt of India', link:'https://www.nabard.org' },
-  { title:'Rashtriya Krishi Vikas Yojana (RKVY)', body:'Infrastructure grants for farm mechanization, irrigation, cold storage & processing units in Kerala. Apply through KSAMB or District Agriculture Office.', deadline:'Apr–Jun 2026', ministry:'Kerala Govt', link:'https://rkvy.nic.in' },
-  { title:'PM Kisan Maandhan Yojana', body:'Pension scheme for small & marginal farmers — ₹3,000/month at age 60. Monthly contribution ₹55–₹200 based on age of entry. Enroll via CSC.', deadline:'Open', ministry:'Govt of India', link:'https://maandhan.in' },
-  { title:'Soil Health Card Scheme', body:'Free soil health card with crop-wise nutrient recommendations. Collect from nearest Krishi Bhavan. Valid for 2 years.', deadline:'Open', ministry:'Govt of India', link:'https://soilhealth.dac.gov.in' },
-  { title:'NABARD Watershed Development', body:'Funding for watershed treatment, farm bunding & drip irrigation in drought-prone Kerala districts. Apply through District Collector office.', deadline:'May 2026', ministry:'NABARD', link:'https://www.nabard.org' },
-  { title:'Kerala Horticulture Mission', body:'50–75% subsidy on vegetable cultivation inputs, shade nets, mulching film & micro-irrigation for horticulture crops in Kerala.', deadline:'Jun 2026', ministry:'Kerala Govt', link:'https://www.keralaagriculture.gov.in' },
-  { title:'e-NAM (National Agriculture Market)', body:'Trade paddy, coconut, pepper & rubber on the online national market platform — better price discovery. Register at KSAMB portal.', deadline:'Open', ministry:'Govt of India', link:'https://www.enam.gov.in' },
-];
+
 
 // ── News state ───────────────────────────────────────────────────────────────
 let _allNewsItems = [];
@@ -1992,7 +2092,7 @@ function renderNewsAdvisories(){
   });
   document.getElementById('news-adv-count').textContent = items.length;
   list.innerHTML = items.map(({d,sev,icon,msgs,actions,crop,score})=>`
-    <div class="adv-card sev-${sev}" onclick="showDistrictDetail('${d.name}','crophealth')">
+    <div class="adv-card sev-${sev}" onclick="showDistrictDetail('${d.name.replace(/'/g, "&apos;")}','crophealth')">
       <div class="adv-card-top">
         <span class="adv-icon">${icon}</span>
         <span class="adv-district">${d.name}</span>
@@ -2084,18 +2184,88 @@ function renderIMDBulletins(){
 }
 
 // ── Govt Schemes renderer ────────────────────────────────────────────────────
-function renderSchemes(){
-  const list = document.getElementById('news-schemes-list'); if(!list) return;
-  list.innerHTML = SCHEMES.map(s=>`
+function renderSchemes(data = SCHEMES){
+
+  const list = document.getElementById('news-schemes-list');
+
+  if(!list) return;
+
+  list.innerHTML = data.map(s=>`
     <div class="scheme-card">
-      <div class="scheme-title"><span class="scheme-badge">Scheme</span> ${escHtml(s.title)}</div>
-      <div class="scheme-body">${escHtml(s.body)}</div>
+
+      <div class="scheme-title">
+        <span class="scheme-badge">Scheme</span> ${escHtml(s.title)}
+      </div>
+
+      <div class="scheme-body">
+        ${escHtml(s.body)}
+      </div>
+
       <div class="scheme-meta">
         <span>🏛️ ${escHtml(s.ministry)}</span>
         <span>📅 ${escHtml(s.deadline)}</span>
-        ${s.link?`<a href="${s.link}" target="_blank" class="news-card-link">Details →</a>`:''}
+
+        ${(() => {
+          try {
+            const url = new URL(s.link, location.href);
+
+            if(url.protocol !== "https:" && url.protocol !== "http:"){
+              return "";
+            }
+
+            return `<a href="${escHtml(url.href)}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="news-card-link">
+              Details →
+            </a>`;
+          } catch {
+            return "";
+          }
+        })()}
+
       </div>
-    </div>`).join('');
+
+    </div>
+  `).join('');
+}
+
+async function loadSchemes(){
+
+  const list = document.getElementById('news-schemes-list');
+
+  if(!list) return;
+
+  list.innerHTML = "Loading schemes...";
+
+  try{
+
+    const res = await fetch('./schemes.json');
+
+    if(!res.ok){
+      throw new Error("Failed to load schemes");
+    }
+
+    SCHEMES = await res.json();
+
+    renderSchemes(SCHEMES);
+
+  }catch(error){
+
+    console.error(error);
+
+    SCHEMES = [
+      {
+        title:"Government schemes unavailable",
+        body:"Please check again later.",
+        deadline:"-",
+        ministry:"-",
+        link:""
+      }
+    ];
+
+    renderSchemes(SCHEMES);
+}
 }
 
 // ── News Hub init ────────────────────────────────────────────────────────────
@@ -2133,19 +2303,11 @@ const CROP_KB = {
   'Spices':{ irrigate:'Varies by spice. Most need well-drained moist soils. Drip irrigation preferred.', fertilize:'Follow individual crop schedules. Generally: high K for quality. Organic inputs improve flavour.', disease:'Fungal diseases dominant in monsoon. Copper-based fungicides as preventive.', pest:'Pollu beetle (pepper), thrips (cardamom), mealy bug (vanilla). Pheromone traps recommended.', harvest:'Harvest at right maturity for maximum essential oil/flavour content.', market:'Kerala spices command premium prices. Kochi Spice Exchange for black pepper, cardamom.', season:'Most spices: harvest Oct–Feb after monsoon.' },
   'Arecanut':{ irrigate:'Drip: 15L/palm/day in summer. Basin: 100L every 5 days. Critical: Feb–Apr.', fertilize:'NPK 100:40:140 g/palm/yr + FYM 12kg. Two splits: Jun and Sep.', disease:'Mahali (Phytophthora): Metalaxyl drench. Koleroga (fruit rot): Copper Oxychloride spray during monsoon.', pest:'Mites: sulfur dust. Mealy bug: dimethoate. Spindle bug: chlorpyrifos.', harvest:'Harvest every 40 days. Soft arecanut (chali): immature stage. Dry: fully mature & dried.', market:'Arecanut ₹350–450/kg (whole). Kannur & Kasaragod main trading centres.', season:'Perennial. Main harvest: Oct–Feb.' },
   'Coir':{ irrigate:'Coir is processed coconut husk — no irrigation needed.', fertilize:'N/A — processing industry, not direct cultivation.', disease:'N/A', pest:'N/A', harvest:'Retting of coconut husks: 6–10 months in backwaters. Mechanical retting 3–4 days.', market:'Coir yarn ₹60–90/kg. Coir geotextiles export premium. Alappuzha main coir hub.', season:'Year-round processing. Peak: Jan–Apr (dry season for sun-drying).' },
+  'Jackfruit':{irrigate:'Young trees require regular watering during summer. Mature trees are mostly rain-fed but benefit from irrigation during prolonged dry spells. Avoid waterlogging.',fertilize:'Apply FYM 25–30kg/tree annually. Recommended NPK application in split doses before and after monsoon. Mulching helps conserve moisture.',disease:'Common diseases include fruit rot and pink disease. Remove affected branches and apply copper-based fungicides when necessary.', pest:'Fruit borer, shoot borer and bark-eating caterpillars are major pests. Maintain orchard sanitation and use recommended control measures.',harvest:'Fruits are ready when the spines become widely spaced and produce a dull hollow sound on tapping. Harvest carefully to avoid fruit damage.', market:'Jackfruit has strong demand for fresh consumption and value-added products. Peak demand occurs during the main harvest season.',season:'Flowering generally occurs from December to February. Main harvesting season in Kerala is March to June.'},
+  'Nutmeg':{irrigate:'Maintain adequate soil moisture, especially during summer. Young plants require regular irrigation, while mature trees benefit from watering during prolonged dry periods. Avoid water stagnation.',fertilize:'Apply FYM 10–15kg/tree annually along with recommended NPK fertilizers in split doses before and after monsoon. Mulching helps improve soil fertility and moisture retention.', disease:'Common diseases include fruit rot, leaf spot and die-back. Remove affected plant parts and apply recommended copper-based fungicides when necessary.',pest:'Scale insects, mealybugs and stem borers are important pests. Regular monitoring, orchard sanitation and recommended control measures help reduce infestation.',harvest:'Nutmeg fruits are harvested when they split open naturally, exposing the seed covered by mace. Dry seeds and mace separately before storage.',market:'Nutmeg and mace are high-value spice products with strong domestic and export demand. Quality-dried produce fetches premium prices.', season:'Flowering generally occurs during the rainy season. Harvesting is usually spread over multiple months, with peak harvest often from June to August in Kerala'},
 };
 
-const SCHEME_KB = [
-  {name:'PM-KISAN',eligibility:'Small/marginal farmers (<2ha). Aadhaar + bank account required.',benefit:'₹6,000/year in 3 instalments',apply:'pmkisan.gov.in or nearest CSC'},
-  {name:'PMFBY Crop Insurance',eligibility:'Any farmer growing notified crops. Mandatory for KCC holders.',benefit:'Insurance cover — premium 2% Kharif, 1.5% Rabi',apply:'Bank or CSC before sowing cutoff'},
-  {name:'Kisan Credit Card',eligibility:'Farmers/fishermen/SHGs with land records. Crop loan up to ₹3 lakh.',benefit:'4% effective interest. ATM card access.',apply:'Any nationalized or cooperative bank'},
-  {name:'Kerala Karshaka Kshemanidhi',eligibility:'Registered Kerala farmers aged 60+.',benefit:'₹1,200/month pension',apply:'Krishi Bhavan with land records + age proof'},
-  {name:'RKVY Subsidy',eligibility:'Farmers, FPOs for mechanization/irrigation/cold storage.',benefit:'30–50% capital subsidy on approved projects',apply:'District Agriculture Office or KSAMB'},
-  {name:'PM Kisan Maandhan',eligibility:'Small/marginal farmers aged 18–40.',benefit:'₹3,000/month pension at 60. Govt matches contribution.',apply:'CSC with Aadhaar + bank details'},
-  {name:'Soil Health Card',eligibility:'All farmers — free.',benefit:'Crop-wise fertilizer recommendations + micro-nutrient analysis',apply:'Nearest Krishi Bhavan — valid 2 years'},
-  {name:'Kerala Horticulture Mission',eligibility:'Farmers growing vegetables/fruits in Kerala.',benefit:'50–75% subsidy on drip irrigation, shade nets, mulching',apply:'District Horticulture Officer by Jun 2026'},
-  {name:'e-NAM',eligibility:'All farmers — free registration.',benefit:'Online market for better price discovery',apply:'KSAMB portal or nearest e-NAM facilitation centre'},
-];
+
 
 let _geminiKey = '';
 let _aiHistory = [];
@@ -2202,7 +2364,7 @@ function ruleEngineAnswer(question, districtName){
     return `**🌾 Crop Planning — ${loc}** (${today})\n\n**Current season:** ${sn}\n**District crops:** ${crops.join(', ')}\n\n**Season guide for your crops:**\n${crops.map(c=>`• **${c}:** ${(CROP_KB[c]||CROP_KB['Vegetables']).season}`).join('\n')}\n\n**High-value options to consider:**\n• Vegetables (Rabi Oct–Feb): high returns, 60–90 day cycle\n• Banana (Nendran): ₹35–55/kg, strong Onam demand\n• Pepper: premium prices, semi drought-tolerant\n• Cardamom (Idukki belt): ₹1,400+/kg\n\n**This season:** ${month>=5&&month<=8?'Complete paddy transplanting before July 15. Ensure seed treatment done.':month>=9&&month<=11?'Harvest kharif crops. Prepare land for rabi vegetables and pulses.':'Focus on perennial crop maintenance. Plan summer irrigation schedule.'}`;
   }
   if(/scheme|subsid|govern|benefit|eligib|apply|pension|insurance|kisan/.test(q)){
-    return `**🏛️ Govt Schemes — ${loc}**\n\n${SCHEME_KB.slice(0,5).map(s=>`**${s.name}**\n• ${s.eligibility}\n• Benefit: ${s.benefit}\n• Apply: ${s.apply}`).join('\n\n')}\n\n**More:** Kerala Horticulture Mission (50–75% subsidy), RKVY grants, e-NAM registration.\n\nVisit your **Krishi Bhavan** with Aadhaar + land records to apply for most schemes.`;
+    return `**🏛️ Govt Schemes — ${loc}**\n\n${SCHEMES.slice(0,5).map(s=>`**${s.title}**\n• ${s.body}\n• Deadline: ${s.deadline}\n• Ministry: ${s.ministry}`).join('\n\n')}\n\n**More:** Kerala Horticulture Mission (50–75% subsidy), RKVY grants, e-NAM registration.\n\nVisit your **Krishi Bhavan** with Aadhaar + land records to apply for most schemes.`;
   }
   // General / today
   const acts=[];
