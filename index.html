@@ -2229,19 +2229,43 @@ document.addEventListener('DOMContentLoaded',()=>{ lucide.createIcons(); init();
    NEWS HUB — data, renderers, fetchers
    ══════════════════════════════════════════════ */
 
-// ── Govt Schemes (static, Kerala-specific) ──────────────────────────────────
-const SCHEMES = [
-  { title:'PM-KISAN Samman Nidhi', body:'₹6,000/year direct income support to eligible farmer families in 3 instalments. Registration open at nearest CSC.', deadline:'Rolling', ministry:'Govt of India', link:'https://pmkisan.gov.in' },
-  { title:'Pradhan Mantri Fasal Bima Yojana (PMFBY)', body:'Crop insurance against natural calamities, pests & disease. Kharif premium 2%, Rabi 1.5%. Enroll through bank or CSC before sowing season.', deadline:'Before sowing', ministry:'Govt of India', link:'https://pmfby.gov.in' },
-  { title:'Kerala Karshaka Kshemanidhi', body:'Welfare pension ₹1,200/month for registered farmers aged 60+. Apply at Krishi Bhavan with land records & age proof.', deadline:'Open', ministry:'Kerala Govt', link:'https://www.kerala.gov.in' },
-  { title:'Kisan Credit Card (KCC)', body:'Short-term crop loans up to ₹3 lakh at 4% effective interest (after subvention). Available at all nationalized banks & cooperative banks.', deadline:'Open', ministry:'Govt of India', link:'https://www.nabard.org' },
-  { title:'Rashtriya Krishi Vikas Yojana (RKVY)', body:'Infrastructure grants for farm mechanization, irrigation, cold storage & processing units in Kerala. Apply through KSAMB or District Agriculture Office.', deadline:'Apr–Jun 2026', ministry:'Kerala Govt', link:'https://rkvy.nic.in' },
-  { title:'PM Kisan Maandhan Yojana', body:'Pension scheme for small & marginal farmers — ₹3,000/month at age 60. Monthly contribution ₹55–₹200 based on age of entry. Enroll via CSC.', deadline:'Open', ministry:'Govt of India', link:'https://maandhan.in' },
-  { title:'Soil Health Card Scheme', body:'Free soil health card with crop-wise nutrient recommendations. Collect from nearest Krishi Bhavan. Valid for 2 years.', deadline:'Open', ministry:'Govt of India', link:'https://soilhealth.dac.gov.in' },
-  { title:'NABARD Watershed Development', body:'Funding for watershed treatment, farm bunding & drip irrigation in drought-prone Kerala districts. Apply through District Collector office.', deadline:'May 2026', ministry:'NABARD', link:'https://www.nabard.org' },
-  { title:'Kerala Horticulture Mission', body:'50–75% subsidy on vegetable cultivation inputs, shade nets, mulching film & micro-irrigation for horticulture crops in Kerala.', deadline:'Jun 2026', ministry:'Kerala Govt', link:'https://www.keralaagriculture.gov.in' },
-  { title:'e-NAM (National Agriculture Market)', body:'Trade paddy, coconut, pepper & rubber on the online national market platform — better price discovery. Register at KSAMB portal.', deadline:'Open', ministry:'Govt of India', link:'https://www.enam.gov.in' },
+// ── Govt Schemes — dynamically loaded from remote JSON (GitHub Gist) ─────────
+let SCHEMES = [];
+
+const SCHEMES_URL = 'https://gist.githubusercontent.com/Abhi122005/40ae8313dfea8c96ef35c7b0fbb8080e/raw/792fa1635af3dc0b3318d08d4391e8ddada452b8/agriscope-schemes.json';
+
+const SCHEMES_FALLBACK = [
+  { schemeName:'PM-KISAN Samman Nidhi', description:'₹6,000/year direct income support in 3 instalments.', eligibility:'Small/marginal farmers (<2ha).', deadline:'Rolling', ministry:'Govt of India', applicationLink:'https://pmkisan.gov.in' },
+  { schemeName:'Kisan Credit Card (KCC)', description:'Crop loans up to ₹3 lakh at 4% interest.', eligibility:'Farmers with land records.', deadline:'Open', ministry:'Govt of India', applicationLink:'https://www.nabard.org' },
+  { schemeName:'PMFBY Crop Insurance', description:'Crop insurance — Kharif 2%, Rabi 1.5% premium.', eligibility:'Any farmer growing notified crops.', deadline:'Before sowing', ministry:'Govt of India', applicationLink:'https://pmfby.gov.in' },
 ];
+
+async function loadSchemes() {
+  const list = document.getElementById('news-schemes-list');
+  if (!list) return;
+
+  // Loading state
+  list.innerHTML = `
+    <div style="padding:20px 14px;text-align:center;">
+      <div style="font-size:11px;color:var(--color-text-faint);animation:pulse 1.5s infinite;">
+        ⟳ Loading government schemes…
+      </div>
+    </div>`;
+
+  try {
+    const res = await fetch(SCHEMES_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    if (!Array.isArray(data) || data.length === 0) throw new Error('Empty response');
+    SCHEMES = data;
+    console.log(`[AgroScope] ✅ Loaded ${SCHEMES.length} schemes from remote source`);
+    renderSchemes();
+  } catch (e) {
+    console.warn('[AgroScope] Scheme fetch failed — using fallback:', e.message);
+    SCHEMES = SCHEMES_FALLBACK;
+    renderSchemes(true);
+  }
+}
 
 // ── News state ───────────────────────────────────────────────────────────────
 let _allNewsItems = [];
@@ -2517,16 +2541,46 @@ function renderIMDBulletins(){
 }
 
 // ── Govt Schemes renderer ────────────────────────────────────────────────────
-function renderSchemes(){
-  const list = document.getElementById('news-schemes-list'); if(!list) return;
-  list.innerHTML = SCHEMES.map(s=>`
+
+function renderSchemes(isError = false) {
+  const list = document.getElementById('news-schemes-list');
+  if (!list) return;
+
+  // Empty state
+  if (!SCHEMES || SCHEMES.length === 0) {
+    list.innerHTML = `
+      <div style="padding:20px 14px;text-align:center;">
+        <div style="font-size:13px;color:var(--color-text-faint);">📭 No schemes available</div>
+        <div style="font-size:10px;color:var(--color-text-faint);margin-top:4px;">Check back later.</div>
+      </div>`;
+    return;
+  }
+
+  // Error banner when using fallback
+  const errorBanner = isError ? `
+    <div style="margin-bottom:8px;padding:6px 10px;border-radius:6px;
+      background:var(--color-warn-dim);border:1px solid rgba(251,146,60,0.3);
+      font-size:10px;color:var(--color-warn);">
+      ⚠️ Could not load latest schemes — showing essential schemes. Check your connection.
+    </div>` : '';
+
+  list.innerHTML = errorBanner + SCHEMES.map(s => `
     <div class="scheme-card">
-      <div class="scheme-title"><span class="scheme-badge">Scheme</span> ${escHtml(s.title)}</div>
-      <div class="scheme-body">${escHtml(s.body)}</div>
+      <div class="scheme-title">
+        <span class="scheme-badge">Scheme</span>
+        ${escHtml(s.schemeName || s.title || '—')}
+      </div>
+      <div class="scheme-body">${escHtml(s.description || s.body || '—')}</div>
+      ${s.eligibility ? `
+        <div style="font-size:10px;color:var(--color-text-faint);margin-bottom:4px;">
+          ✅ ${escHtml(s.eligibility)}
+        </div>` : ''}
       <div class="scheme-meta">
-        <span>🏛️ ${escHtml(s.ministry)}</span>
-        <span>📅 ${escHtml(s.deadline)}</span>
-        ${s.link?`<a href="${s.link}" target="_blank" class="news-card-link">Details →</a>`:''}
+        <span>🏛️ ${escHtml(s.ministry || '—')}</span>
+        <span>📅 ${escHtml(s.deadline || '—')}</span>
+        ${(s.applicationLink || s.link)
+          ? `<a href="${s.applicationLink || s.link}" target="_blank" class="news-card-link">Apply →</a>`
+          : ''}
       </div>
     </div>`).join('');
 }
@@ -2534,7 +2588,7 @@ function renderSchemes(){
 // ── News Hub init ────────────────────────────────────────────────────────────
 let _newsHubInited = false;
 function initNewsHub(){
-  renderSchemes();
+  loadSchemes();
   renderNewsAdvisories();
   renderIMDBulletins();
   fetchNewsFeeds();
