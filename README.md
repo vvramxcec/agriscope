@@ -30,7 +30,7 @@ https://vvramxcec.github.io/agriscope
 1. **Download** `index.html` (single file — 185 KB)
 2. **Double-click** to open in browser
 3. **Or serve locally**: `python -m http.server 8080`
-4. **Or deploy**: Drop to GitHub Pages / Firebase Hosting
+4. **Or deploy**: Drop to GitHub Pages 
 
 ```
 💡 PRO TIP: For full RSS feeds, serve via HTTP (not file://). Weather/map/AI work offline too.
@@ -161,13 +161,7 @@ git remote add origin https://github.com/YOURNAME/agriscope.git
 git push -u origin main
 ```
 
-### Firebase Hosting (Recommended)
-```bash
-npm install -g firebase-tools
-firebase login
-firebase init hosting
-firebase deploy
-```
+
 
 ## 🧪 Local Development
 
