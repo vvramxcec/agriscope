@@ -36,6 +36,35 @@ https://vvramxcec.github.io/agriscope
 💡 PRO TIP: For full RSS feeds, serve via HTTP (not file://). Weather/map/AI work offline too.
 ```
 
+## Live Price Data API Key Setup (Local Config Route)
+
+This project uses the Open Government Data API for live commodity pricing.
+
+To configure your own API key:
+
+1. Visit the Data.gov.in portal.
+2. Register or log in to your account.
+3. Search for:
+   **"Variety-wise Daily Market Prices Data of Commodity"**
+4. Open the dataset page.
+5. Generate an API key from your account dashboard.
+6. Create or update `config.js`:
+
+```javascript
+window.APP_CONFIG = {
+  DATA_GOV_API_KEY: "YOUR_API_KEY"
+};
+```
+
+7. Save the file and reload the application.
+
+### Notes
+
+* `config.js` should not contain production secrets.
+* Developers are expected to generate and use their own API keys.
+* The application reads the key at runtime from `window.APP_CONFIG`.
+* If the API key is missing or invalid, the application will display appropriate loading/error states and use cached data when available.
+
 ## 🛠 Tech Stack
 
 ```
