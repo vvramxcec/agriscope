@@ -1002,8 +1002,8 @@ async function fetchWeather(){
     const url = `https://api.open-meteo.com/v1/forecast?latitude=${d.lat}&longitude=${d.lon}&daily=precipitation_sum,temperature_2m_max,temperature_2m_min,weathercode,windspeed_10m_max&hourly=relativehumidity_2m&timezone=Asia%2FKolkata&forecast_days=7`;
     try{
       const ctrl = new AbortController();
-      const timer = setTimeout(()=>ctrl.abort(), 8000);
-      const res = await fetch(url, {signal: ctrl.signal});
+      const timer = setTimeout(()=>ctrl.abort(), 10000);
+      const res = await fetch(SCHEMES_URL, {signal: ctrl.signal,cache:'no-store'});
       clearTimeout(timer);
       if(res.status===429 && retry<1){ await sleep(2000); return fetchOne(d, retry+1); }
       if(!res.ok) return {district:d.name, data:null};
@@ -2539,7 +2539,14 @@ function renderIMDBulletins(){
       <div class="imd-meta">${escHtml(b.meta)}</div>
     </div>`).join('');
 }
-
+function getSafeExternalUrl(raw) {
+  if (!raw) return null;
+  try {
+   const u = new URL(raw, window.location.origin);
+    if (u.protocol === 'http:' || u.protocol === 'https:') return u.href;
+  } catch (_) {}
+  return null;
+}
 // ── Govt Schemes renderer ────────────────────────────────────────────────────
 
 function renderSchemes(isError = false) {
@@ -2564,7 +2571,9 @@ function renderSchemes(isError = false) {
       ⚠️ Could not load latest schemes — showing essential schemes. Check your connection.
     </div>` : '';
 
-  list.innerHTML = errorBanner + SCHEMES.map(s => `
+   list.innerHTML = errorBanner + SCHEMES.map(s => {
+    const safeLink = getSafeExternalUrl(s.applicationLink || s.link);
+    return `
     <div class="scheme-card">
       <div class="scheme-title">
         <span class="scheme-badge">Scheme</span>
@@ -2578,11 +2587,12 @@ function renderSchemes(isError = false) {
       <div class="scheme-meta">
         <span>🏛️ ${escHtml(s.ministry || '—')}</span>
         <span>📅 ${escHtml(s.deadline || '—')}</span>
-        ${(s.applicationLink || s.link)
-          ? `<a href="${s.applicationLink || s.link}" target="_blank" class="news-card-link">Apply →</a>`
+         ${safeLink
+          ? `<a href="${safeLink}" target="_blank" rel="noopener noreferrer" class="news-card-link">Apply →</a>`
           : ''}
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // ── News Hub init ────────────────────────────────────────────────────────────
