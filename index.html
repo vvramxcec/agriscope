@@ -1566,33 +1566,7 @@ function setLastUpdated(){document.getElementById('last-updated').textContent='U
 // ═══════════════════════════════════════════════════════
 let SCHEMES = [];
 
-async function loadSchemes(){
-  try{
-    const response = await fetch("schemes.json");
 
-    if(!response.ok){
-      throw new Error("Failed to load schemes");
-    }
-
-    SCHEMES = await response.json();
-    renderSchemes();
-
-  }catch(error){
-    console.error(error);
-
-    SCHEMES = [
-      {
-        title:"Government schemes unavailable",
-        body:"Please check again later.",
-        deadline:"-",
-        ministry:"-",
-        link:""
-      }
-    ];
-
-    renderSchemes();
-  }
-}
 //  INIT
 // ═══════════════════════════════════════════════════════
 async function init(){
@@ -2538,11 +2512,14 @@ function renderIMDBulletins(){
 
 // ── Govt Schemes renderer ────────────────────────────────────────────────────
 function renderSchemes(data = SCHEMES){
-  const list = document.getElementById('news-schemes-list'); 
+
+  const list = document.getElementById('news-schemes-list');
+
   if(!list) return;
 
   list.innerHTML = data.map(s=>`
     <div class="scheme-card">
+
       <div class="scheme-title">
         <span class="scheme-badge">Scheme</span> ${escHtml(s.title)}
       </div>
@@ -2555,14 +2532,25 @@ function renderSchemes(data = SCHEMES){
         <span>🏛️ ${escHtml(s.ministry)}</span>
         <span>📅 ${escHtml(s.deadline)}</span>
 
-        ${s.link ? `<a href="${s.link}" target="_blank" class="news-card-link">Details →</a>` : ''}
+        ${s.link ? 
+        `<a href="${escHtml(s.link)}" 
+        target="_blank" 
+        rel="noopener noreferrer"
+        class="news-card-link">
+        Details →
+        </a>` 
+        : ''}
       </div>
+
     </div>
   `).join('');
 }
+
 async function loadSchemes(){
 
   const list = document.getElementById('news-schemes-list');
+
+  if(!list) return;
 
   list.innerHTML = "Loading schemes...";
 
@@ -2578,12 +2566,21 @@ async function loadSchemes(){
 
     renderSchemes(SCHEMES);
 
-  }
-  catch(error){
-
-    list.innerHTML = "Failed to load schemes";
+  }catch(error){
 
     console.error(error);
+
+    SCHEMES = [
+      {
+        title:"Government schemes unavailable",
+        body:"Please check again later.",
+        deadline:"-",
+        ministry:"-",
+        link:""
+      }
+    ];
+
+    renderSchemes(SCHEMES);
 
   }
 }
