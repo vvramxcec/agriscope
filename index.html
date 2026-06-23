@@ -1572,10 +1572,14 @@ setInterval(updateClock,1000); updateClock();
 function setLastUpdated(){document.getElementById('last-updated').textContent='Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Kolkata'});}
 
 // ═══════════════════════════════════════════════════════
+let SCHEMES = [];
+
+
 //  INIT
 // ═══════════════════════════════════════════════════════
 async function init(){
   try{
+    await loadSchemes();
     await fetchWeather();
     document.getElementById('load-step').textContent='Computing crop health scores…';
     computeAllHealth();
@@ -1594,6 +1598,7 @@ async function init(){
     renderPriceCards();
     renderPestCards();
     renderFloodCards();
+   
 
     setInterval(async()=>{
       await fetchWeather(); computeAllHealth();
@@ -2332,18 +2337,7 @@ document.addEventListener('DOMContentLoaded',()=>{ lucide.createIcons(); init();
    ══════════════════════════════════════════════ */
 
 // ── Govt Schemes (static, Kerala-specific) ──────────────────────────────────
-const SCHEMES = [
-  { title:'PM-KISAN Samman Nidhi', body:'₹6,000/year direct income support to eligible farmer families in 3 instalments. Registration open at nearest CSC.', deadline:'Rolling', ministry:'Govt of India', link:'https://pmkisan.gov.in' },
-  { title:'Pradhan Mantri Fasal Bima Yojana (PMFBY)', body:'Crop insurance against natural calamities, pests & disease. Kharif premium 2%, Rabi 1.5%. Enroll through bank or CSC before sowing season.', deadline:'Before sowing', ministry:'Govt of India', link:'https://pmfby.gov.in' },
-  { title:'Kerala Karshaka Kshemanidhi', body:'Welfare pension ₹1,200/month for registered farmers aged 60+. Apply at Krishi Bhavan with land records & age proof.', deadline:'Open', ministry:'Kerala Govt', link:'https://www.kerala.gov.in' },
-  { title:'Kisan Credit Card (KCC)', body:'Short-term crop loans up to ₹3 lakh at 4% effective interest (after subvention). Available at all nationalized banks & cooperative banks.', deadline:'Open', ministry:'Govt of India', link:'https://www.nabard.org' },
-  { title:'Rashtriya Krishi Vikas Yojana (RKVY)', body:'Infrastructure grants for farm mechanization, irrigation, cold storage & processing units in Kerala. Apply through KSAMB or District Agriculture Office.', deadline:'Apr–Jun 2026', ministry:'Kerala Govt', link:'https://rkvy.nic.in' },
-  { title:'PM Kisan Maandhan Yojana', body:'Pension scheme for small & marginal farmers — ₹3,000/month at age 60. Monthly contribution ₹55–₹200 based on age of entry. Enroll via CSC.', deadline:'Open', ministry:'Govt of India', link:'https://maandhan.in' },
-  { title:'Soil Health Card Scheme', body:'Free soil health card with crop-wise nutrient recommendations. Collect from nearest Krishi Bhavan. Valid for 2 years.', deadline:'Open', ministry:'Govt of India', link:'https://soilhealth.dac.gov.in' },
-  { title:'NABARD Watershed Development', body:'Funding for watershed treatment, farm bunding & drip irrigation in drought-prone Kerala districts. Apply through District Collector office.', deadline:'May 2026', ministry:'NABARD', link:'https://www.nabard.org' },
-  { title:'Kerala Horticulture Mission', body:'50–75% subsidy on vegetable cultivation inputs, shade nets, mulching film & micro-irrigation for horticulture crops in Kerala.', deadline:'Jun 2026', ministry:'Kerala Govt', link:'https://www.keralaagriculture.gov.in' },
-  { title:'e-NAM (National Agriculture Market)', body:'Trade paddy, coconut, pepper & rubber on the online national market platform — better price discovery. Register at KSAMB portal.', deadline:'Open', ministry:'Govt of India', link:'https://www.enam.gov.in' },
-];
+
 
 // ── News state ───────────────────────────────────────────────────────────────
 let _allNewsItems = [];
@@ -2619,18 +2613,88 @@ function renderIMDBulletins(){
 }
 
 // ── Govt Schemes renderer ────────────────────────────────────────────────────
-function renderSchemes(){
-  const list = document.getElementById('news-schemes-list'); if(!list) return;
-  list.innerHTML = SCHEMES.map(s=>`
+function renderSchemes(data = SCHEMES){
+
+  const list = document.getElementById('news-schemes-list');
+
+  if(!list) return;
+
+  list.innerHTML = data.map(s=>`
     <div class="scheme-card">
-      <div class="scheme-title"><span class="scheme-badge">Scheme</span> ${escHtml(s.title)}</div>
-      <div class="scheme-body">${escHtml(s.body)}</div>
+
+      <div class="scheme-title">
+        <span class="scheme-badge">Scheme</span> ${escHtml(s.title)}
+      </div>
+
+      <div class="scheme-body">
+        ${escHtml(s.body)}
+      </div>
+
       <div class="scheme-meta">
         <span>🏛️ ${escHtml(s.ministry)}</span>
         <span>📅 ${escHtml(s.deadline)}</span>
-        ${s.link?`<a href="${s.link}" target="_blank" class="news-card-link">Details →</a>`:''}
+
+        ${(() => {
+          try {
+            const url = new URL(s.link, location.href);
+
+            if(url.protocol !== "https:" && url.protocol !== "http:"){
+              return "";
+            }
+
+            return `<a href="${escHtml(url.href)}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="news-card-link">
+              Details →
+            </a>`;
+          } catch {
+            return "";
+          }
+        })()}
+
       </div>
-    </div>`).join('');
+
+    </div>
+  `).join('');
+}
+
+async function loadSchemes(){
+
+  const list = document.getElementById('news-schemes-list');
+
+  if(!list) return;
+
+  list.innerHTML = "Loading schemes...";
+
+  try{
+
+    const res = await fetch('./schemes.json');
+
+    if(!res.ok){
+      throw new Error("Failed to load schemes");
+    }
+
+    SCHEMES = await res.json();
+
+    renderSchemes(SCHEMES);
+
+  }catch(error){
+
+    console.error(error);
+
+    SCHEMES = [
+      {
+        title:"Government schemes unavailable",
+        body:"Please check again later.",
+        deadline:"-",
+        ministry:"-",
+        link:""
+      }
+    ];
+
+    renderSchemes(SCHEMES);
+}
 }
 
 // ── News Hub init ────────────────────────────────────────────────────────────
@@ -2672,17 +2736,7 @@ const CROP_KB = {
   'Nutmeg':{irrigate:'Maintain adequate soil moisture, especially during summer. Young plants require regular irrigation, while mature trees benefit from watering during prolonged dry periods. Avoid water stagnation.',fertilize:'Apply FYM 10–15kg/tree annually along with recommended NPK fertilizers in split doses before and after monsoon. Mulching helps improve soil fertility and moisture retention.', disease:'Common diseases include fruit rot, leaf spot and die-back. Remove affected plant parts and apply recommended copper-based fungicides when necessary.',pest:'Scale insects, mealybugs and stem borers are important pests. Regular monitoring, orchard sanitation and recommended control measures help reduce infestation.',harvest:'Nutmeg fruits are harvested when they split open naturally, exposing the seed covered by mace. Dry seeds and mace separately before storage.',market:'Nutmeg and mace are high-value spice products with strong domestic and export demand. Quality-dried produce fetches premium prices.', season:'Flowering generally occurs during the rainy season. Harvesting is usually spread over multiple months, with peak harvest often from June to August in Kerala'},
 };
 
-const SCHEME_KB = [
-  {name:'PM-KISAN',eligibility:'Small/marginal farmers (<2ha). Aadhaar + bank account required.',benefit:'₹6,000/year in 3 instalments',apply:'pmkisan.gov.in or nearest CSC'},
-  {name:'PMFBY Crop Insurance',eligibility:'Any farmer growing notified crops. Mandatory for KCC holders.',benefit:'Insurance cover — premium 2% Kharif, 1.5% Rabi',apply:'Bank or CSC before sowing cutoff'},
-  {name:'Kisan Credit Card',eligibility:'Farmers/fishermen/SHGs with land records. Crop loan up to ₹3 lakh.',benefit:'4% effective interest. ATM card access.',apply:'Any nationalized or cooperative bank'},
-  {name:'Kerala Karshaka Kshemanidhi',eligibility:'Registered Kerala farmers aged 60+.',benefit:'₹1,200/month pension',apply:'Krishi Bhavan with land records + age proof'},
-  {name:'RKVY Subsidy',eligibility:'Farmers, FPOs for mechanization/irrigation/cold storage.',benefit:'30–50% capital subsidy on approved projects',apply:'District Agriculture Office or KSAMB'},
-  {name:'PM Kisan Maandhan',eligibility:'Small/marginal farmers aged 18–40.',benefit:'₹3,000/month pension at 60. Govt matches contribution.',apply:'CSC with Aadhaar + bank details'},
-  {name:'Soil Health Card',eligibility:'All farmers — free.',benefit:'Crop-wise fertilizer recommendations + micro-nutrient analysis',apply:'Nearest Krishi Bhavan — valid 2 years'},
-  {name:'Kerala Horticulture Mission',eligibility:'Farmers growing vegetables/fruits in Kerala.',benefit:'50–75% subsidy on drip irrigation, shade nets, mulching',apply:'District Horticulture Officer by Jun 2026'},
-  {name:'e-NAM',eligibility:'All farmers — free registration.',benefit:'Online market for better price discovery',apply:'KSAMB portal or nearest e-NAM facilitation centre'},
-];
+
 
 let _geminiKey = '';
 let _aiHistory = [];
@@ -2739,7 +2793,7 @@ function ruleEngineAnswer(question, districtName){
     return `**🌾 Crop Planning — ${loc}** (${today})\n\n**Current season:** ${sn}\n**District crops:** ${crops.join(', ')}\n\n**Season guide for your crops:**\n${crops.map(c=>`• **${c}:** ${(CROP_KB[c]||CROP_KB['Vegetables']).season}`).join('\n')}\n\n**High-value options to consider:**\n• Vegetables (Rabi Oct–Feb): high returns, 60–90 day cycle\n• Banana (Nendran): ₹35–55/kg, strong Onam demand\n• Pepper: premium prices, semi drought-tolerant\n• Cardamom (Idukki belt): ₹1,400+/kg\n\n**This season:** ${month>=5&&month<=8?'Complete paddy transplanting before July 15. Ensure seed treatment done.':month>=9&&month<=11?'Harvest kharif crops. Prepare land for rabi vegetables and pulses.':'Focus on perennial crop maintenance. Plan summer irrigation schedule.'}`;
   }
   if(/scheme|subsid|govern|benefit|eligib|apply|pension|insurance|kisan/.test(q)){
-    return `**🏛️ Govt Schemes — ${loc}**\n\n${SCHEME_KB.slice(0,5).map(s=>`**${s.name}**\n• ${s.eligibility}\n• Benefit: ${s.benefit}\n• Apply: ${s.apply}`).join('\n\n')}\n\n**More:** Kerala Horticulture Mission (50–75% subsidy), RKVY grants, e-NAM registration.\n\nVisit your **Krishi Bhavan** with Aadhaar + land records to apply for most schemes.`;
+    return `**🏛️ Govt Schemes — ${loc}**\n\n${SCHEMES.slice(0,5).map(s=>`**${s.title}**\n• ${s.body}\n• Deadline: ${s.deadline}\n• Ministry: ${s.ministry}`).join('\n\n')}\n\n**More:** Kerala Horticulture Mission (50–75% subsidy), RKVY grants, e-NAM registration.\n\nVisit your **Krishi Bhavan** with Aadhaar + land records to apply for most schemes.`;
   }
   // General / today
   const acts=[];
