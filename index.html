@@ -6,6 +6,7 @@
 <title>AgriScope Kerala</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap" rel="stylesheet"/>
+<script src="config.js"></script>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
@@ -907,7 +908,7 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
     </div>
     <div id="price-cards-list"></div>
     <div style="padding:8px 14px;font-size:9px;color:var(--color-text-faint);border-top:1px solid var(--color-border);margin-top:auto;flex-shrink:0;">
-      Seeded Kerala mandi prices · ticks every 5 min.<br>Real Agmarknet API — Phase 2.
+      Live commodity prices from data.gov.in · Coconut is shown as a market indicator from ₹/quintal quotes and converted to ₹/100 nuts for display.
     </div>
   <!-- FLOOD RIGHT PANEL TAB -->
   <div class="rp-tab-content" id="rp-flood">
@@ -1562,7 +1563,7 @@ async function init(){
     loader.classList.add('hidden'); setTimeout(()=>loader.style.display='none',600);
     window._geojson=geojson;
     switchRPTab('weather', document.querySelector(".rp-tab"));
-    initPrices();
+    await initPriceData();
     renderPriceCards();
     renderPestCards();
     renderFloodCards();
@@ -1576,8 +1577,8 @@ async function init(){
       setLastUpdated();
     },600000);
 
-    // Price tick every 5 minutes
-    setInterval(tickPrices, 300000);
+    // Refresh live market prices every 5 minutes
+    setInterval(()=>refreshCommodityPrices({ background:true }), 300000);
   }catch(e){
     document.getElementById('load-step').textContent='Error: '+e.message;
     console.error(e);
@@ -1589,81 +1590,194 @@ async function init(){
 //  COMMODITY PRICE ENGINE
 // ═══════════════════════════════════════════════════════
 const COMMODITIES = [
-  { id:'coconut',     emoji:'🥥', name:'Coconut',       unit:'₹/100 nuts', mandi:'Kochi',           base:2840, vol:0.008, crop:'Coconut' },
-  { id:'pepper',      emoji:'🌿', name:'Black Pepper',  unit:'₹/kg',       mandi:'Kochi',           base:545,  vol:0.012, crop:'Pepper' },
-  { id:'cardamom',    emoji:'💚', name:'Cardamom',      unit:'₹/kg',       mandi:'Kumily',          base:1480, vol:0.030, crop:'Cardamom' },
-  { id:'rubber',      emoji:'🌳', name:'Rubber RSS4',   unit:'₹/kg',       mandi:'Kottayam',        base:218,  vol:0.010, crop:'Rubber' },
-  { id:'coffee',      emoji:'☕', name:'Coffee Robusta',unit:'₹/kg',       mandi:'Wayanad',         base:165,  vol:0.015, crop:'Coffee' },
-  { id:'tea',         emoji:'🍵', name:'Tea',           unit:'₹/kg',       mandi:'Munnar',          base:92,   vol:0.012, crop:'Tea' },
-  { id:'coconutoil',  emoji:'🫚', name:'Coconut Oil',   unit:'₹/kg',       mandi:'Kozhikode',       base:196,  vol:0.009, crop:'Coconut' },
-  { id:'ginger',      emoji:'🌾', name:'Ginger',        unit:'₹/kg',       mandi:'Ernakulam',       base:38,   vol:0.020, crop:'Ginger' },
-  { id:'turmeric',    emoji:'🟡', name:'Turmeric',      unit:'₹/kg',       mandi:'Ernakulam',       base:148,  vol:0.018, crop:'Turmeric' },
-  { id:'banana',      emoji:'🍌', name:'Banana',        unit:'₹/kg',       mandi:'Thrissur',        base:32,   vol:0.008, crop:'Banana' },
-  { id:'tapioca',     emoji:'🍠', name:'Tapioca',       unit:'₹/kg',       mandi:'Alappuzha',       base:24,   vol:0.007, crop:'Tapioca' },
-  { id:'cashew',      emoji:'🥜', name:'Cashew',        unit:'₹/kg',       mandi:'Kollam',          base:760,  vol:0.010, crop:'Cashew' },
+  { id:'coconut',     emoji:'🥥', name:'Coconut',       unit:'₹/100 nuts', mandi:'Kochi',     district:'Ernakulam', query:'Coconut' },
+  { id:'pepper',      emoji:'🌿', name:'Black Pepper',  unit:'₹/kg',       mandi:'Kochi',     district:'Ernakulam',   query:'Black pepper' },
+  { id:'cardamom',    emoji:'💚', name:'Cardamom',      unit:'₹/kg',       mandi:'Kumily',    district:'Idukki',    query:'Cardamom' },
+  { id:'rubber',      emoji:'🌳', name:'Rubber RSS4',   unit:'₹/kg',       mandi:'Kottayam',  district:'Kottayam',  query:'Rubber' },
+  { id:'coffee',      emoji:'☕', name:'Coffee Robusta',unit:'₹/kg',       mandi:'Wayanad',   district:'Wayanad',    query:'Coffee' },
+  { id:'tea',         emoji:'🍵', name:'Tea',           unit:'₹/kg',       mandi:'Munnar',    district:'Idukki',    query:'Tea' },
+  { id:'coconutoil',  emoji:'🫚', name:'Coconut Oil',   unit:'₹/kg',       mandi:'Alapuzha', district:'Alappuzha', query:'Coconut Oil' },
+  { id:'ginger',      emoji:'🌾', name:'Ginger(Green)', unit:'₹/kg',       mandi:'Ernakulam', district:'Ernakulam', query:'Ginger(Green)' },
+  { id:'turmeric',    emoji:'🟡', name:'Turmeric',      unit:'₹/kg',       mandi:'Kozhikode(Calicut)', district:'Kozhikode(Calicut)', query:'Turmeric' },
+  { id:'banana',      emoji:'🍌', name:'Banana',        unit:'₹/kg',       mandi:'Thrissur',  district:'Thirssur', query:'Banana' },
+  { id:'tapioca',     emoji:'🍠', name:'Tapioca',       unit:'₹/kg',       mandi:'Alappuzha', district:'Alappuzha', query:'Tapioca' },
+  { id:'cashew',      emoji:'🥜', name:'Cashew',        unit:'₹/kg',       mandi:'Kollam',    district:'Kollam',    query:'Cashewnuts' },
 ];
 
-// Generate 30-day history with realistic walk for each commodity
-function generateHistory(base, vol, days=30){
-  const arr=[]; let p=base*(0.92+Math.random()*0.08);
-  for(let i=0;i<days;i++){
-    const chg=(Math.random()-0.49)*vol; // slight upward bias
-    p=Math.max(base*0.7, p*(1+chg));
-    arr.push(parseFloat(p.toFixed(2)));
+// Local cache and live commodity price engine
+const PRICE_CACHE_KEY = 'agriscope_commodity_price_cache';
+const PRICE_CACHE_EXPIRY_MS = 60 * 60 * 1000; // 1 hour
+let priceState = {};
+let priceLoading = true;
+let priceError = false;
+
+function parseArrivalDate(value){
+  if(!value) return new Date(0);
+  const date = new Date(value);
+  if(!isNaN(date)) return date;
+  const parts = String(value).split(/[\/\-\.]/).map(p=>p.trim());
+  if(parts.length===3){
+    const [a,b,c] = parts;
+    if(c.length===4){ const iso=`${c.padStart(4,'0')}-${b.padStart(2,'0')}-${a.padStart(2,'0')}`; const d=new Date(iso); if(!isNaN(d)) return d; }
+    if(a.length===4){ const iso=`${a.padStart(4,'0')}-${b.padStart(2,'0')}-${c.padStart(2,'0')}`; const d=new Date(iso); if(!isNaN(d)) return d; }
   }
-  return arr;
+  return new Date(value);
 }
 
-// Init price state
-let priceState = {};
-function initPrices(){
-  COMMODITIES.forEach(c=>{
-    const hist = generateHistory(c.base, c.vol, 30);
-    // today's price is last value
-    priceState[c.id] = {
-      history: hist,
-      price: hist[hist.length-1],
-      prevPrice: hist[hist.length-2],
+function loadCachedPrices(){
+  try{ const raw=localStorage.getItem(PRICE_CACHE_KEY); return raw ? JSON.parse(raw) : null; } catch(e){ return null; }
+}
+
+function saveCachedPrices(cache){
+  try{ localStorage.setItem(PRICE_CACHE_KEY, JSON.stringify(cache)); } catch(e){ console.warn('Unable to save price cache', e); }
+}
+
+function isCacheFresh(cache){
+  return cache && typeof cache.timestamp==='number' && (Date.now() - cache.timestamp) < PRICE_CACHE_EXPIRY_MS;
+}
+
+function buildPriceStateEntry(price, prevPrice, history, meta={}){
+  const normalizedHistory = Array.isArray(history) && history.length ? history.slice(-30) : Array(7).fill(price);
+  const prev = isFinite(prevPrice) ? prevPrice : (normalizedHistory.length > 1 ? normalizedHistory[normalizedHistory.length-2] : price);
+  return { price, prevPrice: prev, history: normalizedHistory, ...meta };
+}
+
+function setPriceStateFromCache(cache){
+  if(!cache || !cache.prices) return;
+  Object.entries(cache.prices).forEach(([id, entry]) => {
+    if(entry && isFinite(entry.price)){
+      priceState[id] = buildPriceStateEntry(entry.price, entry.prevPrice, entry.history || Array(7).fill(entry.price), {
+        source: 'cache', date: entry.date, district: entry.district
+      });
+    }
+  });
+}
+
+async function fetchCommodityPrice(commodity, district){
+  const apiKey = window.APP_CONFIG?.DATA_GOV_API_KEY;
+  if(!apiKey) throw new Error('Missing API key in config.js');
+  const url = `https://api.data.gov.in/resource/35985678-0d79-46b4-9ed6-6f13308a1d24?format=json&api-key=${encodeURIComponent(apiKey)}&filters[State]=Kerala&filters[District]=${encodeURIComponent(district)}&filters[Commodity]=${encodeURIComponent(commodity)}&limit=100&sort[Arrival_Date]=desc`;
+  const res = await fetch(url, { cache:'no-store' });
+  if(!res.ok) throw new Error(`API request failed (${res.status})`);
+  const data = await res.json();
+  const records = Array.isArray(data.records) ? data.records : Array.isArray(data.data) ? data.data : [];
+  const valid = records.filter(r => r && r.Arrival_Date && r.Modal_Price && !Number.isNaN(Number(r.Modal_Price)));
+  if(valid.length===0) throw new Error('No market records available');
+  
+  const groupedByDate = {};
+  valid.forEach(r => {
+    const dateStr = r.Arrival_Date;
+    if (!groupedByDate[dateStr]) groupedByDate[dateStr] = [];
+    groupedByDate[dateStr].push(Number(r.Modal_Price));
+  });
+
+  const uniqueDates = Object.keys(groupedByDate).map(dateStr => ({
+    dateStr,
+    timestamp: parseArrivalDate(dateStr).getTime()
+  })).filter(d => isFinite(d.timestamp));
+
+  uniqueDates.sort((a, b) => b.timestamp - a.timestamp);
+  
+  const latest7 = uniqueDates.slice(0, 7);
+  latest7.sort((a, b) => a.timestamp - b.timestamp);
+
+  const trendData = latest7.map(d => {
+    const prices = groupedByDate[d.dateStr];
+    const avgQuintal = prices.reduce((sum, p) => sum + p, 0) / prices.length;
+    return avgQuintal / 100;
+  });
+
+  const latestDate = latest7[latest7.length - 1].dateStr;
+
+  return {
+    trendData,
+    latestDate,
+    recordCount: valid.length,
+  };
+}
+
+async function refreshCommodityPrices({ background=false } = {}){
+  if(!background){ priceLoading = true; priceError = false; renderPriceTable(); renderPriceCards(); }
+  const cache = loadCachedPrices();
+  if(cache && Object.keys(priceState).length===0){
+    setPriceStateFromCache(cache);
+    renderPriceTable(); renderPriceCards(); updatePriceKPIs();
+  }
+  const shouldFetch = !cache || !isCacheFresh(cache);
+  if(!shouldFetch){ priceLoading = false; return; }
+  if(!background){ document.getElementById('load-step').textContent = 'Fetching market prices…'; }
+  const results = await Promise.all(COMMODITIES.map(c => {
+    return fetchCommodityPrice(c.query, c.district)
+      .then(res => ({ id:c.id, success:true, res, district:c.district }))
+      .catch(error => ({ id:c.id, success:false, error }));
+  }));
+  const newCache = { timestamp: Date.now(), prices:{} };
+  let anySuccess=false;
+  results.forEach(r=>{
+    if(!r.success) return;
+    anySuccess=true;
+    const trendData = r.res.trendData;
+    const newPrice = parseFloat(trendData.at(-1).toFixed(2));
+    const prev = trendData.length > 1 ? parseFloat(trendData.at(-2).toFixed(2)) : newPrice;
+    priceState[r.id] = buildPriceStateEntry(newPrice, prev, trendData, {
+      source:'live', date:r.res.latestDate, district:r.district
+    });
+    newCache.prices[r.id] = {
+      price:newPrice,
+      prevPrice:prev,
+      history:priceState[r.id].history,
+      date:r.res.latestDate,
+      district:r.district,
+      commodity:COMMODITIES.find(c=>c.id===r.id)?.query,
     };
   });
+  if(anySuccess){ saveCachedPrices(newCache); priceError=false; } else { priceError=true; }
+  priceLoading=false;
+  renderPriceTable(); renderPriceCards(); updatePriceKPIs();
+  if(!background){ document.getElementById('load-step').textContent = anySuccess ? 'Market prices loaded ✓' : 'Live pricing temporarily unavailable'; }
 }
 
-// Tick — update prices every 5 mins
-function tickPrices(){
-  COMMODITIES.forEach(c=>{
-    const s = priceState[c.id];
-    const chg = (Math.random()-0.48)*c.vol;
-    const newPrice = parseFloat(Math.max(c.base*0.6, s.price*(1+chg)).toFixed(2));
-    s.prevPrice = s.price;
-    s.price = newPrice;
-    s.history.push(newPrice);
-    if(s.history.length>30) s.history.shift();
-  });
-  renderPriceTable();
-  renderPriceCards();
-  updatePriceKPIs();
-  if(currentChartType==='prices') buildChart('prices');
+function initPriceData(){
+  const cache = loadCachedPrices();
+  if(cache){
+    setPriceStateFromCache(cache);
+    priceLoading=false;
+    renderPriceTable(); renderPriceCards(); updatePriceKPIs();
+    if(!isCacheFresh(cache)) refreshCommodityPrices({ background:true });
+  } else {
+    return refreshCommodityPrices();
+  }
 }
 
-// ── helpers ──
 function pricePct(id){
-  const s=priceState[id]; if(!s) return 0;
+  const s=priceState[id];
+  if(!s||!isFinite(s.price)||!isFinite(s.prevPrice)||s.prevPrice===0) return 0;
   return ((s.price-s.prevPrice)/s.prevPrice)*100;
 }
-function price7dHigh(id){ return Math.max(...(priceState[id]?.history.slice(-7)||[0])); }
-function price7dLow(id){  return Math.min(...(priceState[id]?.history.slice(-7)||[0])); }
+function price7dHigh(id){ const hist=priceState[id]?.history||[]; return hist.length?Math.max(...hist.slice(-7)):0; }
+function price7dLow(id){ const hist=priceState[id]?.history||[]; return hist.length?Math.min(...hist.slice(-7)):0; }
 function priceSignal(id){
-  const h=(priceState[id]?.history||[]).slice(-7);
-  if(h.length<2) return 'hold';
-  const trend=(h[h.length-1]-h[0])/h[0]*100;
-  if(trend>1.5) return 'buy';
-  if(trend<-1.5) return 'sell';
-  return 'hold';
+  const trendData=(priceState[id]?.history||[]).slice(-7);
+  if(trendData.length===0) return 'hold';
+  const currentPrice = trendData.at(-1);
+  const averagePrice = trendData.reduce((sum, value) => sum + value, 0) / trendData.length;
+  let signal = 'hold';
+  if (currentPrice > averagePrice * 1.05) {
+    signal = 'buy';
+  } else if (currentPrice < averagePrice * 0.95) {
+    signal = 'sell';
+  }
+  return signal;
 }
-function fmtPrice(id){ return '₹'+priceState[id]?.price.toLocaleString('en-IN',{maximumFractionDigits:0})||'--'; }
+function fmtPrice(id){
+  const s=priceState[id];
+  return s && isFinite(s.price) ? '₹'+s.price.toLocaleString('en-IN',{maximumFractionDigits:0}) : '--';
+}
 function fmtPct(id){
+  const s=priceState[id];
+  if(!s||!isFinite(s.price)||!isFinite(s.prevPrice)||s.prevPrice===0) return '--';
   const p=pricePct(id);
-  const sign=p>0?'+':''; return sign+p.toFixed(2)+'%';
+  return (p>0?'+':'')+p.toFixed(2)+'%';
 }
 
 // ── sparkline canvas ──
@@ -1697,6 +1811,14 @@ function drawSparkline(canvas, history, color){
 // ── render price table (main view) ──
 function renderPriceTable(){
   const tbody=document.getElementById('price-tbody'); if(!tbody) return;
+  if(priceLoading && Object.keys(priceState).length===0){
+    tbody.innerHTML='<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--color-text-faint)">Loading market prices…</td></tr>';
+    return;
+  }
+  if(!priceLoading && priceError && Object.keys(priceState).length===0){
+    tbody.innerHTML='<tr><td colspan="7" style="padding:16px;text-align:center;color:var(--color-text-faint)">Live pricing temporarily unavailable</td></tr>';
+    return;
+  }
   // sort by abs % change descending
   const sorted=[...COMMODITIES].sort((a,b)=>Math.abs(pricePct(b.id))-Math.abs(pricePct(a.id)));
   tbody.innerHTML='';
@@ -1731,6 +1853,14 @@ function renderPriceTable(){
 // ── render right panel price cards ──
 function renderPriceCards(){
   const list=document.getElementById('price-cards-list'); if(!list) return;
+  if(priceLoading && Object.keys(priceState).length===0){
+    list.innerHTML='<div style="padding:14px;font-size:11px;color:var(--color-text-faint)">Loading market prices…</div>';
+    return;
+  }
+  if(!priceLoading && priceError && Object.keys(priceState).length===0){
+    list.innerHTML='<div style="padding:14px;font-size:11px;color:var(--color-text-faint)">Live pricing temporarily unavailable</div>';
+    return;
+  }
   const sorted=[...COMMODITIES].sort((a,b)=>Math.abs(pricePct(b.id))-Math.abs(pricePct(a.id)));
   list.innerHTML='';
   sorted.forEach(c=>{
@@ -1762,7 +1892,15 @@ function renderPriceCards(){
 
 // ── KPI update for markets ──
 function updatePriceKPIs(){
-  const sorted=[...COMMODITIES].sort((a,b)=>pricePct(b.id)-pricePct(a.id));
+  const available = COMMODITIES.filter(c=>priceState[c.id] && isFinite(priceState[c.id].price));
+  if(available.length===0){
+    document.getElementById('kpi-top-gainer').textContent='—';
+    document.getElementById('kpi-top-gainer-val').textContent='—';
+    document.getElementById('kpi-top-loser').textContent='—';
+    document.getElementById('kpi-top-loser-val').textContent='—';
+    return;
+  }
+  const sorted=[...available].sort((a,b)=>pricePct(b.id)-pricePct(a.id));
   const top=sorted[0]; const bot=sorted[sorted.length-1];
   document.getElementById('kpi-top-gainer').textContent=top.emoji+' '+top.name;
   document.getElementById('kpi-top-gainer-val').textContent='+'+pricePct(top.id).toFixed(2)+'%';

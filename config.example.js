@@ -1,0 +1,3 @@
+window.APP_CONFIG = {
+  DATA_GOV_API_KEY: "YOUR_API_KEY_HERE"
+};
