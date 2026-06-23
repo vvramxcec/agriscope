@@ -2513,7 +2513,7 @@ function renderIMDBulletins(){
 // ── Govt Schemes renderer ────────────────────────────────────────────────────
 function renderSchemes(data = SCHEMES){
 
-  const list = document.getElementById('news-schemes-list');
+  
 
   if(!list) return;
 
@@ -2581,8 +2581,7 @@ async function loadSchemes(){
     ];
 
     renderSchemes(SCHEMES);
-
-  }
+}
 }
 
 // ── News Hub init ────────────────────────────────────────────────────────────
@@ -2681,7 +2680,7 @@ function ruleEngineAnswer(question, districtName){
     return `**🌾 Crop Planning — ${loc}** (${today})\n\n**Current season:** ${sn}\n**District crops:** ${crops.join(', ')}\n\n**Season guide for your crops:**\n${crops.map(c=>`• **${c}:** ${(CROP_KB[c]||CROP_KB['Vegetables']).season}`).join('\n')}\n\n**High-value options to consider:**\n• Vegetables (Rabi Oct–Feb): high returns, 60–90 day cycle\n• Banana (Nendran): ₹35–55/kg, strong Onam demand\n• Pepper: premium prices, semi drought-tolerant\n• Cardamom (Idukki belt): ₹1,400+/kg\n\n**This season:** ${month>=5&&month<=8?'Complete paddy transplanting before July 15. Ensure seed treatment done.':month>=9&&month<=11?'Harvest kharif crops. Prepare land for rabi vegetables and pulses.':'Focus on perennial crop maintenance. Plan summer irrigation schedule.'}`;
   }
   if(/scheme|subsid|govern|benefit|eligib|apply|pension|insurance|kisan/.test(q)){
-    return `**🏛️ Govt Schemes — ${loc}**\n\n${SCHEME_KB.slice(0,5).map(s=>`**${s.name}**\n• ${s.eligibility}\n• Benefit: ${s.benefit}\n• Apply: ${s.apply}`).join('\n\n')}\n\n**More:** Kerala Horticulture Mission (50–75% subsidy), RKVY grants, e-NAM registration.\n\nVisit your **Krishi Bhavan** with Aadhaar + land records to apply for most schemes.`;
+    return `**🏛️ Govt Schemes — ${loc}**\n\n${SCHEMES.slice(0,5).map(s=>`**${s.name}**\n• ${s.eligibility}\n• Benefit: ${s.benefit}\n• Apply: ${s.apply}`).join('\n\n')}\n\n**More:** Kerala Horticulture Mission (50–75% subsidy), RKVY grants, e-NAM registration.\n\nVisit your **Krishi Bhavan** with Aadhaar + land records to apply for most schemes.`;
   }
   // General / today
   const acts=[];
