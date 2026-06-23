@@ -2513,7 +2513,7 @@ function renderIMDBulletins(){
 // ── Govt Schemes renderer ────────────────────────────────────────────────────
 function renderSchemes(data = SCHEMES){
 
-  
+  const list = document.getElementById('news-schemes-list');
 
   if(!list) return;
 
@@ -2533,23 +2533,24 @@ function renderSchemes(data = SCHEMES){
         <span>📅 ${escHtml(s.deadline)}</span>
 
         ${(() => {
-  try {
-    const url = new URL(s.link, location.href);
+          try {
+            const url = new URL(s.link, location.href);
 
-    if(url.protocol !== "https:" && url.protocol !== "http:"){
-      return "";
-    }
+            if(url.protocol !== "https:" && url.protocol !== "http:"){
+              return "";
+            }
 
-    return `<a href="${escHtml(url.href)}"
-      target="_blank"
-      rel="noopener noreferrer"
-      class="news-card-link">
-      Details →
-    </a>`;
-  } catch {
-    return "";
-  }
-})()}
+            return `<a href="${escHtml(url.href)}"
+              target="_blank"
+              rel="noopener noreferrer"
+              class="news-card-link">
+              Details →
+            </a>`;
+          } catch {
+            return "";
+          }
+        })()}
+
       </div>
 
     </div>
