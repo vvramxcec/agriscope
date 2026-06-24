@@ -143,6 +143,15 @@
     "market": "Coir yarn ₹60–90/kg. Coir geotextiles export premium. Alappuzha main coir hub.",
     "season": "Year-round processing. Peak: Jan–Apr (dry season for sun-drying)."
   },
+  "Turmeric": {
+  "irrigate": "Well-drained soils essential. Provide 35–40mm water per week via drip or furrow irrigation. Avoid waterlogging — causes rhizome rot. Critical period: June–September during rhizome development.",
+  "fertilize": "NPK 60:50:120 kg/ha + FYM 25t/ha. Apply basal dose before planting. Top-dress N at 45 and 90 days after planting. Zinc sulphate 25kg/ha if yellowing observed.",
+  "disease": "Rhizome Rot (Pythium): drench with Metalaxyl + Mancozeb 2.5g/L. Leaf Blotch: spray Mancozeb 2.5g/L. Leaf Spot: Copper Oxychloride 3g/L. Remove and destroy infected rhizomes immediately.",
+  "pest": "Shoot borer (key pest): spray Chlorpyrifos 2ml/L at 30-day intervals. Scale insects: apply Dimethoate 1.5ml/L. Rhizome scale: treat seed rhizomes with Quinalphos before planting.",
+  "harvest": "Harvest 7–9 months after planting when leaves turn yellow. Dry rhizomes in sun 10–15 days. Yield: 15–25 t/ha fresh. Dry recovery: 20–25%.",
+  "market": "Dry turmeric ₹120–180/kg. Ernakulam and Kozhikode main trading centres. Best price: Feb–Apr. High curcumin varieties fetch premium export prices.",
+  "season": "Plant Apr–May with pre-monsoon showers. Harvest Dec–Feb. Intercrop with coconut or ginger for better land use."
+  },
   "Jackfruit": {
     "irrigate": "Young trees require regular watering during summer. Mature trees are mostly rain-fed but benefit from irrigation during prolonged dry spells. Avoid waterlogging.",
     "fertilize": "Apply FYM 25–30kg/tree annually. Recommended NPK application in split doses before and after monsoon. Mulching helps conserve moisture.",
