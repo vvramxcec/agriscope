@@ -12,19 +12,27 @@
     const d = DISTRICTS.find((x) => x.name === districtName);
     if (!d) return { score: 50, breakdown: {} };
     const wd = weatherData[districtName];
-    if (!wd || !wd.daily || !wd.daily.precipitation_sum) {
+    if (!wd || !wd.daily) {
       return { score: 50, breakdown: {}, rain: 0, temp: 30, hum: 70, dryDays: 0 };
     }
 
-    const rain = wd.daily.precipitation_sum[0] || 0;
-    const temp = wd.daily.temperature_2m_max[0] || 30;
-    const humSlice = (wd.hourly?.relativehumidity_2m || []).slice(0, 24);
+    const rainSeries = Array.isArray(wd.daily?.precipitation_sum) ? wd.daily.precipitation_sum : [];
+    const tempSeries = Array.isArray(wd.daily?.temperature_2m_max) ? wd.daily.temperature_2m_max : [];
+    const humSeries = Array.isArray(wd.hourly?.relativehumidity_2m) ? wd.hourly.relativehumidity_2m : [];
+    const rain = rainSeries[0] ?? 0;
+    const temp = tempSeries[0] ?? 30;
+    const humSlice = humSeries.slice(0, 24);
     const hum = humSlice.length ? Math.round(humSlice.reduce((a, b) => a + b) / humSlice.length) : 70;
 
     let dryDays = 0;
-    for (let i = 0; i < 7; i++) {
-      if ((wd.daily.precipitation_sum[i] || 0) < 2) dryDays++;
+    for (let i = 0; i < Math.min(7, rainSeries.length); i++) {
+      if ((rainSeries[i] || 0) < 2) dryDays++;
       else break;
+    }
+
+    const hasWeatherData = rainSeries.length || tempSeries.length || humSlice.length;
+    if (!hasWeatherData) {
+      return { score: 50, breakdown: {}, rain, temp, hum, dryDays };
     }
 
     const rainScore = scoreInRange(rain, d.idealRain[0], d.idealRain[1], 30);
