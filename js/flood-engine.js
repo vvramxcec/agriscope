@@ -15,10 +15,10 @@ const FLOOD_VULN = {
   'Thiruvananthapuram':{flood:48,landslide:40,wind:60,primary:'wind'},
 };
 function imdAlert(r){
-  if(r>204.4) return {level:'red',   label:'🔴 RED',   cls:'imd-red',   score:100};
-  if(r>115.6) return {level:'orange',label:'🟠 ORANGE',cls:'imd-orange',score:70};
-  if(r>64.5)  return {level:'yellow',label:'🟡 YELLOW',cls:'imd-yellow',score:40};
-  return             {level:'green', label:'🟢 GREEN', cls:'imd-green', score:10};
+  if(r>115) return {level:'red',label:'🔴 RED',cls:'imd-red',score:100};
+  if(r>64) return {level:'orange',label:'🟠 ORANGE',cls:'imd-orange',score:70};
+  if(r>15) return {level:'yellow',label:'🟡 YELLOW',cls:'imd-yellow',score:40};
+  return {level:'green',label:'🟢 GREEN',cls:'imd-green',score:10};
 }
 function getFc3d(name){
   const wd=weatherData[name]; if(!wd||!wd.daily) return 0;
