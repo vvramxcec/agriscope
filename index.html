@@ -5,440 +5,11 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>AgriScope Kerala</title>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="style.css">
 <link href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap" rel="stylesheet"/>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://unpkg.com/lucide@latest"></script>
-<style>
-:root {
-  --color-bg:            #0b1410;
-  --color-surface:       #111a16;
-  --color-surface-2:     #162019;
-  --color-surface-3:     #1c2a20;
-  --color-border:        rgba(255,255,255,0.07);
-  --color-text:          #e2ede6;
-  --color-text-muted:    #a8c5b0;
-  --color-text-faint:    #6b8f75;
-  --color-primary:       #4ade80;
-  --color-primary-dim:   rgba(74,222,128,0.12);
-  --color-rain:          #38bdf8;
-  --color-rain-dim:      rgba(56,189,248,0.15);
-  --color-warn:          #fb923c;
-  --color-warn-dim:      rgba(251,146,60,0.15);
-  --color-danger:        #f87171;
-  --color-danger-dim:    rgba(248,113,113,0.15);
-  --color-monsoon:       #a78bfa;
-  --color-health-great:  #4ade80;
-  --color-health-good:   #86efac;
-  --color-health-fair:   #facc15;
-  --color-health-poor:   #fb923c;
-  --color-health-crit:   #f87171;
-  --font-body:           'Satoshi', system-ui, sans-serif;
-  --nav-w: 56px; --topbar-h: 52px; --right-w: 304px;
-  --radius: 8px; --transition: 180ms cubic-bezier(0.16,1,0.3,1);
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;overflow:hidden;}
-body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-text);font-size:13px;line-height:1.6;-webkit-font-smoothing:antialiased;}
-
-/* TOP BAR */
-#topbar{position:fixed;top:0;left:var(--nav-w);right:0;height:var(--topbar-h);background:var(--color-surface);border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:12px;padding:0 16px;z-index:1000;}
-#topbar .logo{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--color-primary);letter-spacing:-0.3px;}
-.topbar-divider{width:1px;height:20px;background:var(--color-border);}
-#topbar .subtitle{color:var(--color-text-muted);font-size:11px;}
-#topbar .spacer{flex:1;}
-#live-badge{display:flex;align-items:center;gap:5px;font-size:10px;color:var(--color-primary);background:var(--color-primary-dim);border:1px solid rgba(74,222,128,0.2);padding:3px 8px;border-radius:99px;}
-#live-badge .dot{width:6px;height:6px;border-radius:50%;background:var(--color-primary);animation:pulse 2s infinite;}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-#last-updated{font-size:10px;color:var(--color-text-faint);}
-#clock{font-size:12px;color:var(--color-text-muted);font-variant-numeric:tabular-nums;}
-
-/* LEFT NAV */
-#nav{position:fixed;top:0;left:0;bottom:0;width:var(--nav-w);background:var(--color-surface);border-right:1px solid var(--color-border);display:flex;flex-direction:column;align-items:center;padding-top:8px;z-index:1001;gap:2px;}
-.nav-item{width:40px;height:40px;display:flex;align-items:center;justify-content:center;border-radius:var(--radius);cursor:pointer;position:relative;color:var(--color-text-muted);transition:background var(--transition),color var(--transition);}
-.nav-item:hover{background:var(--color-surface-2);color:var(--color-text);}
-.nav-item.active{background:var(--color-primary-dim);color:var(--color-primary);}
-.nav-item i{width:18px;height:18px;}
-.nav-tooltip{position:absolute;left:52px;background:var(--color-surface-3);color:var(--color-text);padding:4px 8px;border-radius:4px;font-size:11px;white-space:nowrap;pointer-events:none;opacity:0;border:1px solid var(--color-border);transition:opacity var(--transition);z-index:999;}
-.nav-item:hover .nav-tooltip{opacity:1;}
-.nav-spacer{flex:1;}
-.alert-count{position:absolute;top:6px;right:6px;width:14px;height:14px;border-radius:50%;background:var(--color-danger);color:#fff;font-size:8px;display:flex;align-items:center;justify-content:center;font-weight:700;}
-
-/* MAIN */
-#main{position:fixed;top:var(--topbar-h);left:var(--nav-w);right:var(--right-w);bottom:0;display:flex;flex-direction:column;overflow:hidden;}
-
-/* KPI BAR */
-#kpi-bar{display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--color-border);border-bottom:1px solid var(--color-border);flex-shrink:0;}
-.kpi-card{background:var(--color-surface);padding:10px 14px;cursor:default;transition:background var(--transition);}
-.kpi-card:hover{background:var(--color-surface-2);}
-.kpi-label{font-size:10px;color:var(--color-text-muted);text-transform:uppercase;letter-spacing:0.5px;margin-bottom:3px;}
-.kpi-value{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;}
-.kpi-sub{font-size:10px;color:var(--color-text-muted);margin-top:3px;display:flex;align-items:center;gap:3px;}
-.kpi-up{color:var(--color-primary);}
-.kpi-down{color:var(--color-danger);}
-.kpi-warn{color:var(--color-warn);}
-
-/* MAP */
-#map-container{flex:1;position:relative;overflow:hidden;}
-#map{width:100%;height:100%;background:#0b1410!important;}
-#layer-toggles{position:absolute;top:10px;left:10px;z-index:500;display:flex;gap:6px;flex-wrap:wrap;}
-.layer-btn{padding:5px 10px;border-radius:99px;font-size:11px;font-weight:600;border:1px solid var(--color-border);cursor:pointer;background:rgba(11,20,16,0.88);color:var(--color-text-muted);backdrop-filter:blur(6px);transition:all var(--transition);}
-.layer-btn:hover{color:var(--color-text);border-color:rgba(255,255,255,0.2);}
-.layer-btn.l-green{background:rgba(74,222,128,0.12);color:var(--color-primary);border-color:rgba(74,222,128,0.4);}
-.layer-btn.l-blue{background:var(--color-rain-dim);color:var(--color-rain);border-color:rgba(56,189,248,0.4);}
-.layer-btn.l-orange{background:var(--color-warn-dim);color:var(--color-warn);border-color:rgba(251,146,60,0.4);}
-.layer-btn.l-purple{background:rgba(167,139,250,0.12);color:var(--color-monsoon);border-color:rgba(167,139,250,0.4);}
-
-/* NASA badge */
-#nasa-badge{position:absolute;bottom:44px;right:10px;z-index:500;background:rgba(11,20,16,0.88);border:1px solid rgba(167,139,250,0.3);border-radius:6px;padding:4px 8px;font-size:9px;color:var(--color-monsoon);backdrop-filter:blur(6px);display:none;}
-
-/* Map legend */
-#map-legend{position:absolute;bottom:10px;left:10px;z-index:500;background:rgba(11,20,16,0.9);border:1px solid var(--color-border);border-radius:var(--radius);padding:8px 12px;backdrop-filter:blur(6px);font-size:10px;color:var(--color-text-muted);}
-.legend-title{font-weight:600;color:var(--color-text);margin-bottom:5px;font-size:11px;}
-.legend-scale{display:flex;align-items:center;gap:6px;}
-.legend-bar{width:100px;height:8px;border-radius:4px;}
-
-/* CHART PANEL */
-#chart-panel{height:180px;flex-shrink:0;background:var(--color-surface);border-top:1px solid var(--color-border);display:flex;flex-direction:column;padding:10px 14px 8px;}
-.panel-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;}
-.panel-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-text-muted);}
-.chart-tabs{display:flex;gap:4px;margin-left:auto;}
-.chart-tab{padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--color-text-muted);background:none;border:1px solid transparent;transition:all var(--transition);}
-.chart-tab.active{background:var(--color-primary-dim);color:var(--color-primary);border-color:rgba(74,222,128,0.3);}
-.chart-tab:hover:not(.active){background:var(--color-surface-2);color:var(--color-text);}
-#chart-canvas-wrap{flex:1;position:relative;}
-
-/* RIGHT PANEL */
-#right-panel{position:fixed;top:var(--topbar-h);right:0;bottom:0;width:var(--right-w);background:var(--color-surface);border-left:1px solid var(--color-border);display:flex;flex-direction:column;overflow:hidden;z-index:900;}
-.rp-section{border-bottom:1px solid var(--color-border);flex-shrink:0;}
-.rp-header{display:flex;align-items:center;gap:6px;padding:10px 14px 8px;}
-.rp-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--color-text-muted);}
-.rp-badge{margin-left:auto;font-size:9px;padding:1px 6px;border-radius:99px;font-weight:600;}
-.rp-badge.live{background:var(--color-primary-dim);color:var(--color-primary);border:1px solid rgba(74,222,128,0.25);}
-.rp-badge.warn{background:var(--color-warn-dim);color:var(--color-warn);}
-.rp-badge.info{background:rgba(56,189,248,0.12);color:var(--color-rain);}
-
-/* RIGHT PANEL TABS */
-#rp-tabs{display:flex;border-bottom:1px solid var(--color-border);flex-shrink:0;}
-.rp-tab{flex:1;padding:9px 4px;font-size:10px;font-weight:600;text-align:center;cursor:pointer;color:var(--color-text-faint);border-bottom:2px solid transparent;transition:all var(--transition);text-transform:uppercase;letter-spacing:0.5px;}
-.rp-tab:hover{color:var(--color-text-muted);}
-.rp-tab.active{color:var(--color-primary);border-bottom-color:var(--color-primary);}
-.rp-tab-content{display:none;flex:1;overflow-y:auto;flex-direction:column;}
-.rp-tab-content.active{display:flex; flex:1; min-height:0;overflow-y: auto;flex-direction: column;}
-.rp-tab-content::-webkit-scrollbar{width:4px;}
-.rp-tab-content::-webkit-scrollbar-thumb{background:var(--color-surface-3);border-radius:2px;}
-
-/* Monsoon */
-#monsoon-section{padding:0 14px 12px;}
-.monsoon-bar-bg{height:6px;border-radius:99px;background:var(--color-surface-3);margin-top:6px;}
-.monsoon-bar-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--color-rain),var(--color-monsoon));transition:width 1s ease;}
-.monsoon-labels{display:flex;justify-content:space-between;font-size:9px;color:var(--color-text-faint);margin-top:4px;}
-.monsoon-day{font-weight:700;color:var(--color-monsoon);font-size:13px;}
-
-/* District weather list */
-.district-row{display:grid;grid-template-columns:1fr 20px 46px 38px;align-items:center;gap:4px;padding:7px 14px;cursor:pointer;border-left:2px solid transparent;transition:all var(--transition);}
-.district-row:hover{background:var(--color-surface-2);}
-.district-row.selected{background:var(--color-primary-dim);border-left-color:var(--color-primary);}
-.district-row.rain-alert{border-left-color:var(--color-rain);}
-.district-row.heat-alert{border-left-color:var(--color-warn);}
-.district-row.health-crit{border-left-color:var(--color-danger);}
-.d-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.d-icon{font-size:14px;text-align:center;}
-.d-val{font-size:11px;text-align:right;font-variant-numeric:tabular-nums;font-weight:600;}
-
-/* Crop health list */
-.health-row{display:grid;grid-template-columns:1fr 60px 32px;align-items:center;gap:6px;padding:6px 14px;cursor:pointer;border-left:2px solid transparent;transition:all var(--transition);}
-.health-row:hover{background:var(--color-surface-2);}
-.health-row.selected{background:var(--color-primary-dim);border-left-color:var(--color-primary);}
-.health-bar-bg{height:4px;border-radius:99px;background:var(--color-surface-3);overflow:hidden;}
-.health-bar-fill{height:100%;border-radius:99px;transition:width 0.8s ease;}
-.health-score{font-size:11px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
-.health-name{font-size:11px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-.health-sub{font-size:9px;color:var(--color-text-faint);}
-
-/* Advisory items */
-.advisory-item{display:flex;gap:7px;align-items:flex-start;padding:7px 8px;border-radius:6px;background:var(--color-surface-2);border:1px solid var(--color-border);font-size:11px;line-height:1.6;margin:0 14px 6px;}
-.advisory-text strong{color:var(--color-text);display:block;margin-bottom:1px;font-size:11px;}
-.advisory-text{color:var(--color-text-muted);}
-
-/* District Detail Overlay */
-#district-detail{position:fixed;top:calc(var(--topbar-h) + 8px);left:calc(var(--nav-w) + 8px);width:288px;z-index:800;background:var(--color-surface-3);border:1px solid var(--color-border);border-radius:var(--radius);box-shadow:0 16px 40px rgba(0,0,0,0.5);display:none;overflow:hidden;}
-#district-detail.visible{display:block;}
-.dd-header{display:flex;align-items:center;gap:8px;padding:10px 14px 8px;border-bottom:1px solid var(--color-border);min-width:0;}
-.dd-name{font-size:14px;font-weight:700;white-space:nowrap;flex-shrink:0;max-width:110px;overflow:hidden;text-overflow:ellipsis;}
-.dd-tabs{display:flex;gap:4px;overflow-x:auto;overflow-y:hidden;flex:1;min-width:0;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:1px;}
-.dd-tabs::-webkit-scrollbar{display:none;}
-.dd-tab{padding:3px 8px;border-radius:4px;font-size:10px;cursor:pointer;color:var(--color-text-faint);background:none;border:1px solid transparent;font-weight:600;transition:all var(--transition);;flex-shrink:0;white-space:nowrap;}
-.dd-tab.active{background:var(--color-primary-dim);color:var(--color-primary);border-color:rgba(74,222,128,0.3);}
-.dd-close{cursor:pointer;color:var(--color-text-faint);width:24px;height:24px;display:flex;align-items:center;justify-content:center;border-radius:4px;transition:background var(--transition);}
-.dd-close:hover{background:var(--color-surface);color:var(--color-text);}
-.dd-body{padding:12px 14px;}
-.dd-stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px;}
-.dd-stat{background:var(--color-surface);border-radius:6px;padding:8px 10px;}
-.dd-stat-label{font-size:9px;text-transform:uppercase;letter-spacing:0.5px;color:var(--color-text-faint);margin-bottom:2px;}
-.dd-stat-value{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;}
-.forecast-strip{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;}
-.forecast-strip::-webkit-scrollbar{height:3px;}
-.forecast-strip::-webkit-scrollbar-thumb{background:var(--color-surface-3);}
-.forecast-day{flex-shrink:0;width:44px;text-align:center;background:var(--color-surface);border-radius:6px;padding:6px 4px;border:1px solid var(--color-border);}
-.fc-day-name{font-size:9px;color:var(--color-text-faint);text-transform:uppercase;}
-.fc-icon{font-size:16px;margin:3px 0;}
-.fc-temp{font-size:11px;font-weight:600;color:var(--color-warn);}
-.fc-rain{font-size:10px;color:var(--color-rain);}
-.dd-advisory-box{background:var(--color-surface);border-radius:6px;padding:8px 10px;margin-top:8px;font-size:11px;color:var(--color-text-muted);border-left:2px solid var(--color-primary);}
-
-/* Health detail panel */
-.health-detail-wrap{display:none;}
-.health-detail-wrap.active{display:block;}
-.weather-detail-wrap{display:none;}
-.weather-detail-wrap.active{display:block;}
-.health-score-big{text-align:center;padding:12px 0 8px;}
-.health-score-num{font-size:42px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1;}
-.health-score-label{font-size:12px;color:var(--color-text-muted);margin-top:4px;}
-.health-crop-tag{display:inline-block;background:var(--color-primary-dim);color:var(--color-primary);padding:2px 8px;border-radius:99px;font-size:10px;font-weight:600;margin-top:4px;}
-.breakdown-list{margin-top:10px;display:flex;flex-direction:column;gap:6px;}
-.breakdown-item{display:flex;align-items:center;gap:8px;}
-.breakdown-label{font-size:11px;color:var(--color-text-muted);width:90px;flex-shrink:0;}
-.breakdown-bar-bg{flex:1;height:5px;background:var(--color-surface);border-radius:99px;overflow:hidden;}
-.breakdown-bar-fill{height:100%;border-radius:99px;transition:width 0.8s ease;}
-.breakdown-val{font-size:10px;font-weight:600;width:36px;text-align:right;font-variant-numeric:tabular-nums;}
-
-/* Loading */
-#loading{position:fixed;inset:0;background:var(--color-bg);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:9999;gap:16px;transition:opacity 0.5s ease;}
-#loading.hidden{opacity:0;pointer-events:none;}
-.loader-ring{width:40px;height:40px;border-radius:50%;border:3px solid var(--color-surface-3);border-top-color:var(--color-primary);animation:spin 0.8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg)}}
-#loading p{font-size:13px;color:var(--color-text-muted);}
-#load-step{font-size:11px;color:var(--color-text-faint);}
-.leaflet-container{background:var(--color-bg)!important;}
-.leaflet-control-zoom{display:none!important;}
-.leaflet-tile-pane{filter:brightness(0.8) saturate(0.5);}
-
-/* ── MARKETS VIEW ── */
-#markets-view{display:none;flex:1;overflow:hidden;flex-direction:column;}
-#markets-view.active{display:flex;}
-#map-container.hidden{display:none;}
-.price-table-wrap{flex:1;overflow-y:auto;padding:0;}
-.price-table-wrap::-webkit-scrollbar{width:4px;}
-.price-table-wrap::-webkit-scrollbar-thumb{background:var(--color-surface-3);}
-.price-table{width:100%;border-collapse:collapse;}
-.price-table thead th{position:sticky;top:0;background:var(--color-surface);padding:8px 14px;font-size:9px;text-transform:uppercase;letter-spacing:0.6px;color:var(--color-text-faint);font-weight:700;border-bottom:1px solid var(--color-border);text-align:left;white-space:nowrap;z-index:2;}
-.price-table thead th:not(:first-child){text-align:right;}
-.price-table tbody tr{border-bottom:1px solid var(--color-border);cursor:default;transition:background var(--transition);}
-.price-table tbody tr:hover{background:var(--color-surface-2);}
-.price-table td{padding:9px 14px;vertical-align:middle;white-space:nowrap;}
-.pt-name{display:flex;align-items:center;gap:8px;}
-.pt-emoji{font-size:16px;width:22px;text-align:center;}
-.pt-commodity{font-size:12px;font-weight:600;color:var(--color-text);}
-.pt-mandi{font-size:10px;color:var(--color-text-faint);}
-.pt-price{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;text-align:right;}
-.pt-change{font-size:11px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;}
-.pt-change.up{color:var(--color-primary);}
-.pt-change.down{color:var(--color-danger);}
-.pt-change.flat{color:var(--color-text-faint);}
-.pt-hl{font-size:10px;color:var(--color-text-faint);text-align:right;font-variant-numeric:tabular-nums;}
-.pt-signal{display:inline-block;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:700;text-align:center;}
-.pt-signal.buy{background:rgba(74,222,128,0.15);color:#4ade80;border:1px solid rgba(74,222,128,0.3);}
-.pt-signal.hold{background:rgba(250,204,21,0.12);color:#facc15;border:1px solid rgba(250,204,21,0.25);}
-.pt-signal.sell{background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.25);}
-/* sparkline canvas */
-.spark-cell{text-align:right;padding-right:16px!important;}
-/* price card in right panel */
-.price-card{padding:7px 14px;border-bottom:1px solid var(--color-border);cursor:default;transition:background var(--transition);}
-.price-card:hover{background:var(--color-surface-2);}
-.pc-row1{display:flex;align-items:center;gap:6px;}
-.pc-name{font-size:12px;font-weight:600;flex:1;}
-.pc-price{font-size:13px;font-weight:700;font-variant-numeric:tabular-nums;}
-.pc-change{font-size:10px;font-weight:600;}
-.pc-spark{margin-top:3px;}
-.price-ticker-up{animation:tickUp 0.5s ease;}
-.price-ticker-down{animation:tickDown 0.5s ease;}
-@keyframes tickUp{0%{color:var(--color-primary);transform:translateY(-2px)}100%{transform:translateY(0)}}
-@keyframes tickDown{0%{color:var(--color-danger);transform:translateY(2px)}100%{transform:translateY(0)}}
-
-/* ═══ PEST & DISEASE ALERTS ═══ */
-.pest-card{padding:8px 14px;border-bottom:1px solid var(--color-border);transition:background var(--transition);}
-.pest-card:hover{background:var(--color-surface-2);}
-.pc-row1{display:flex;align-items:center;gap:6px;margin-bottom:3px;}
-.pc-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 7px;border-radius:99px;font-size:9px;font-weight:700;white-space:nowrap;}
-.pc-high{background:rgba(248,113,113,0.15);color:#f87171;border:1px solid rgba(248,113,113,0.3);}
-.pc-moderate{background:rgba(251,146,60,0.15);color:#fb923c;border:1px solid rgba(251,146,60,0.3);}
-.pc-watch{background:rgba(250,204,21,0.12);color:#facc15;border:1px solid rgba(250,204,21,0.25);}
-.pc-crop{font-size:10px;color:var(--color-text-faint);}
-.pc-districts{font-size:10px;color:var(--color-text-muted);margin-top:2px;}
-.pc-action{font-size:10px;color:var(--color-primary);margin-top:2px;font-style:italic;}
-/* dd pest tab */
-.pest-detail-wrap{display:none;}
-.pest-detail-wrap.active{display:block;}
-.dd-pest-item{background:var(--color-surface);border-radius:6px;padding:8px 10px;margin-bottom:6px;border-left:3px solid transparent;}
-.dd-pest-item.ph{border-left-color:#f87171;}
-.dd-pest-item.pm{border-left-color:#fb923c;}
-.dd-pest-item.pw{border-left-color:#facc15;}
-.dd-pest-row1{display:flex;align-items:center;gap:6px;margin-bottom:2px;}
-.dd-pest-action{font-size:10px;color:var(--color-text-faint);font-style:italic;line-height:1.4;}
-
-
-/* ═══ FLOOD / DISASTER RISK ═══ */
-#flood-view{display:none;flex-direction:column;flex:1;overflow:hidden;}
-#flood-view.active{display:flex;}
-.flood-bar{display:flex;align-items:center;gap:14px;padding:8px 16px;background:var(--color-surface);border-bottom:1px solid var(--color-border);flex-shrink:0;flex-wrap:wrap;}
-.flood-bar .fb-label{font-size:9px;color:var(--color-text-faint);text-transform:uppercase;letter-spacing:0.5px;}
-.fb-count{font-size:12px;font-weight:700;}
-.flood-table-wrap{flex:1;overflow-y:auto;}
-.flood-table-wrap::-webkit-scrollbar{width:4px;}
-.flood-table-wrap::-webkit-scrollbar-thumb{background:var(--color-surface-3);}
-.flood-tbl{width:100%;border-collapse:collapse;}
-.flood-tbl thead th{position:sticky;top:0;background:var(--color-surface);padding:7px 14px;font-size:9px;text-transform:uppercase;letter-spacing:0.6px;color:var(--color-text-faint);font-weight:700;border-bottom:1px solid var(--color-border);text-align:left;white-space:nowrap;z-index:2;}
-.flood-tbl thead th:not(:first-child){text-align:right;}
-.flood-tbl tbody tr{border-bottom:1px solid var(--color-border);cursor:pointer;transition:background var(--transition);}
-.flood-tbl tbody tr:hover{background:var(--color-surface-2);}
-.flood-tbl td{padding:7px 14px;font-size:12px;vertical-align:middle;}
-.flood-tbl td:not(:first-child){text-align:right;}
-.imd-badge{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:10px;font-weight:700;white-space:nowrap;}
-.imd-red{background:rgba(248,113,113,0.18);color:#f87171;border:1px solid rgba(248,113,113,0.35);}
-.imd-orange{background:rgba(251,146,60,0.18);color:#fb923c;border:1px solid rgba(251,146,60,0.35);}
-.imd-yellow{background:rgba(250,204,21,0.13);color:#facc15;border:1px solid rgba(250,204,21,0.28);}
-.imd-green{background:rgba(74,222,128,0.10);color:#4ade80;border:1px solid rgba(74,222,128,0.2);}
-.risk-type-pill{display:inline-block;font-size:9px;padding:1px 6px;border-radius:4px;background:var(--color-surface-3);color:var(--color-text-muted);}
-.flood-card{padding:7px 14px;border-bottom:1px solid var(--color-border);cursor:pointer;transition:background var(--transition);}
-.flood-card:hover{background:var(--color-surface-2);}
-.flood-detail-wrap{display:none;}
-.flood-detail-wrap.active{display:block;}
-.ff-bars{display:flex;gap:3px;align-items:flex-end;height:56px;margin:6px 0 10px;}
-.ff-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;}
-.ff-bar{width:100%;border-radius:2px 2px 0 0;min-height:2px;}
-.ff-lbl{font-size:8px;color:var(--color-text-faint);}
-.ff-val{font-size:9px;font-weight:600;}
-.vuln-row{display:flex;align-items:center;gap:8px;margin-bottom:5px;}
-.vuln-name{font-size:11px;color:var(--color-text-muted);width:88px;flex-shrink:0;}
-.vuln-bg{flex:1;height:4px;background:var(--color-surface-3);border-radius:99px;overflow:hidden;}
-.vuln-fill{height:100%;border-radius:99px;}
-.vuln-val{font-size:10px;font-weight:600;width:28px;text-align:right;}
-
-/* ── NEWS HUB ── */
-#news-view{display:none;flex:1;overflow:hidden;flex-direction:column;}
-#news-view.active{display:flex;}
-.news-wrap{display:flex;flex:1;overflow:hidden;gap:0;}
-.news-col{flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--color-border);}
-.news-col:last-child{border-right:none;}
-.news-col-head{padding:8px 14px 6px;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.news-col-title{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);}
-.news-col-badge{font-size:9px;background:var(--color-primary-dim);color:var(--color-primary);border-radius:8px;padding:1px 6px;margin-left:auto;}
-.news-scroll{flex:1;overflow-y:auto;padding:6px 10px 10px;}
-.news-card{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;cursor:pointer;transition:border-color .15s;}
-.news-card:hover{border-color:rgba(74,222,128,0.3);}
-.news-card-top{display:flex;align-items:flex-start;gap:6px;margin-bottom:3px;}
-.news-tag{font-size:8px;font-weight:700;letter-spacing:.05em;padding:1px 5px;border-radius:4px;flex-shrink:0;margin-top:1px;}
-.tag-critical{background:rgba(239,68,68,.18);color:#f87171;}
-.tag-warning{background:rgba(251,146,60,.18);color:#fb923c;}
-.tag-watch{background:rgba(251,191,36,.18);color:#fbbf24;}
-.tag-news{background:rgba(56,189,248,.18);color:#38bdf8;}
-.tag-scheme{background:rgba(167,139,250,.18);color:#a78bfa;}
-.tag-market{background:rgba(74,222,128,.18);color:#4ade80;}
-.tag-pest{background:rgba(251,113,133,.18);color:#fb7185;}
-.news-card-title{font-size:11px;font-weight:600;color:var(--color-text);line-height:1.35;}
-.news-card-body{font-size:10px;color:var(--color-text-muted);line-height:1.6;margin-bottom:4px;}
-.news-card-meta{display:flex;gap:8px;font-size:9px;color:var(--color-text-faint);}
-.news-source{font-weight:600;color:var(--color-text-muted);}
-.news-card-link{font-size:9px;color:var(--color-primary);text-decoration:none;margin-left:auto;}
-.news-card-link:hover{text-decoration:underline;}
-.news-empty{font-size:11px;color:var(--color-text-faint);padding:16px 4px;text-align:center;}
-.news-spinner{font-size:10px;color:var(--color-text-faint);padding:12px 4px;text-align:center;animation:pulse 1.5s infinite;}
-.news-filter-bar{display:flex;gap:4px;padding:5px 10px;border-bottom:1px solid var(--color-border);flex-wrap:wrap;flex-shrink:0;}
-.nf-btn{font-size:9px;padding:2px 7px;border-radius:10px;border:1px solid var(--color-border);background:transparent;color:var(--color-text-muted);cursor:pointer;transition:all .15s;}
-.nf-btn.active,.nf-btn:hover{background:var(--color-primary-dim);color:var(--color-primary);border-color:rgba(74,222,128,.3);}
-.adv-card{background:var(--color-surface-2);border-left:3px solid #3f5c47;border-radius:0 var(--radius) var(--radius) 0;padding:7px 10px;margin-bottom:5px;}
-.adv-card.sev-critical{border-left-color:#ef4444;}
-.adv-card.sev-warning{border-left-color:#f97316;}
-.adv-card.sev-watch{border-left-color:#eab308;}
-.adv-card.sev-ok{border-left-color:#4ade80;}
-.adv-card-top{display:flex;align-items:center;gap:5px;margin-bottom:2px;}
-.adv-icon{font-size:13px;flex-shrink:0;}
-.adv-district{font-size:10px;font-weight:700;color:var(--color-text);}
-.adv-crop{font-size:9px;color:var(--color-primary);margin-left:auto;}
-.adv-msg{font-size:10px;color:var(--color-text-muted);line-height:1.4;}
-.adv-actions{display:flex;gap:4px;margin-top:4px;flex-wrap:wrap;}
-.adv-action-btn{font-size:8px;padding:1px 6px;border-radius:4px;background:var(--color-surface-3);color:var(--color-text-muted);border:1px solid var(--color-border);cursor:pointer;}
-.scheme-card{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;}
-.scheme-title{font-size:11px;font-weight:700;color:var(--color-text);margin-bottom:2px;}
-.scheme-body{font-size:10px;color:var(--color-text-muted);line-height:1.4;margin-bottom:4px;}
-.scheme-meta{font-size:9px;color:var(--color-text-faint);display:flex;gap:8px;}
-.scheme-badge{font-size:8px;font-weight:700;padding:1px 6px;border-radius:4px;background:rgba(167,139,250,.18);color:#a78bfa;}
-.imd-card{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;}
-.imd-card.imd-red{border-left:3px solid #ef4444;}
-.imd-card.imd-orange{border-left:3px solid #f97316;}
-.imd-card.imd-yellow{border-left:3px solid #eab308;}
-.imd-card.imd-green{border-left:3px solid #4ade80;}
-.imd-title{font-size:11px;font-weight:700;color:var(--color-text);}
-.imd-body{font-size:10px;color:var(--color-text-muted);line-height:1.4;margin-top:2px;}
-.imd-meta{font-size:9px;color:var(--color-text-faint);margin-top:3px;}
-
-
-/* ── AI ADVISORY ── */
-#ai-view{display:none;flex:1;overflow:hidden;flex-direction:column;}
-#ai-view.active{display:flex;}
-.ai-wrap{display:flex;flex:1;overflow:hidden;}
-.ai-chat-panel{display:flex;flex-direction:column;width:58%;border-right:1px solid var(--color-border);overflow:hidden;}
-.ai-quick-panel{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-.ai-panel-head{padding:7px 14px 6px;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:7px;flex-shrink:0;}
-.ai-panel-title{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--color-text-muted);}
-.ai-chat-history{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px;}
-.ai-bubble{max-width:85%;padding:8px 11px;border-radius:10px;font-size:11px;line-height:1.6;}
-.ai-bubble.user{background:var(--color-primary-dim);border:1px solid rgba(74,222,128,.25);color:var(--color-text);align-self:flex-end;border-bottom-right-radius:3px;}
-.ai-bubble.bot{background:var(--color-surface-2);border:1px solid var(--color-border);color:var(--color-text);align-self:flex-start;border-bottom-left-radius:3px;}
-.ai-bubble.bot strong{color:var(--color-primary);}
-.ai-bubble-meta{font-size:9px;color:var(--color-text-faint);margin-top:3px;}
-.ai-bubble.thinking{color:var(--color-text-faint);font-style:italic;animation:pulse 1.2s infinite;}
-.ai-input-bar{padding:8px 10px;border-top:1px solid var(--color-border);display:flex;gap:6px;align-items:flex-end;flex-shrink:0;}
-.ai-district-sel{font-size:10px;padding:4px 7px;background:var(--color-surface-2);border:1px solid var(--color-border);color:var(--color-text);border-radius:var(--radius);cursor:pointer;flex-shrink:0;}
-.ai-textarea{flex:1;background:var(--color-surface-2);border:1px solid var(--color-border);color:var(--color-text);border-radius:var(--radius);padding:6px 9px;font-size:11px;font-family:inherit;resize:none;min-height:34px;max-height:90px;line-height:1.4;}
-.ai-textarea:focus{outline:none;border-color:rgba(74,222,128,.4);}
-.ai-send-btn{background:var(--color-primary);color:#0b1410;border:none;border-radius:var(--radius);padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;flex-shrink:0;transition:opacity .15s;}
-.ai-send-btn:hover{opacity:.85;}
-.ai-send-btn:disabled{opacity:.4;cursor:not-allowed;}
-.ai-chips{display:flex;gap:5px;padding:5px 10px 4px;flex-wrap:wrap;border-bottom:1px solid var(--color-border);flex-shrink:0;}
-.ai-chip{font-size:9px;padding:3px 8px;border-radius:10px;background:var(--color-surface-2);border:1px solid var(--color-border);color:var(--color-text-muted);cursor:pointer;transition:all .15s;white-space:nowrap;}
-.ai-chip:hover{background:var(--color-primary-dim);color:var(--color-primary);border-color:rgba(74,222,128,.3);}
-.ai-key-bar{padding:5px 10px;border-bottom:1px solid var(--color-border);display:flex;align-items:center;gap:6px;flex-shrink:0;}
-.ai-key-input{flex:1;background:var(--color-surface-2);border:1px solid var(--color-border);color:var(--color-text);border-radius:var(--radius);padding:4px 8px;font-size:10px;font-family:inherit;}
-.ai-key-input:focus{outline:none;border-color:rgba(74,222,128,.4);}
-.ai-key-badge{font-size:9px;padding:2px 6px;border-radius:8px;font-weight:700;}
-.ai-key-badge.connected{background:rgba(74,222,128,.18);color:#4ade80;}
-.ai-key-badge.disconnected{background:rgba(239,68,68,.18);color:#f87171;}
-.ai-quick-scroll{flex:1;overflow-y:auto;padding:6px 10px 10px;}
-.ai-qcard{background:var(--color-surface-2);border:1px solid var(--color-border);border-radius:var(--radius);padding:8px 10px;margin-bottom:6px;}
-.ai-qcard-head{display:flex;align-items:center;gap:5px;margin-bottom:4px;}
-.ai-qcard-icon{font-size:14px;}
-.ai-qcard-title{font-size:11px;font-weight:700;color:var(--color-text);}
-.ai-qcard-sev{font-size:8px;font-weight:700;padding:1px 5px;border-radius:4px;margin-left:auto;}
-.sev-c{background:rgba(239,68,68,.18);color:#f87171;}
-.sev-w{background:rgba(251,146,60,.18);color:#fb923c;}
-.sev-g{background:rgba(74,222,128,.18);color:#4ade80;}
-.ai-qcard-body{font-size:10px;color:var(--color-text-muted);line-height:1.45;}
-.ai-qcard-actions{display:flex;gap:4px;margin-top:5px;flex-wrap:wrap;}
-.ai-qcard-btn{font-size:9px;padding:2px 7px;border-radius:4px;background:var(--color-surface-3);color:var(--color-text-muted);border:1px solid var(--color-border);cursor:pointer;}
-.ai-qcard-btn:hover{border-color:rgba(74,222,128,.3);color:var(--color-primary);}
-.ai-welcome{text-align:center;padding:20px 10px;color:var(--color-text-faint);}
-.ai-welcome-icon{font-size:32px;margin-bottom:8px;}
-.ai-welcome-title{font-size:13px;font-weight:700;color:var(--color-text-muted);margin-bottom:4px;}
-.ai-welcome-sub{font-size:10px;line-height:1.5;}
-
-@media (max-width: 768px) {
-  :root { --right-w: 0px; --nav-w: 0px; }
-  #nav { display: none; }
-  #right-panel { display: none; }
-  #main { left: 0; right: 0; }
-  #topbar { left: 0; }
-  body { font-size: 14px; line-height: 1.6; }
-  .ai-bubble, .advisory-item, .news-card-body,
-  .adv-msg, .scheme-body, .imd-body {
-    font-size: 13px;
-    line-height: 1.6;
-  }
-  .kpi-value { font-size: 15px; }
-  .dd-stat-value { font-size: 13px; }
-}
-</style>
 
   <!-- Gemini AI Shim (firebase-ai.js CDN unavailable; using Gemini REST API directly) -->
   <script>
@@ -677,6 +248,7 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
         <th style="min-width:130px">District</th>
         <th>IMD Alert</th>
         <th>24h Rain</th>
+        <th>API Score</th>
         <th>3D Forecast</th>
         <th>Vulnerability</th>
         <th>Risk Type</th>
@@ -936,46 +508,11 @@ body{font-family:var(--font-body);background:var(--color-bg);color:var(--color-t
   </div>
 </div>
 
-
+<script src="js/weather.js"></script>
 <script>
-// ═══════════════════════════════════════════════════════
-//  DISTRICT DATA — coordinates + crops + agronomic ideals
-// ═══════════════════════════════════════════════════════
-const DISTRICTS = [
-  { name:'Thiruvananthapuram', lat:8.5241,  lon:76.9366, crops:['Tapioca','Coconut','Vegetables'],    idealTemp:[25,35], idealRain:[3,10],  idealHum:[60,80] },
-  { name:'Kollam',             lat:8.8932,  lon:76.6141, crops:['Cashew','Coconut','Rubber'],          idealTemp:[24,32], idealRain:[2,8],   idealHum:[55,75] },
-  { name:'Pathanamthitta',     lat:9.2648,  lon:76.7870, crops:['Rubber','Coconut','Spices'],          idealTemp:[25,32], idealRain:[3,10],  idealHum:[70,80] },
-  { name:'Alappuzha',          lat:9.4981,  lon:76.3388, crops:['Rice','Coconut','Coir'],              idealTemp:[24,32], idealRain:[5,15],  idealHum:[70,85] },
-  { name:'Kottayam',           lat:9.5916,  lon:76.5222, crops:['Rubber','Coconut','Spices'],          idealTemp:[25,32], idealRain:[3,10],  idealHum:[70,80] },
-  { name:'Idukki',             lat:9.9189,  lon:77.1025, crops:['Cardamom','Tea','Coffee'],            idealTemp:[18,26], idealRain:[8,20],  idealHum:[75,90] },
-  { name:'Ernakulam',          lat:9.9312,  lon:76.2673, crops:['Coconut','Vegetables','Banana'],      idealTemp:[27,33], idealRain:[3,8],   idealHum:[65,78] },
-  { name:'Thrissur',           lat:10.5276, lon:76.2144, crops:['Coconut','Banana','Rubber'],          idealTemp:[27,33], idealRain:[3,8],   idealHum:[65,80] },
-  { name:'Palakkad',           lat:10.7867, lon:76.6548, crops:['Rice','Sugarcane','Banana'],          idealTemp:[25,32], idealRain:[4,12],  idealHum:[65,80] },
-  { name:'Malappuram',         lat:11.0510, lon:76.0711, crops:['Banana','Coconut','Ginger'],          idealTemp:[26,32], idealRain:[4,10],  idealHum:[70,80] },
-  { name:'Kozhikode',          lat:11.2588, lon:75.7804, crops:['Ginger','Turmeric','Coconut'],        idealTemp:[25,30], idealRain:[5,15],  idealHum:[75,85] },
-  { name:'Wayanad',            lat:11.6854, lon:76.1320, crops:['Coffee','Tea','Pepper','Cardamom'],   idealTemp:[20,28], idealRain:[5,15],  idealHum:[70,85] },
-  { name:'Kannur',             lat:11.8745, lon:75.3704, crops:['Arecanut','Coconut','Pepper'],        idealTemp:[25,32], idealRain:[4,12],  idealHum:[70,85] },
-  { name:'Kasaragod',          lat:12.4996, lon:74.9869, crops:['Coconut','Cashew','Arecanut'],        idealTemp:[27,33], idealRain:[3,8],   idealHum:[65,78] },
-];
-
-// WMO code → icon
-function wxInfo(c){
-  if(c===0) return{icon:'☀️',label:'Clear'};
-  if(c<=2)  return{icon:'⛅',label:'Part Cloudy'};
-  if(c===3) return{icon:'☁️',label:'Overcast'};
-  if(c<=49) return{icon:'🌫️',label:'Foggy'};
-  if(c<=59) return{icon:'🌦️',label:'Drizzle'};
-  if(c<=69) return{icon:'🌧️',label:'Rain'};
-  if(c<=79) return{icon:'🌨️',label:'Snow'};
-  if(c<=84) return{icon:'🌦️',label:'Showers'};
-  if(c<=99) return{icon:'⛈️',label:'Thunderstorm'};
-  return{icon:'🌤️',label:'Mixed'};
-}
-
 // ═══════════════════════════════════════════════════════
 //  STATE
 // ═══════════════════════════════════════════════════════
-let weatherData = {};
 let healthScores = {};
 let geoLayer = null;
 let nasaLayer = null;
@@ -990,40 +527,6 @@ let currentChartType = 'rainfall';
 const map = L.map('map',{center:[10.5,76.5],zoom:7,zoomControl:false,attributionControl:false});
 L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',{maxZoom:12,minZoom:6}).addTo(map);
 
-// ═══════════════════════════════════════════════════════
-//  OPEN-METEO FETCH
-// ═══════════════════════════════════════════════════════
-async function fetchWeather(){
-  document.getElementById('load-step').textContent='Fetching weather data…';
-  const sleep = ms => new Promise(r=>setTimeout(r,ms));
-
-  // Fetch one district with 8s timeout + retry once on 429
-  async function fetchOne(d, retry=0){
-    const url = `https://api.open-meteo.com/v1/forecast?latitude=${d.lat}&longitude=${d.lon}&daily=precipitation_sum,temperature_2m_max,temperature_2m_min,weathercode,windspeed_10m_max&hourly=relativehumidity_2m&timezone=Asia%2FKolkata&forecast_days=7`;
-    try{
-      const ctrl = new AbortController();
-      const timer = setTimeout(()=>ctrl.abort(), 8000);
-      const res = await fetch(url, {signal: ctrl.signal});
-      clearTimeout(timer);
-      if(res.status===429 && retry<1){ await sleep(2000); return fetchOne(d, retry+1); }
-      if(!res.ok) return {district:d.name, data:null};
-      const data = await res.json();
-      return {district:d.name, data};
-    } catch(e){ return {district:d.name, data:null}; }
-  }
-
-  // Batch into groups of 3 with 1.2s gap — avoids 429 rate limit
-  const BATCH = 3;
-  for(let i=0; i<DISTRICTS.length; i+=BATCH){
-    const batch = DISTRICTS.slice(i, i+BATCH);
-    const pct = Math.round((i/DISTRICTS.length)*100);
-    document.getElementById('load-step').textContent=`Weather ${pct}% (${i+1}–${Math.min(i+BATCH,DISTRICTS.length)} of ${DISTRICTS.length})…`;
-    const results = await Promise.all(batch.map(d=>fetchOne(d)));
-    results.forEach(r=>{ if(r.data) weatherData[r.district]=r.data; });
-    if(i+BATCH < DISTRICTS.length) await sleep(1200);
-  }
-  document.getElementById('load-step').textContent='Weather loaded ✓';
-}
 
 // ═══════════════════════════════════════════════════════
 //  CROP HEALTH SCORE ENGINE
@@ -1564,16 +1067,31 @@ setInterval(updateClock,1000); updateClock();
 function setLastUpdated(){document.getElementById('last-updated').textContent='Updated '+new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',hour12:true,timeZone:'Asia/Kolkata'});}
 
 // ═══════════════════════════════════════════════════════
+
+
 //  INIT
 // ═══════════════════════════════════════════════════════
 async function init(){
   try{
+    document.getElementById('load-step').textContent='Loading data files…';
+    const [cropKB, diseaseKB, floodVuln] = await Promise.all([
+      fetch('./data/crop_kb.json').then(r=>r.json()),
+      fetch('./data/disease_kb.json').then(r=>r.json()),
+      fetch('./data/flood_vuln.json').then(r=>r.json()),
+    ]);
+    CROP_KB = cropKB;
+    DISEASE_KB = diseaseKB;
+    FLOOD_VULN = floodVuln;
+    if(!Object.keys(CROP_KB).length)   throw new Error('crop_kb.json failed to load');
+    if(!DISEASE_KB.length)             throw new Error('disease_kb.json failed to load');
+    if(!Object.keys(FLOOD_VULN).length) throw new Error('flood_vuln.json failed to load');
+    await loadSchemes();
     await fetchWeather();
     document.getElementById('load-step').textContent='Computing crop health scores…';
     computeAllHealth();
     document.getElementById('load-step').textContent='Loading district boundaries…';
     const geoCtrl=new AbortController(); setTimeout(()=>geoCtrl.abort(),10000);
-    const geoRes=await fetch('https://raw.githubusercontent.com/geohacker/kerala/master/geojsons/district.geojson',{signal:geoCtrl.signal});
+    const geoRes=await fetch('./data/kerala-districts.geojson',{signal:geoCtrl.signal});
     const geojson=await geoRes.json();
     renderGeoLayer(geojson);
     updateKPIs(); updateDistrictList(); updateHealthList(); updateAdvisories(); updateMonsoon();
@@ -1596,13 +1114,12 @@ async function init(){
       setLastUpdated();
     },600000);
 
-    // Price tick every 5 minutes
     setInterval(tickPrices, 300000);
   }catch(e){
     document.getElementById('load-step').textContent='Error: '+e.message;
     console.error(e);
   }
-}
+};
 
 
 // ═══════════════════════════════════════════════════════
@@ -1615,8 +1132,8 @@ const COMMODITIES = [
   { id:'rubber',      emoji:'🌳', name:'Rubber RSS4',   unit:'₹/kg',       mandi:'Kottayam',        base:218,  vol:0.010, crop:'Rubber' },
   { id:'coffee',      emoji:'☕', name:'Coffee Robusta',unit:'₹/kg',       mandi:'Wayanad',         base:165,  vol:0.015, crop:'Coffee' },
   { id:'tea',         emoji:'🍵', name:'Tea',           unit:'₹/kg',       mandi:'Munnar',          base:92,   vol:0.012, crop:'Tea' },
-  { id:'coconutoil',  emoji:'🫚', name:'Coconut Oil',   unit:'₹/kg',       mandi:'Kozhikode',       base:196,  vol:0.009, crop:'Coconut' },
-  { id:'ginger',      emoji:'🌾', name:'Ginger',        unit:'₹/kg',       mandi:'Ernakulam',       base:38,   vol:0.020, crop:'Ginger' },
+  { id:'coconutoil',  emoji:'🥥', name:'Coconut Oil',   unit:'₹/kg',       mandi:'Kozhikode',       base:196,  vol:0.009, crop:'Coconut' },
+  { id:'ginger',      emoji:'🫚', name:'Ginger',        unit:'₹/kg',       mandi:'Ernakulam',       base:38,   vol:0.020, crop:'Ginger' },
   { id:'turmeric',    emoji:'🟡', name:'Turmeric',      unit:'₹/kg',       mandi:'Ernakulam',       base:148,  vol:0.018, crop:'Turmeric' },
   { id:'banana',      emoji:'🍌', name:'Banana',        unit:'₹/kg',       mandi:'Thrissur',        base:32,   vol:0.008, crop:'Banana' },
   { id:'tapioca',     emoji:'🍠', name:'Tapioca',       unit:'₹/kg',       mandi:'Alappuzha',       base:24,   vol:0.007, crop:'Tapioca' },
@@ -1825,64 +1342,7 @@ function showMarketsView(on){
 // ═══════════════════════════════════════════════════════
 //  PEST & DISEASE ENGINE — KAU/ICAR rule-based risk model
 // ═══════════════════════════════════════════════════════
-const DISEASE_KB = [
-  { id:'phytophthora', name:'Phytophthora / Quick Wilt', emoji:'🍂',
-    crops:['Pepper'], peakMonths:[6,7,8,9],
-    rules:{rainMin:20,tempMax:28,humMin:85}, w:{rain:35,temp:30,hum:35},
-    action:'Spray Potassium Phosphonate 3ml/L. Improve drainage. Apply Trichoderma to soil.',src:'KAU PoP 2016' },
-  { id:'budrot', name:'Bud Rot', emoji:'🥥',
-    crops:['Coconut'], peakMonths:[6,7,8],
-    rules:{rainMin:15,humMin:88,tempMin:24,tempMax:31}, w:{rain:30,hum:40,temp:30},
-    action:'Remove infected spindles. Spray Bordeaux Mixture 1%. Avoid waterlogging.',src:'Kerala Agri Dept' },
-  { id:'stemborer', name:'Stem Borer', emoji:'🌾',
-    crops:['Rice'], peakMonths:[7,8,9,10],
-    rules:{tempMin:25,tempMax:32,humMin:75,rainMin:5,rainMax:15}, w:{temp:30,hum:35,rain:35},
-    action:'Apply Carbofuran 3G 25kg/ha. Set light traps. Destroy egg masses.',src:'ICAR Rice IPM' },
-  { id:'sheathblight', name:'Sheath Blight', emoji:'🌿',
-    crops:['Rice'], peakMonths:[8,9],
-    rules:{tempMin:28,humMin:80,rainMin:10}, w:{temp:35,hum:35,rain:30},
-    action:'Spray Hexaconazole 1ml/L or Validamycin 2ml/L. Avoid excess nitrogen.',src:'ICAR Rice IPM' },
-  { id:'riceblast', name:'Rice Blast', emoji:'💨',
-    crops:['Rice'], peakMonths:[6,7,8,9],
-    rules:{tempMin:22,tempMax:28,humMin:89,rainMin:5}, w:{temp:25,hum:45,rain:30},
-    action:'Spray Tricyclazole 0.6g/L. Avoid late-evening irrigation.',src:'ICAR' },
-  { id:'pinkdisease', name:'Pink Disease', emoji:'🌳',
-    crops:['Rubber'], peakMonths:[6,7,8],
-    rules:{rainMin:25,humMin:85,tempMin:24,tempMax:29}, w:{rain:35,hum:35,temp:30},
-    action:'Spray Tridemorph 5ml/L on branches. Apply Bordeaux paste on wounds.',src:'Rubber Board India' },
-  { id:'katte', name:'Cardamom Katte (Mosaic)', emoji:'💚',
-    crops:['Cardamom'], peakMonths:[1,2,3,4,5,6,7,8,9,10,11,12],
-    rules:{humMin:82,tempMin:18,tempMax:26}, w:{hum:50,temp:50},
-    action:'Rogue infected plants. Control aphids with Imidacloprid 0.3ml/L.',src:'Spices Board India' },
-  { id:'leafblight', name:'Banana Leaf Blight', emoji:'🍌',
-    crops:['Banana'], peakMonths:[5,6,7,8,9],
-    rules:{tempMin:29,humMin:78}, w:{temp:50,hum:50},
-    action:'Spray Propiconazole 1ml/L. Remove affected leaves.',src:'KAU PoP' },
-  { id:'redrotcoffee', name:'Red Root Rot', emoji:'☕',
-    crops:['Coffee'], peakMonths:[6,7,8],
-    rules:{rainMin:18,tempMin:20,tempMax:28,humMin:78}, w:{rain:35,temp:30,hum:35},
-    action:'Drench with Copper Oxychloride 3g/L. Improve drainage.',src:'Coffee Board India' },
-  { id:'mealybug', name:'Mealy Bug', emoji:'🔵',
-    crops:['Pepper','Coconut'], peakMonths:[12,1,2,3],
-    rules:{dryDaysMin:4,tempMin:30}, w:{dryDays:50,temp:50},
-    action:'Spray Dimethoate 2ml/L or Neem oil 5ml/L.',src:'KAU PoP' },
-  { id:'bph', name:'Brown Plant Hopper', emoji:'🌾',
-    crops:['Rice'], peakMonths:[8,9,10],
-    rules:{tempMin:26,tempMax:30,humMin:82,rainMin:8}, w:{temp:25,hum:40,rain:35},
-    action:'Spray Buprofezin 1ml/L. Maintain 2-3 cm water level.',src:'ICAR Rice IPM' },
-  { id:'anthracnose', name:'Anthracnose', emoji:'🫚',
-    crops:['Pepper','Ginger'], peakMonths:[6,7,8,9],
-    rules:{tempMin:24,tempMax:30,humMin:78,rainMin:12}, w:{temp:25,hum:35,rain:40},
-    action:'Spray Mancozeb 2.5g/L or Carbendazim 1g/L.',src:'Spices Board India' },
-  { id:'rhinobeetle', name:'Rhinoceros Beetle', emoji:'🐛',
-    crops:['Coconut'], peakMonths:[1,2,3,4],
-    rules:{dryDaysMin:5,tempMin:31}, w:{dryDays:50,temp:50},
-    action:'Apply Metarhizium anisopliae. Remove decaying matter. Set pheromone traps.',src:'CPCRI Kerala' },
-  { id:'rhizomerot', name:'Turmeric Rhizome Rot', emoji:'🟡',
-    crops:['Turmeric'], peakMonths:[7,8,9],
-    rules:{rainMin:25,humMin:83,tempMin:25}, w:{rain:35,hum:35,temp:30},
-    action:'Drench with Metalaxyl-M 2g/L. Improve bed drainage.',src:'ICAR Spices' },
-];
+let DISEASE_KB = [];
 
 function computePestRisk(disease, districtName){
   const wd = weatherData[districtName];
@@ -2017,73 +1477,10 @@ function populateDDPests(districtName){
     </div>`;
   }).join('');
 }
-
+  
+}
 
 // ═══════════════════════════════════════════════════════
-//  FLOOD & DISASTER RISK ENGINE (KSDMA + IMD)
-// ═══════════════════════════════════════════════════════
-
-function showAIView(on){
-  const av=document.getElementById('ai-view');
-  const mc=document.getElementById('map-container');
-  if(on){
-    av.classList.add('active');
-    if(mc) mc.style.display='none';
-    initAIAdvisory();
-  } else {
-    av.classList.remove('active');
-    if(mc) mc.style.display='';
-  }
-}
-function showNewsView(on){
-  const nv=document.getElementById('news-view');
-  const mc=document.getElementById('map-container');
-  if(on){
-    nv.classList.add('active');
-    if(mc) mc.style.display='none';
-    initNewsHub();
-  } else {
-    nv.classList.remove('active');
-    if(mc) mc.style.display='';
-  }
-}
-function showFloodView(on){
-  const fv=document.getElementById('flood-view');
-  const mc=document.getElementById('map-container');
-  if(fv) fv.classList.toggle('active',on);
-  if(on){ if(mc) mc.classList.add('hidden'); renderFloodTable(); renderFloodCards(); }
-  else   { if(mc) mc.classList.remove('hidden'); }
-}
-// ═══════════════════════════════════════════════════════
-function switchNav(view, btn){
-  document.querySelectorAll('.nav-item[data-nav]').forEach(n=>n.classList.remove('active'));
-  const navBtn=btn||document.querySelector('[data-nav="'+view+'"]');
-  if(navBtn) navBtn.classList.add('active');
-  showMarketsView(false);
-  showFloodView(false);
-  showNewsView(false);
-  showAIView(false);
-  if(view==='markets'){
-    showMarketsView(true);
-  } else if(view==='flood'){
-    showFloodView(true);
-    setLayer('floodrisk',true);
-  } else if(view==='news'){
-    showNewsView(true);
-  } else if(view==='ai'){
-    showAIView(true);
-  } else {
-    const layerMap={overview:'rainfall',weather:'rainfall',crophealth:'crophealth',alerts:'pestmap'};
-    setLayer(layerMap[view]||'rainfall',true);
-  }
-  const rpMap={overview:'weather',weather:'weather',crophealth:'health',markets:'prices',alerts:'alerts',flood:'flood',news:'alerts',ai:'health'};
-  const rpTab=rpMap[view]||'weather';
-  const rpBtns=document.querySelectorAll('.rp-tab');
-  const rpOrder=['weather','health','alerts','flood','prices'];
-  const ri=rpOrder.indexOf(rpTab);
-  if(rpBtns[ri]) switchRPTab(rpTab,rpBtns[ri]);
-  closeDetail();
-}
 
 
 document.addEventListener('DOMContentLoaded',()=>{ lucide.createIcons(); init(); });
@@ -2093,18 +1490,7 @@ document.addEventListener('DOMContentLoaded',()=>{ lucide.createIcons(); init();
    ══════════════════════════════════════════════ */
 
 // ── Govt Schemes (static, Kerala-specific) ──────────────────────────────────
-const SCHEMES = [
-  { title:'PM-KISAN Samman Nidhi', body:'₹6,000/year direct income support to eligible farmer families in 3 instalments. Registration open at nearest CSC.', deadline:'Rolling', ministry:'Govt of India', link:'https://pmkisan.gov.in' },
-  { title:'Pradhan Mantri Fasal Bima Yojana (PMFBY)', body:'Crop insurance against natural calamities, pests & disease. Kharif premium 2%, Rabi 1.5%. Enroll through bank or CSC before sowing season.', deadline:'Before sowing', ministry:'Govt of India', link:'https://pmfby.gov.in' },
-  { title:'Kerala Karshaka Kshemanidhi', body:'Welfare pension ₹1,200/month for registered farmers aged 60+. Apply at Krishi Bhavan with land records & age proof.', deadline:'Open', ministry:'Kerala Govt', link:'https://www.kerala.gov.in' },
-  { title:'Kisan Credit Card (KCC)', body:'Short-term crop loans up to ₹3 lakh at 4% effective interest (after subvention). Available at all nationalized banks & cooperative banks.', deadline:'Open', ministry:'Govt of India', link:'https://www.nabard.org' },
-  { title:'Rashtriya Krishi Vikas Yojana (RKVY)', body:'Infrastructure grants for farm mechanization, irrigation, cold storage & processing units in Kerala. Apply through KSAMB or District Agriculture Office.', deadline:'Apr–Jun 2026', ministry:'Kerala Govt', link:'https://rkvy.nic.in' },
-  { title:'PM Kisan Maandhan Yojana', body:'Pension scheme for small & marginal farmers — ₹3,000/month at age 60. Monthly contribution ₹55–₹200 based on age of entry. Enroll via CSC.', deadline:'Open', ministry:'Govt of India', link:'https://maandhan.in' },
-  { title:'Soil Health Card Scheme', body:'Free soil health card with crop-wise nutrient recommendations. Collect from nearest Krishi Bhavan. Valid for 2 years.', deadline:'Open', ministry:'Govt of India', link:'https://soilhealth.dac.gov.in' },
-  { title:'NABARD Watershed Development', body:'Funding for watershed treatment, farm bunding & drip irrigation in drought-prone Kerala districts. Apply through District Collector office.', deadline:'May 2026', ministry:'NABARD', link:'https://www.nabard.org' },
-  { title:'Kerala Horticulture Mission', body:'50–75% subsidy on vegetable cultivation inputs, shade nets, mulching film & micro-irrigation for horticulture crops in Kerala.', deadline:'Jun 2026', ministry:'Kerala Govt', link:'https://www.keralaagriculture.gov.in' },
-  { title:'e-NAM (National Agriculture Market)', body:'Trade paddy, coconut, pepper & rubber on the online national market platform — better price discovery. Register at KSAMB portal.', deadline:'Open', ministry:'Govt of India', link:'https://www.enam.gov.in' },
-];
+
 
 // ── News state ───────────────────────────────────────────────────────────────
 let _allNewsItems = [];
@@ -2114,336 +1500,30 @@ let _newsFilter = 'all';
 // ── RSS feeds via allorigins proxy ───────────────────────────────────────────
 // NEWS_FEEDS replaced by inline FEEDS array in fetchNewsFeeds()
 
-async function fetchNewsFeeds(){
-  // Step 1: always render synthetic items immediately so feed is never blank
-  try {
-    const syn = [];
-    syn.push(...buildWeatherNewsItems());
-    syn.push(...buildMarketNewsItems());
-    syn.push(...buildPestNewsItems());
-    _allNewsItems = syn.sort((a,b)=>(b.ts||0)-(a.ts||0));
-    document.getElementById('news-live-count').textContent = _allNewsItems.length;
-    renderNewsFeed();
-  } catch(e){ console.warn('Synthetic news error:', e); }
 
-  // Step 2: fetch RSS in background, append results
-  const FEEDS = [
-    { url:'https://www.thehindu.com/sci-tech/agriculture/feeder/default.rss', label:'The Hindu', cat:'agri' },
-    { url:'https://agriculturepost.com/feed/', label:'Agriculture Post', cat:'agri' },
-    { url:'https://indianexpress.com/section/india/feed/', label:'Indian Express', cat:'agri' },
-  ];
-  const AGRI_KW = /farm|crop|agri|paddy|rice|wheat|kisan|harvest|monsoon|irrigation|soil|pest|fertiliz|vegetable|fruit|coconut|rubber|spice|kerala/i;
-  // Use allorigins proxy — works from file:// and avoids CORS issues
-  const proxy = url => `https://api.allorigins.win/get?url=${encodeURIComponent(
-    'https://api.rss2json.com/v1/api.json?rss_url=' + encodeURIComponent(url)
-  )}`;
 
-  const feedPromises = FEEDS.map(async feed => {
-    try {
-      const res = await fetch(proxy(feed.url));
-      if(!res.ok) return [];
-      const wrapped = await res.json();
-      // allorigins wraps response in {contents:"..."} — unwrap it
-      let data;
-      try { data = typeof wrapped.contents === 'string' ? JSON.parse(wrapped.contents) : wrapped; }
-      catch(e) { return []; }
-      if(data.status !== 'ok' || !data.items?.length) return [];
-      return data.items
-        .filter(it => AGRI_KW.test(it.title + ' ' + (it.description||'')))
-        .slice(0, 6)
-        .map(it => ({
-          title:  it.title?.trim() || '—',
-          body:   (it.description||'').replace(/<[^>]+>/g,'').trim().slice(0,160),
-          link:   it.link || '#',
-          source: feed.label,
-          cat:    feed.cat,
-          tag:    'news',
-          time:   it.pubDate ? new Date(it.pubDate).toLocaleDateString('en-IN',{day:'numeric',month:'short'}) : '',
-          ts:     it.pubDate ? new Date(it.pubDate).getTime() : Date.now(),
-        }));
-    } catch(e){ return []; }
-  });
 
-  try {
-    const feedResults = await Promise.all(feedPromises);
-    const rssItems = feedResults.flat();
-    if(rssItems.length > 0){
-      _allNewsItems = [..._allNewsItems, ...rssItems].sort((a,b)=>(b.ts||0)-(a.ts||0));
-      document.getElementById('news-live-count').textContent = _allNewsItems.length;
-      renderNewsFeed();
-    }
-  } catch(e){ console.warn('RSS fetch error:', e); }
-}
-
-function buildWeatherNewsItems(){
-  const items = [];
-  const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
-  DISTRICTS.forEach(d => {
-    const w = weatherData[d.name]; if(!w||!w.daily) return;
-    const rain = w.daily.precipitation_sum?.[0]||0;
-    const temp = w.daily.temperature_2m_max?.[0]||0;
-    const wind = w.daily.windspeed_10m_max?.[0]||0;
-    if(rain > 50) items.push({ title:`Heavy rain warning — ${d.name}`, body:`${rain.toFixed(1)}mm rainfall expected today. IMD issues heavy rain alert. Farmers advised to halt field operations and secure harvested produce.`, source:'IMD/Open-Meteo', cat:'weather', tag:'warning', time:today, ts:Date.now()-Math.random()*3600000, link:'https://mausam.imd.gov.in' });
-    else if(rain > 25) items.push({ title:`Moderate rain forecast — ${d.name}`, body:`${rain.toFixed(1)}mm forecast. Avoid spraying pesticides. Check drainage in paddy fields.`, source:'IMD/Open-Meteo', cat:'weather', tag:'watch', time:today, ts:Date.now()-Math.random()*7200000, link:'https://mausam.imd.gov.in' });
-    if(temp > 37) items.push({ title:`Heatwave alert — ${d.name}`, body:`Max temperature ${temp.toFixed(1)}°C. Extreme heat stress risk for crops and livestock. Increase irrigation frequency.`, source:'IMD/Open-Meteo', cat:'weather', tag:'critical', time:today, ts:Date.now()-Math.random()*3600000, link:'https://mausam.imd.gov.in' });
-    if(wind > 40) items.push({ title:`Strong wind advisory — ${d.name}`, body:`Winds up to ${wind.toFixed(0)} km/h. Risk of lodging in standing crops. Secure banana and arecanut plantations.`, source:'IMD/Open-Meteo', cat:'weather', tag:'warning', time:today, ts:Date.now()-Math.random()*5400000, link:'https://mausam.imd.gov.in' });
-  });
-  // Always add a general daily outlook so feed is never empty
-  const avgTemp = DISTRICTS.reduce((s,d)=>s+(weatherData[d.name]?.daily?.temperature_2m_max?.[0]||30),0)/DISTRICTS.length;
-  const avgRainAll = DISTRICTS.reduce((s,d)=>s+(weatherData[d.name]?.daily?.precipitation_sum?.[0]||0),0)/DISTRICTS.length;
-  const dominantCrop = 'Paddy, Coconut & Rubber';
-  items.push({
-    title: `Kerala Daily Agricultural Outlook — ${today}`,
-    body: `Average temperature across Kerala: ${avgTemp.toFixed(1)}°C. Average rainfall: ${avgRainAll.toFixed(1)}mm. ${avgTemp>33?'Heat stress conditions — ensure irrigation.':avgRainAll>20?'Moist conditions — watch for fungal outbreaks.':'Moderate conditions — routine crop management advised.'} Primary crops: ${dominantCrop}.`,
-    source:'AgroScope AI', cat:'weather', tag:'watch', time:today, ts:Date.now()-1000, link:'#'
-  });
-  return items.slice(0,10);
-}
-
-function buildMarketNewsItems(){
-  const items = [];
-  if(!window._prices||!window._prices.length) return items;
-  const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
-  _prices.forEach(p => {
-    const chg = p.change; if(!chg) return;
-    const pct = ((chg/p.price)*100).toFixed(1);
-    if(chg > 0 && Math.abs(pct) > 2) items.push({ title:`${p.name} prices up ${pct}% today`, body:`${p.name} trading at ₹${p.price}/qt in Kerala mandis. Bullish trend — good time to sell if storage available. 7-day high: ₹${p.high}.`, source:'KSAMB/Agmarknet', cat:'market', tag:'market', time:today, ts:Date.now()-Math.random()*7200000, link:'https://www.agmarknet.gov.in' });
-    else if(chg < 0 && Math.abs(pct) > 2) items.push({ title:`${p.name} prices dip ${Math.abs(pct)}% today`, body:`${p.name} at ₹${p.price}/qt. Consider holding stock if storage permits. 7-day low: ₹${p.low}. Watch for recovery.`, source:'KSAMB/Agmarknet', cat:'market', tag:'market', time:today, ts:Date.now()-Math.random()*7200000, link:'https://www.agmarknet.gov.in' });
-  });
-  return items.slice(0,6);
-}
-
-function buildPestNewsItems(){
-  const items = [];
-  const today = new Date().toLocaleDateString('en-IN',{day:'numeric',month:'short'});
-  DISTRICTS.forEach(d => {
-    const score = pestMapScore(d.name);
-    if(score >= 60) items.push({ title:`High disease risk — ${d.name}`, body:`Conditions highly favourable for fungal/bacterial outbreaks in ${d.crops[0]}. Scout fields immediately and apply preventive fungicide.`, source:'AgroScope AI', cat:'pest', tag:'pest', time:today, ts:Date.now()-Math.random()*3600000, link:'#' });
-    else if(score >= 30) items.push({ title:`Moderate pest pressure — ${d.name}`, body:`Watch for early signs of disease in ${d.crops[0]}. High humidity and warmth favour pathogen spread. Apply neem-based spray as precaution.`, source:'AgroScope AI', cat:'pest', tag:'pest', time:today, ts:Date.now()-Math.random()*7200000, link:'#' });
-  });
-  return items.slice(0,8);
-}
-
-function renderNewsFeed(){
-  const list = document.getElementById('news-feed-list');
-  if(!list) return;
-  const filtered = _newsFilter === 'all' ? _allNewsItems : _allNewsItems.filter(i=>i.cat===_newsFilter);
-  if(!filtered.length){ list.innerHTML='<div class="news-empty">No news items found.<br>Check network connection.</div>'; return; }
-  list.innerHTML = filtered.map(item => {
-    const timeStr = item.time ? `<span>${item.time}</span>` : '';
-    return `<div class="news-card" onclick="window.open('${item.link}','_blank')">
-      <div class="news-card-top">
-        <span class="news-tag tag-${item.tag||'news'}">${tagLabel(item.tag)}</span>
-        <span class="news-card-title">${escHtml(item.title)}</span>
-      </div>
-      ${item.body ? `<div class="news-card-body">${escHtml(item.body.slice(0,150))}${item.body.length>150?'…':''}</div>` : ''}
-      <div class="news-card-meta">
-        <span class="news-source">${escHtml(item.source||'')}</span>
-        ${timeStr}
-        ${item.link&&item.link!=='#'?`<a class="news-card-link" href="${item.link}" target="_blank" onclick="event.stopPropagation()">Read →</a>`:''}
-      </div>
-    </div>`;
-  }).join('');
-}
-
-function tagLabel(tag){
-  const map={critical:'🔴 Critical',warning:'🟠 Warning',watch:'🟡 Watch',news:'📰 News',scheme:'🏛️ Scheme',market:'📈 Market',pest:'🐛 Pest'};
-  return map[tag]||'📰 News';
-}
-function escHtml(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
-
-function filterNews(cat, btn){
-  _newsFilter = cat;
-  document.querySelectorAll('.news-filter-bar .nf-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  renderNewsFeed();
-}
 
 // ── District Advisories (full-page enriched) ─────────────────────────────────
-function renderNewsAdvisories(){
-  const list = document.getElementById('news-adv-list');
-  if(!list) return;
-  const items = [];
-  DISTRICTS.forEach(d => {
-    const hs = healthScores[d.name]; if(!hs) return;
-    const {rain,temp,hum,dryDays,score} = hs;
-    const crop = d.crops[0];
-    const flood = floodComposite(d.name)||0;
-    const pest  = pestMapScore(d.name)||0;
-    let sev='ok', icon='✅', msgs=[], actions=[];
-    if(score<40){sev='critical';icon='🔴';msgs.push(`${crop} health critical (${score}/100)`);actions.push('Emergency irrigation','Soil test','Contact KVK');}
-    else if(flood>70){sev='critical';icon='🌊';msgs.push(`Extreme flood risk (score ${flood})`);actions.push('Halt field ops','Secure produce','Check KSDMA');}
-    else if(pest>70){sev='critical';icon='🐛';msgs.push(`High disease/pest pressure`);actions.push('Scout fields','Apply fungicide','Isolate affected');}
-    else if(rain>50){sev='warning';icon='🌧️';msgs.push(`Heavy rain ${rain.toFixed(0)}mm today`);actions.push('Check drainage','Delay harvest','Secure inputs');}
-    else if(temp>36){sev='warning';icon='🌡️';msgs.push(`Heatwave ${temp.toFixed(1)}°C`);actions.push('Irrigate urgently','Mulch soil','Shade nurseries');}
-    else if(hum>85&&rain>15){sev='warning';icon='🍄';msgs.push(`Fungal risk — high moisture`);actions.push('Reduce canopy density','Spray copper','Improve drainage');}
-    else if(dryDays>4){sev='watch';icon='💧';msgs.push(`Dry spell — ${dryDays} days without rain`);actions.push('Irrigation due','Conserve soil moisture');}
-    else if(score<60){sev='watch';icon='🟡';msgs.push(`${crop} under mild stress (${score}/100)`);actions.push('Monitor closely','Check soil nutrients');}
-    else{msgs.push(`${crop} conditions normal (${score}/100)`);actions.push('Routine monitoring');}
-    if(_advFilter!=='all'&&_advFilter!==sev) return;
-    items.push({d, sev, icon, msgs, actions, crop, score});
-  });
-  items.sort((a,b)=>{'critical,warning,watch,ok'.split(',').indexOf(a.sev)-'critical,warning,watch,ok'.split(',').indexOf(b.sev);
-    return ['critical','warning','watch','ok'].indexOf(a.sev)-['critical','warning','watch','ok'].indexOf(b.sev);
-  });
-  document.getElementById('news-adv-count').textContent = items.length;
-  list.innerHTML = items.map(({d,sev,icon,msgs,actions,crop,score})=>`
-    <div class="adv-card sev-${sev}" onclick="showDistrictDetail('${d.name}','crophealth')">
-      <div class="adv-card-top">
-        <span class="adv-icon">${icon}</span>
-        <span class="adv-district">${d.name}</span>
-        <span class="adv-crop">${crop}</span>
-      </div>
-      <div class="adv-msg">${msgs.join(' · ')}</div>
-      <div class="adv-actions">${actions.map(a=>`<span class="adv-action-btn">${a}</span>`).join('')}</div>
-    </div>`).join('');
-}
 
-function filterAdvisories(sev, btn){
-  _advFilter = sev;
-  document.querySelectorAll('#news-adv-list').forEach(()=>{});
-  const bar = btn?.closest('.news-filter-bar');
-  if(bar) bar.querySelectorAll('.nf-btn').forEach(b=>b.classList.remove('active'));
-  if(btn) btn.classList.add('active');
-  renderNewsAdvisories();
-}
 
-// ── IMD Bulletins (generated from live weather) ──────────────────────────────
-function renderIMDBulletins(){
-  const list = document.getElementById('news-imd-list'); if(!list) return;
-  const today = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
-  const bulletins = [];
 
-  // General Kerala outlook
-  const allRain = DISTRICTS.map(d=>weatherData[d.name]?.daily?.precipitation_sum?.[0]||0);
-  const maxRain = Math.max(...allRain);
-  const avgRain = allRain.reduce((a,b)=>a+b,0)/allRain.length;
-  const rainDistricts = DISTRICTS.filter(d=>(weatherData[d.name]?.daily?.precipitation_sum?.[0]||0)>30).map(d=>d.name);
-
-  let color='green', headline='Normal conditions across Kerala';
-  if(maxRain>80){color='red';headline='Extremely heavy rain warning issued for Kerala';}
-  else if(maxRain>50){color='orange';headline='Heavy rain alert for parts of Kerala';}
-  else if(maxRain>25){color='yellow';headline='Moderate rain expected in several districts';}
-
-  bulletins.push({color,title:`Kerala Weather Bulletin — ${today}`,body:`${headline}. Average rainfall: ${avgRain.toFixed(1)}mm.${rainDistricts.length?` Districts on alert: ${rainDistricts.slice(0,4).join(', ')}.`:''} Farmers advised to monitor IMD updates regularly.`,meta:'Source: IMD / Open-Meteo live data'});
-
-  // 7-day outlook
-  const d0 = DISTRICTS[0]; const w0 = weatherData[d0.name];
-  if(w0?.daily?.precipitation_sum){
-    const days = w0.daily.precipitation_sum;
-    const heavyDays = days.filter(r=>r>30).length;
-    const body7 = heavyDays>3 ? `Active monsoon conditions forecast — ${heavyDays} of next 7 days expected to see heavy rainfall. Delay land preparation and harvesting activities.`
-      : heavyDays>1 ? `Intermittent heavy rain on ${heavyDays} days in the next week. Plan field operations around dry windows.`
-      : `Mostly dry conditions expected over next 7 days. Ensure irrigation readiness.`;
-    bulletins.push({color:heavyDays>3?'orange':'green',title:'7-Day Rainfall Outlook — Kerala',body:body7,meta:'Source: Open-Meteo 7-day forecast'});
-  }
-
-  // Monsoon onset status — always push based on current month
-  const monMonth = new Date().getMonth();
-  const monPhases = ['Pre-Monsoon','Pre-Monsoon','Pre-Monsoon','Pre-Monsoon','Pre-Monsoon',
-    'SW Monsoon Early Phase','SW Monsoon Active Phase','SW Monsoon Active Phase',
-    'SW Monsoon Withdrawal','Post-Monsoon (NE Monsoon)','NE Monsoon','Winter'];
-  const monAdvice = ['Prepare land, apply basal fertilizer.',
-    'Start nursery preparation for kharif crops.',
-    'Complete pre-kharif soil health check.',
-    'Last chance for rabi crop planning.',
-    'Pre-monsoon showers expected — prepare drainage.',
-    'SW Monsoon onset expected Jun 1. Complete sowing preparation.',
-    'Active monsoon — ideal for transplanting paddy. Ensure field drainage.',
-    'Peak monsoon — monitor flood risk daily via KSDMA.',
-    'Monsoon withdrawal underway — harvest kharif, plan rabi.',
-    'NE Monsoon active — rice harvest season. Protect from rain damage.',
-    'NE Monsoon — irrigate rabi crops, watch for fungal disease.',
-    'Dry season — focus on irrigation and soil preparation.'];
-  bulletins.push({color: monMonth>=5&&monMonth<=8?'yellow':'green',
-    title:`Monsoon Status — ${monPhases[monMonth]}`,
-    body: `Kerala is currently in the ${monPhases[monMonth]} period. ${monAdvice[monMonth]} Normal SW Monsoon onset: June 1. Monitor IMD district bulletins daily.`,
-    meta:'Source: IMD Seasonal Outlook'});
-
-  // District-level top alerts
-  DISTRICTS.forEach(d=>{
-    const w=weatherData[d.name]; if(!w?.daily) return;
-    const r=w.daily.precipitation_sum?.[0]||0;
-    const t=w.daily.temperature_2m_max?.[0]||0;
-    if(r>60) bulletins.push({color:'red',title:`Red Alert — ${d.name}`,body:`IMD Red Alert issued. Expected rainfall >115mm in 24 hours. All outdoor agricultural activities must be suspended. Seek shelter immediately.`,meta:`District: ${d.name} · ${new Date().toLocaleDateString('en-IN')}`});
-    else if(r>45) bulletins.push({color:'orange',title:`Orange Alert — ${d.name}`,body:`Heavy to very heavy rain (${r.toFixed(0)}mm) expected. Avoid river/canal areas. Secure harvested produce.`,meta:`District: ${d.name}`});
-    else if(t>38) bulletins.push({color:'red',title:`Heatwave Warning — ${d.name}`,body:`Maximum temperature ${t.toFixed(1)}°C. IMD heatwave criteria met. Restrict outdoor work 11am–4pm. Increase irrigation.`,meta:`District: ${d.name}`});
-  });
-
-  document.getElementById('news-imd-count').textContent = bulletins.length;
-  list.innerHTML = bulletins.map(b=>`
-    <div class="imd-card imd-${b.color}">
-      <div class="imd-title">${escHtml(b.title)}</div>
-      <div class="imd-body">${escHtml(b.body)}</div>
-      <div class="imd-meta">${escHtml(b.meta)}</div>
-    </div>`).join('');
-}
 
 // ── Govt Schemes renderer ────────────────────────────────────────────────────
-function renderSchemes(){
-  const list = document.getElementById('news-schemes-list'); if(!list) return;
-  list.innerHTML = SCHEMES.map(s=>`
-    <div class="scheme-card">
-      <div class="scheme-title"><span class="scheme-badge">Scheme</span> ${escHtml(s.title)}</div>
-      <div class="scheme-body">${escHtml(s.body)}</div>
-      <div class="scheme-meta">
-        <span>🏛️ ${escHtml(s.ministry)}</span>
-        <span>📅 ${escHtml(s.deadline)}</span>
-        ${s.link?`<a href="${s.link}" target="_blank" class="news-card-link">Details →</a>`:''}
-      </div>
-    </div>`).join('');
-}
+
 
 // ── News Hub init ────────────────────────────────────────────────────────────
 let _newsHubInited = false;
-function initNewsHub(){
-  renderSchemes();
-  renderNewsAdvisories();
-  renderIMDBulletins();
-  fetchNewsFeeds();
-  if(!_newsHubInited){
-    _newsHubInited = true;
-    setInterval(()=>{ fetchNewsFeeds(); renderNewsAdvisories(); renderIMDBulletins(); }, 600000);
-  }
-}
+
 
 
 
 /* ══════════════════════════════════════════════════════
    AI ADVISORY — Rule Engine + optional Gemini API
    ══════════════════════════════════════════════════════ */
-const CROP_KB = {
-  'Paddy':{ irrigate:'2–5cm standing water during tillering & panicle initiation. Drain 1 week before harvest. Skip if rainfall >20mm/day.', fertilize:'NPK 90:45:45 kg/ha. Basal: DAP+MOP before transplanting. Top-dress Urea at 21 & 42 DAT. Zinc sulphate 25kg/ha if deficiency.', disease:'Watch for Blast (grey lesions), BLB (yellow leaf margins), Brown Spot. Spray Tricyclazole 0.6g/L for Blast; Copper Oxychloride for BLB.', pest:'Stem borer (dead hearts), BPH (hopper burn), Leaf folder. Chlorpyrifos 20EC 2ml/L for stem borer. Drain field to control BPH.', harvest:'Harvest at 80–85% grain maturity. Dry to 14% moisture for safe storage.', market:'Paddy MSP ₹2,300/qt (Common). Kerala procurement via SUPPLYCO/SFC. Best price: Nov–Jan.', season:'Kharif (Virippu): Jun–Nov. Rabi (Mundakan): Nov–Mar. Summer (Puncha): Jan–May.' },
-  'Rice':{ irrigate:'Same as Paddy — 2–5cm standing water. Critical periods: transplanting, tillering, flowering.', fertilize:'NPK 90:45:45 kg/ha split 3 times. Zinc sulphate 25kg/ha basal if deficient.', disease:'Blast, BLB, Sheath Blight. Tricyclazole for Blast; Validamycin 3ml/L for Sheath Blight.', pest:'Yellow stem borer, BPH. Use pheromone traps. Drain field for BPH control.', harvest:'20–25% grain moisture at harvest. Use combine or power thresher.', market:'Paddy MSP ₹2,300/qt. Kuttanad rice (Alappuzha) premium market.', season:'Kharif: Jun–Nov. Rabi: Nov–Mar.' },
-  'Coconut':{ irrigate:'200L/palm every 4–7 days in summer. Drip: 25L/day/palm. Critical: Feb–May. Skip if >30mm/week rain.', fertilize:'1.3kg N + 0.9kg P + 3.4kg K per palm/year. Split May–Jun and Sep–Oct. Add FYM 25kg/palm.', disease:'Bud Rot: Metalaxyl 1g/L drench. Root Wilt (phytoplasma): remove infected palms. Stem Bleeding: Bordeaux paste.', pest:'Rhinoceros Beetle: pheromone traps + Metarhizium. Red Palm Weevil: ethyl acetate trap. Eriophyid mite: sulfur dust.', harvest:'Harvest mature nuts every 45 days. Green nuts for tender coconut: 7–8 months. Target 100+ nuts/palm/year.', market:'Coconut ₹32–38 each. Copra ₹110–130/kg. Best price: Mar–May.', season:'Perennial. Peak harvest: Jan–Apr. Planting: Jun–Oct.' },
-  'Rubber':{ irrigate:'Rain-fed. Supplement only in severe drought (>30 dry days). Young trees: 15L/tree twice weekly.', fertilize:'N:P:K 10:10:4 + Mg 1.5 kg/tree/yr. Two splits: May–Jun and Sep–Oct.', disease:'Abnormal Leaf Fall: Aliette 3g/L before rains. Corynespora: Mancozeb 2.5g/L. Oidium: sulfur dust.', pest:'Mealybug: dimethoate 1.5ml/L. Scale insects: white oil emulsion. Bird\'s eye spot: copper fungicide.', harvest:'Tapping season Nov–Jun. Alternate day tapping. Target 1,500–2,000 kg/ha/yr.', market:'RSS4 ₹160–190/kg. KRRDB procurement. Best prices: Dec–Mar.', season:'Tapping: Nov–Jun. Rest (wintering): Jul–Aug. New planting: Jun–Jul.' },
-  'Pepper':{ irrigate:'Drip: 8–10L/vine/day in summer. Critical: Feb–May. Avoid waterlogging at all times.', fertilize:'NPK 50:50:150 g/vine/yr + FYM 10kg. Two splits: May & Sep. MgSO4 100g/vine for yellowing.', disease:'Phytophthora/Quick Wilt: Potassium Phosphonate 3ml/L. Anthracnose: Copper Oxychloride 2.5g/L.', pest:'Pollu beetle: pheromone traps + Carbaryl 3g/L. Pepper weevil: endosulfan 2ml/L.', harvest:'Harvest when 1–2 berries/spike turn red. Dry to 10% moisture. 3kg green → 1kg dry.', market:'Black Pepper ₹520–580/kg (Kochi). Best export quality: Nov–Feb harvest.', season:'Flowering: Feb–Mar. Harvest: Nov–Feb. Planting: Jun–Jul.' },
-  'Banana':{ irrigate:'25–30L/plant/day via drip. Critical: bunch development. Stop 2 weeks before harvest.', fertilize:'NPK 200:60:300 g/plant + FYM 10kg in 3 splits. Extra K for Nendran finger filling.', disease:'Panama Wilt (Fusarium): remove & destroy — no cure. Sigatoka: Propiconazole 1ml/L. Bunchy Top: rogue infected plants.', pest:'Corm weevil: chlorpyrifos at planting. Pseudostem borer: inject Monocrotophos. Thrips: imidacloprid.', harvest:'Harvest when fingers are 3/4 round. Nendran: 12–14 months. Robusta: 9–10 months.', market:'Nendran ₹35–55/kg retail. Best price: Onam season (Aug–Sep).', season:'Plant Jun–Jul. Harvest ~12 months for Nendran.' },
-  'Tapioca':{ irrigate:'Drought tolerant. Supplement only in severe dry spells: 30L/plant every 10 days.', fertilize:'NPK 100:50:100 kg/ha. Basal K at planting, top-dress N at 2 months. MOP critical for starch.', disease:'Mosaic Virus (CMD): use virus-free stakes only. Bacterial Blight: remove infected.', pest:'Whitefly: yellow sticky traps + imidacloprid. Red spider mite: sulfur dust.', harvest:'8–12 months. Fresh market: 7–8 months. Processing: 10–12 months. Yield: 25–35 t/ha.', market:'Fresh ₹15–25/kg farm gate. Starch ₹28–35/kg. Thiruvananthapuram & Kollam main markets.', season:'Plant Jun–Jul with monsoon onset. Also Oct–Nov for summer harvest.' },
-  'Cardamom':{ irrigate:'Shade + moisture critical. Drip: 8L/plant/day. Maintain mulch to conserve soil moisture.', fertilize:'NPK 75:75:150 g/plant/yr + FYM 5kg. Apply Jun and Sep.', disease:'Katte Virus (Mosaic): no cure — remove infected clumps. Capsule rot (Phytophthora): Copper Oxychloride.', pest:'Thrips: spray thiamethoxam. Cardamom shoot borer: chlorpyrifos.', harvest:'Harvest capsules when 3/4 mature (green). Dry in curing chambers to 12% moisture.', market:'Cardamom ₹1,400–1,600/kg (Kumily). Premium grade exports through SPICE BOARD.', season:'Flowering: Mar–May. Harvest: Aug–Jan. Replanting: Jun–Jul.' },
-  'Coffee':{ irrigate:'Rain-fed but supplement in Feb–Apr (flowering). 15L/tree every 5 days during dry spell.', fertilize:'NPK 40:20:40 g/plant/yr for Robusta. Apply May and Sep. Borax spray 0.2% at flowering.', disease:'White Stem Borer: inject endosulfan in stem holes. Berry Borer: pheromone traps. Leaf Rust: Copper fungicide.', pest:'Mealy bug: dimethoate spray. Nematodes: soil treatment with carbofuran.', harvest:'Robusta: Nov–Jan. Arabica: Dec–Feb. Pulp immediately or dry as parchment.', market:'Robusta ₹165–195/kg (Wayanad). Arabica premium ₹250–300/kg. Coffee Board procurement.', season:'Flowering: Feb–Mar after pre-monsoon showers. Harvest: Nov–Feb.' },
-  'Tea':{ irrigate:'Well-distributed rainfall ideal. Supplement if >15 dry days: sprinkler irrigation essential.', fertilize:'High N demand: 150–180 kg N/ha/yr in 4 splits. Pruning years: reduce by 30%.', disease:'Blister Blight: copper spray. Die-back: prune infected stems. Red spider mite: miticide.', pest:'Tea mosquito bug: carbaryl spray. Looper caterpillar: endosulfan.', harvest:'Pluck 2 leaves + bud every 7–10 days in active season. Quality: young shoots only.', market:'Munnar tea ₹90–120/kg auction (factory). Orthodox tea: ₹180–250/kg.', season:'Active flush: Mar–Nov. Pruning: Nov–Dec. Light pruning alternate years.' },
-  'Ginger':{ irrigate:'Well-drained soils essential. 35–40mm/week. Avoid waterlogging — causes rhizome rot.', fertilize:'NPK 75:50:50 kg/ha + FYM 30t/ha. Top-dress N at 45 & 90 days.', disease:'Rhizome Rot (Pythium): Metalaxyl + Mancozeb 2.5g/L soil drench. Bacterial Wilt: no chemical control — rogue.', pest:'Shoot borer: chlorpyrifos 2ml/L. Red spider mite: sulfur dust. White grubs: soil treatment.', harvest:'8–9 months. Fresh ginger: 6 months. Dry ginger: 8–9 months. Yield: 15–25 t/ha.', market:'Fresh ginger ₹35–60/kg. Dry ginger ₹120–180/kg. Kozhikode & Ernakulam main markets.', season:'Plant Apr–May. Harvest Dec–Feb.' },
-  'Vegetables':{ irrigate:'Drip/sprinkler: 25–30mm/week. Sandy soils: every 2 days. Clay: every 4–5 days.', fertilize:'Leafy: NPK 60:30:30. Fruiting: NPK 60:60:60 + Ca for blossom-end rot. Organic mulching reduces need by 30%.', disease:'Downy Mildew: Mancozeb 2.5g/L. Fusarium Wilt: Carbendazim drench. Rotate crops every season.', pest:'Fruit borer: pheromone traps + Spinosad 0.5ml/L. Aphids: soap solution or imidacloprid.', harvest:'Harvest at physiological maturity. Early morning harvest. Pre-cool before market.', market:'Peak prices: Mar–May (summer scarcity). VFPCK procurement across Kerala.', season:'Kharif: Jun–Sep. Rabi (best): Oct–Feb. Summer: Mar–May (irrigation-intensive).' },
-  'Cashew':{ irrigate:'Drought tolerant. Young trees: 30L/tree twice weekly in summer. Mature: rain-fed.', fertilize:'NPK 500:125:125 g/tree/yr. Two splits: Sep–Oct and Jan–Feb. Borax spray 0.2% at flowering.', disease:'Die-back: prune, copper paste. Powdery Mildew: wettable sulfur during flowering. Anthracnose: Copper Oxychloride.', pest:'Tea Mosquito Bug (key pest): Carbaryl 2g/L during flushing. Stem/Root borer: chlorpyrifos.', harvest:'Fallen nuts + apple: May–Jun. Kernel recovery 22–25%. Dry nuts to <9% moisture.', market:'Raw cashew ₹120–180/kg. Kernels (W320) ₹800–1,200/kg. Kollam is cashew capital.', season:'Flowering: Dec–Feb. Harvest: Mar–May. Prune: Jun–Jul.' },
-  'Spices':{ irrigate:'Varies by spice. Most need well-drained moist soils. Drip irrigation preferred.', fertilize:'Follow individual crop schedules. Generally: high K for quality. Organic inputs improve flavour.', disease:'Fungal diseases dominant in monsoon. Copper-based fungicides as preventive.', pest:'Pollu beetle (pepper), thrips (cardamom), mealy bug (vanilla). Pheromone traps recommended.', harvest:'Harvest at right maturity for maximum essential oil/flavour content.', market:'Kerala spices command premium prices. Kochi Spice Exchange for black pepper, cardamom.', season:'Most spices: harvest Oct–Feb after monsoon.' },
-  'Arecanut':{ irrigate:'Drip: 15L/palm/day in summer. Basin: 100L every 5 days. Critical: Feb–Apr.', fertilize:'NPK 100:40:140 g/palm/yr + FYM 12kg. Two splits: Jun and Sep.', disease:'Mahali (Phytophthora): Metalaxyl drench. Koleroga (fruit rot): Copper Oxychloride spray during monsoon.', pest:'Mites: sulfur dust. Mealy bug: dimethoate. Spindle bug: chlorpyrifos.', harvest:'Harvest every 40 days. Soft arecanut (chali): immature stage. Dry: fully mature & dried.', market:'Arecanut ₹350–450/kg (whole). Kannur & Kasaragod main trading centres.', season:'Perennial. Main harvest: Oct–Feb.' },
-  'Coir':{ irrigate:'Coir is processed coconut husk — no irrigation needed.', fertilize:'N/A — processing industry, not direct cultivation.', disease:'N/A', pest:'N/A', harvest:'Retting of coconut husks: 6–10 months in backwaters. Mechanical retting 3–4 days.', market:'Coir yarn ₹60–90/kg. Coir geotextiles export premium. Alappuzha main coir hub.', season:'Year-round processing. Peak: Jan–Apr (dry season for sun-drying).' },
-  'Jackfruit':{irrigate:'Young trees require regular watering during summer. Mature trees are mostly rain-fed but benefit from irrigation during prolonged dry spells. Avoid waterlogging.',fertilize:'Apply FYM 25–30kg/tree annually. Recommended NPK application in split doses before and after monsoon. Mulching helps conserve moisture.',disease:'Common diseases include fruit rot and pink disease. Remove affected branches and apply copper-based fungicides when necessary.', pest:'Fruit borer, shoot borer and bark-eating caterpillars are major pests. Maintain orchard sanitation and use recommended control measures.',harvest:'Fruits are ready when the spines become widely spaced and produce a dull hollow sound on tapping. Harvest carefully to avoid fruit damage.', market:'Jackfruit has strong demand for fresh consumption and value-added products. Peak demand occurs during the main harvest season.',season:'Flowering generally occurs from December to February. Main harvesting season in Kerala is March to June.'},
-  'Nutmeg':{irrigate:'Maintain adequate soil moisture, especially during summer. Young plants require regular irrigation, while mature trees benefit from watering during prolonged dry periods. Avoid water stagnation.',fertilize:'Apply FYM 10–15kg/tree annually along with recommended NPK fertilizers in split doses before and after monsoon. Mulching helps improve soil fertility and moisture retention.', disease:'Common diseases include fruit rot, leaf spot and die-back. Remove affected plant parts and apply recommended copper-based fungicides when necessary.',pest:'Scale insects, mealybugs and stem borers are important pests. Regular monitoring, orchard sanitation and recommended control measures help reduce infestation.',harvest:'Nutmeg fruits are harvested when they split open naturally, exposing the seed covered by mace. Dry seeds and mace separately before storage.',market:'Nutmeg and mace are high-value spice products with strong domestic and export demand. Quality-dried produce fetches premium prices.', season:'Flowering generally occurs during the rainy season. Harvesting is usually spread over multiple months, with peak harvest often from June to August in Kerala'},
-};
+let CROP_KB = {};
 
-const SCHEME_KB = [
-  {name:'PM-KISAN',eligibility:'Small/marginal farmers (<2ha). Aadhaar + bank account required.',benefit:'₹6,000/year in 3 instalments',apply:'pmkisan.gov.in or nearest CSC'},
-  {name:'PMFBY Crop Insurance',eligibility:'Any farmer growing notified crops. Mandatory for KCC holders.',benefit:'Insurance cover — premium 2% Kharif, 1.5% Rabi',apply:'Bank or CSC before sowing cutoff'},
-  {name:'Kisan Credit Card',eligibility:'Farmers/fishermen/SHGs with land records. Crop loan up to ₹3 lakh.',benefit:'4% effective interest. ATM card access.',apply:'Any nationalized or cooperative bank'},
-  {name:'Kerala Karshaka Kshemanidhi',eligibility:'Registered Kerala farmers aged 60+.',benefit:'₹1,200/month pension',apply:'Krishi Bhavan with land records + age proof'},
-  {name:'RKVY Subsidy',eligibility:'Farmers, FPOs for mechanization/irrigation/cold storage.',benefit:'30–50% capital subsidy on approved projects',apply:'District Agriculture Office or KSAMB'},
-  {name:'PM Kisan Maandhan',eligibility:'Small/marginal farmers aged 18–40.',benefit:'₹3,000/month pension at 60. Govt matches contribution.',apply:'CSC with Aadhaar + bank details'},
-  {name:'Soil Health Card',eligibility:'All farmers — free.',benefit:'Crop-wise fertilizer recommendations + micro-nutrient analysis',apply:'Nearest Krishi Bhavan — valid 2 years'},
-  {name:'Kerala Horticulture Mission',eligibility:'Farmers growing vegetables/fruits in Kerala.',benefit:'50–75% subsidy on drip irrigation, shade nets, mulching',apply:'District Horticulture Officer by Jun 2026'},
-  {name:'e-NAM',eligibility:'All farmers — free registration.',benefit:'Online market for better price discovery',apply:'KSAMB portal or nearest e-NAM facilitation centre'},
-];
+
 
 let _geminiKey = '';
 let _aiHistory = [];
@@ -2500,7 +1580,7 @@ function ruleEngineAnswer(question, districtName){
     return `**🌾 Crop Planning — ${loc}** (${today})\n\n**Current season:** ${sn}\n**District crops:** ${crops.join(', ')}\n\n**Season guide for your crops:**\n${crops.map(c=>`• **${c}:** ${(CROP_KB[c]||CROP_KB['Vegetables']).season}`).join('\n')}\n\n**High-value options to consider:**\n• Vegetables (Rabi Oct–Feb): high returns, 60–90 day cycle\n• Banana (Nendran): ₹35–55/kg, strong Onam demand\n• Pepper: premium prices, semi drought-tolerant\n• Cardamom (Idukki belt): ₹1,400+/kg\n\n**This season:** ${month>=5&&month<=8?'Complete paddy transplanting before July 15. Ensure seed treatment done.':month>=9&&month<=11?'Harvest kharif crops. Prepare land for rabi vegetables and pulses.':'Focus on perennial crop maintenance. Plan summer irrigation schedule.'}`;
   }
   if(/scheme|subsid|govern|benefit|eligib|apply|pension|insurance|kisan/.test(q)){
-    return `**🏛️ Govt Schemes — ${loc}**\n\n${SCHEME_KB.slice(0,5).map(s=>`**${s.name}**\n• ${s.eligibility}\n• Benefit: ${s.benefit}\n• Apply: ${s.apply}`).join('\n\n')}\n\n**More:** Kerala Horticulture Mission (50–75% subsidy), RKVY grants, e-NAM registration.\n\nVisit your **Krishi Bhavan** with Aadhaar + land records to apply for most schemes.`;
+    return `**🏛️ Govt Schemes — ${loc}**\n\n${SCHEMES.slice(0,5).map(s=>`**${s.title}**\n• ${s.body}\n• Deadline: ${s.deadline}\n• Ministry: ${s.ministry}`).join('\n\n')}\n\n**More:** Kerala Horticulture Mission (50–75% subsidy), RKVY grants, e-NAM registration.\n\nVisit your **Krishi Bhavan** with Aadhaar + land records to apply for most schemes.`;
   }
   // General / today
   const acts=[];
@@ -2704,6 +1784,8 @@ function initAIAdvisory(){
 
 </script>
 <script src="js/flood-engine.js"></script>
+<script src="js/news-hub.js"></script>
+
 
 <script>
 document.addEventListener('DOMContentLoaded',()=>{ 
@@ -2711,7 +1793,6 @@ document.addEventListener('DOMContentLoaded',()=>{
   init(); 
 });
 </script>
-
 
 </body>
 </html>
