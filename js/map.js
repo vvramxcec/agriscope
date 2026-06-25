@@ -1,24 +1,4 @@
-
-// Pest / disease map helpers
-function pestMapScore(districtName) {
-  let max = 0;
-  DISEASE_KB.forEach(d => {
-    const s = computePestRisk(d, districtName);
-    if (s > max) max = s;
-  });
-  return max;
-}
-
-
-function pestMapColor(score) {
-  if (score >= 70) return '#f87171'; //high   — red
-  if (score >= 45) return '#fb923c'; //medium — orange
-  if (score >= 22) return '#c47a2e'; //watch  — amber
-  return '#1a2f22';                  //none   — dark green
-}
-
-
-//choropleth fill dispatcher
+// Choropleth fill dispatcher (pestMapColor from disease.js)
 
 function districtFill(name) {
   const v = getTodayVal(name, currentLayer);
