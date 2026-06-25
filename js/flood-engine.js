@@ -25,13 +25,25 @@ function getFc3d(name){
   const p=wd.daily.precipitation_sum||[]; return (p[1]||0)+(p[2]||0)+(p[3]||0);
 }
 function floodComposite(name){
-  const wd=weatherData[name]; if(!wd||!wd.daily) return 0;
-  const rain=wd.daily.precipitation_sum?.[0]||0;
-  const v=FLOOD_VULN[name]||{flood:40,landslide:30,wind:30};
-  const fc=getFc3d(name);
-  return Math.min(100,Math.round(
-    imdAlert(rain).score*0.5 + Math.max(v.flood,v.landslide,v.wind)*0.3 +
-    (fc>150?80:fc>80?50:fc>40?30:10)*0.2
+  const wd = weatherData[name]; if(!wd || !wd.daily) return 0;
+  const rain = wd.daily.precipitation_sum?.[0] || 0;
+  const v = FLOOD_VULN[name] || {flood:40, landslide:30, wind:30};
+  
+  // 1. Get the standard IMD score (weighted at 30%)
+  const imdScore = imdAlert(rain).score;
+  
+  // 2. Get the maximum vulnerability score (weighted at 20%)
+  const vulnScore = Math.max(v.flood, v.landslide, v.wind);
+  
+  // 3. Compute the Soil Saturation index / Antecedent Precipitation Index (weighted at 50%)
+  // Ensure computeAPIndex(name) is defined and accessible in your code
+  const apiScore = computeAPIndex(name); 
+
+  // Calculate using the strict original contract: 50% API + 30% IMD + 20% KSDMA Vulnerability
+  return Math.min(100, Math.round(
+    (apiScore * 0.5) + 
+    (imdScore * 0.3) + 
+    (vulnScore * 0.2)
   ));
 }
 function floodColor(s){ return s>=80?'#f87171':s>=55?'#fb923c':s>=35?'#facc15':'#1a2f22'; }
