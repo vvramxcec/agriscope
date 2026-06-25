@@ -1,6 +1,8 @@
 // ═══════════════════════════════════════════════════════
 //  PEST & DISEASE ENGINE — KAU/ICAR rule-based risk model
+//  Depends on: DISTRICTS, weatherData, healthScores
 // ═══════════════════════════════════════════════════════
+
 function computePestRisk(disease, districtName){
   const wd = weatherData[districtName];
   if(!wd||!wd.daily) return 0;
