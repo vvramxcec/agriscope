@@ -509,6 +509,8 @@
 </div>
 
 <script src="js/weather.js"></script>
+
+<script src="js/disease.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════
 //  STATE
@@ -615,6 +617,117 @@ function getTodayVal(name, metric){
   if(metric==='pestmap')     return pestMapScore(name);
   if(metric==='floodrisk')   return floodComposite(name);
   return null;
+}
+
+
+function districtFill(name){
+  const v=getTodayVal(name,currentLayer);
+  if(v===null) return '#1c2a20';
+  if(currentLayer==='rainfall'){
+    if(v<1) return '#1a2f22'; if(v<5) return '#164e63';
+    if(v<15) return '#0ea5e9'; if(v<30) return '#38bdf8';
+    if(v<50) return '#7dd3fc'; return '#bae6fd';
+  }
+  if(currentLayer==='temperature'){
+    if(v<28) return '#1e3a5f'; if(v<32) return '#854d0e';
+    if(v<35) return '#ea580c'; return '#ef4444';
+  }
+  if(currentLayer==='humidity'){
+    if(v<50) return '#1a2f22'; if(v<65) return '#5b21b6';
+    if(v<80) return '#7c3aed'; return '#a78bfa';
+  }
+  if(currentLayer==='crophealth') return healthColor(v);
+  if(currentLayer==='pestmap')    return pestMapColor(v);
+  if(currentLayer==='floodrisk')  return floodColor(floodComposite(name));
+  return '#1c2a20';
+}
+
+// ═══════════════════════════════════════════════════════
+//  RENDER GEO LAYER
+// ═══════════════════════════════════════════════════════
+function renderGeoLayer(geojson){
+  if(geoLayer) map.removeLayer(geoLayer);
+  geoLayer=L.geoJSON(geojson,{
+    style: f=>({fillColor:districtFill(f.properties.DISTRICT),weight:1,opacity:0.6,color:'rgba(255,255,255,0.15)',fillOpacity:0.85}),
+    onEachFeature:(f,layer)=>{
+      const name=f.properties.DISTRICT;
+      layer.on({
+        mouseover:e=>{e.target.setStyle({weight:2,color:'rgba(255,255,255,0.5)',fillOpacity:0.95});},
+        mouseout:e=>{geoLayer.resetStyle(e.target);},
+        click:()=>showDistrictDetail(name, currentLayer==='crophealth'?'health':currentLayer==='pestmap'?'pests':currentLayer==='floodrisk'?'flood':'weather'),
+      });
+    }
+  }).addTo(map);
+}
+
+function refreshMap(){
+  if(!geoLayer) return;
+  geoLayer.eachLayer(l=>l.setStyle({fillColor:districtFill(l.feature.properties.DISTRICT)}));
+}
+
+// ═══════════════════════════════════════════════════════
+//  NASA MODIS WMS TOGGLE
+// ═══════════════════════════════════════════════════════
+function toggleNASA(){
+  nasaOn=!nasaOn;
+  const btn=document.getElementById('btn-nasa');
+  const badge=document.getElementById('nasa-badge');
+  if(nasaOn){
+    nasaLayer=L.tileLayer.wms('https://gibs.earthdata.nasa.gov/wms/epsg3857/best/wms.cgi',{
+      layers:'MODIS_Terra_NDVI_8Day',
+      format:'image/png',
+      transparent:true,
+      opacity:0.55,
+      attribution:'NASA GIBS',
+    }).addTo(map);
+    btn.classList.add('l-purple');
+    badge.style.display='block';
+  } else {
+    if(nasaLayer){ map.removeLayer(nasaLayer); nasaLayer=null; }
+    btn.classList.remove('l-purple');
+    badge.style.display='none';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  LAYER TOGGLE
+// ═══════════════════════════════════════════════════════
+const LEGENDS = {
+  floodrisk:{title:'Flood / Disaster Risk',bar:'linear-gradient(90deg,#1a2f22,#facc15,#fb923c,#f87171)',min:'Low',max:'Extreme'},
+  pestmap:     {title:'Disease Risk Level', bar:'linear-gradient(90deg,#1a2f22,#854d0e,#fb923c,#f87171)', min:'None', max:'High'},
+  rainfall:    {title:'Rainfall (mm/day)',      bar:'linear-gradient(90deg,#1a2f22,#164e63,#0ea5e9,#38bdf8,#bae6fd)', min:'0',   max:'50mm+'},
+  temperature: {title:'Max Temperature (°C)',   bar:'linear-gradient(90deg,#1e3a5f,#854d0e,#ea580c,#ef4444)',         min:'25°',  max:'38°+'},
+  humidity:    {title:'Avg Humidity (%)',        bar:'linear-gradient(90deg,#1a2f22,#5b21b6,#7c3aed,#a78bfa)',         min:'40%',  max:'95%'},
+  crophealth:  {title:'Crop Health Score',       bar:'linear-gradient(90deg,#f87171,#fb923c,#facc15,#86efac,#4ade80)', min:'0',    max:'100'},
+};
+function setLayer(type, forceOn=false){
+  // Toggle off if same layer clicked again (unless forced on by nav)
+  if(currentLayer===type && !forceOn){
+    currentLayer='none';
+    ['rainfall','temperature','humidity','crophealth','pestmap','floodrisk'].forEach(t=>{
+      const b=document.getElementById('btn-'+t); if(b) b.className='layer-btn';
+    });
+    // reset map to neutral dark fill
+    if(geoLayer) geoLayer.eachLayer(l=>l.setStyle({fillColor:'#1c2a20'}));
+    document.getElementById('legend-title').textContent='No Layer Selected';
+    document.getElementById('legend-bar').style.background='linear-gradient(90deg,#1c2a20,#1c2a20)';
+    document.getElementById('legend-min').textContent='';
+    document.getElementById('legend-max').textContent='';
+    return;
+  }
+  currentLayer=type;
+  ['rainfall','temperature','humidity','crophealth'].forEach(t=>{
+    const b=document.getElementById('btn-'+t);
+    b.className='layer-btn';
+  });
+  const classes={rainfall:'l-blue',temperature:'l-orange',humidity:'l-purple',crophealth:'l-green',pestmap:'l-orange',floodrisk:'l-blue'};
+  const _ab=document.getElementById('btn-'+type); if(_ab) _ab.classList.add(classes[type]||'l-orange');
+  const leg=LEGENDS[type];
+  document.getElementById('legend-title').textContent=leg.title;
+  document.getElementById('legend-bar').style.background=leg.bar;
+  document.getElementById('legend-min').textContent=leg.min;
+  document.getElementById('legend-max').textContent=leg.max;
+  refreshMap();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1216,145 +1329,7 @@ function showMarketsView(on){
 // ═══════════════════════════════════════════════════════
 //  NAV SWITCH — wires left nav to map layer + right panel
 
-// ═══════════════════════════════════════════════════════
-//  PEST & DISEASE ENGINE — KAU/ICAR rule-based risk model
-// ═══════════════════════════════════════════════════════
 let DISEASE_KB = [];
-
-function computePestRisk(disease, districtName){
-  const wd = weatherData[districtName];
-  if(!wd||!wd.daily) return 0;
-  const d = DISTRICTS.find(x=>x.name===districtName);
-  if(!d) return 0;
-
-  const rain = wd.daily.precipitation_sum?.[0]||0;
-  const temp = wd.daily.temperature_2m_max?.[0]||30;
-  const humArr = (wd.hourly?.relativehumidity_2m||[]).slice(0,24);
-  const hum  = humArr.length ? Math.round(humArr.reduce((a,b)=>a+b)/humArr.length) : 70;
-  const hs   = healthScores[districtName];
-  const dryDays = hs?.dryDays||0;
-
-  const r=disease.rules; let score=0,total=0;
-  function add(val,mn,mx,wt){
-    total+=wt;
-    if(mn!==undefined&&mx!==undefined){
-      if(val>=mn&&val<=mx){score+=wt;return;}
-      score+=wt*Math.max(0,1-Math.min(mn!==undefined?Math.abs(val<mn?mn-val:val-mx):999,mx-mn||1)/(((mx||mn)-(mn||mx)||1)*1.5));
-    } else if(mn!==undefined){
-      score+=val>=mn?wt:wt*Math.max(0,1-(mn-val)/(mn*0.3||1));
-    } else if(mx!==undefined){
-      score+=val<=mx?wt:wt*Math.max(0,1-(val-mx)/(mx*0.3||1));
-    }
-  }
-  if(r.rainMin!==undefined||r.rainMax!==undefined) add(rain,r.rainMin,r.rainMax,disease.w.rain||33);
-  if(r.tempMin!==undefined||r.tempMax!==undefined) add(temp,r.tempMin,r.tempMax,disease.w.temp||33);
-  if(r.humMin!==undefined)  add(hum,r.humMin,100,disease.w.hum||33);
-  if(r.dryDaysMin!==undefined) add(dryDays,r.dryDaysMin,30,disease.w.dryDays||50);
-
-  const raw=total>0?(score/total)*100:0;
-  const month=new Date().getMonth()+1;
-  const isPeak=disease.peakMonths.includes(month);
-  const isAdj=disease.peakMonths.includes(month-1)||disease.peakMonths.includes(month+1);
-  const seasonMult=isPeak?1.2:isAdj?1.0:0.6;
-  const cropMatch=disease.crops.some(c=>d.crops.some(dc=>dc.toLowerCase().includes(c.toLowerCase())||c.toLowerCase().includes(dc.toLowerCase())));
-  return Math.min(100,Math.round(raw*seasonMult*(cropMatch?1.0:0.4)));
-}
-
-function pestLevel(score){ return score>=70?'high':score>=45?'moderate':score>=22?'watch':null; }
-function pestLevelClass(l){ return l==='high'?'pc-high':l==='moderate'?'pc-moderate':'pc-watch'; }
-function pestEmoji(l){ return l==='high'?'🔴':l==='moderate'?'🟠':'🟡'; }
-
-// ── Right panel pest cards ────────────────────────────────────────────────────
-function renderPestCards(){
-  const list=document.getElementById('pest-cards-list'); if(!list) return;
-  const results=[];
-  DISEASE_KB.forEach(disease=>{
-    let maxScore=0; const topDistricts=[];
-    DISTRICTS.forEach(d=>{
-      const s=computePestRisk(disease,d.name);
-      if(s>=22){ topDistricts.push(d.name); if(s>maxScore) maxScore=s; }
-    });
-    if(maxScore>=22) results.push({disease,maxScore,topDistricts,level:pestLevel(maxScore)});
-  });
-  results.sort((a,b)=>b.maxScore-a.maxScore);
-
-  if(results.length===0){
-    list.innerHTML='<div style="padding:14px;font-size:11px;color:var(--color-primary)">✅ No active disease alerts</div>';
-    return;
-  }
-  list.innerHTML=results.slice(0,12).map(({disease,maxScore,topDistricts,level})=>`
-    <div class="pest-card">
-      <div class="pc-row1">
-        <span style="font-size:13px">${disease.emoji}</span>
-        <span style="font-size:11px;font-weight:600;flex:1">${disease.name}</span>
-        <span class="pc-badge ${pestLevelClass(level)}">${pestEmoji(level)} ${maxScore}</span>
-      </div>
-      <div class="pc-crop">${disease.crops.join(' · ')} · <em>${disease.src}</em></div>
-      <div class="pc-districts">${topDistricts.slice(0,4).join(', ')}${topDistricts.length>4?` +${topDistricts.length-4} more`:''}</div>
-      <div class="pc-action">${disease.action.split('.')[0]}.</div>
-    </div>`).join('');
-
-  // update KPI alert count
-  const highCount=results.filter(r=>r.level==='high').length;
-  const el=document.getElementById('kpi-alerts'); if(el) el.textContent=results.length;
-  const el2=document.getElementById('kpi-alerts-sub'); if(el2) el2.textContent=highCount>0?`${highCount} high-risk diseases`:'No high alerts';
-}
-
-// ── District popup pest tab ────────────────────────────────────────────────────
-function populateDDPests(districtName){
-  const list=document.getElementById('dd-pest-list'); if(!list) return;
-  const results=[];
-  DISEASE_KB.forEach(disease=>{
-    const score=computePestRisk(disease,districtName);
-    if(score>=22) results.push({disease,score});
-  });
-  results.sort((a,b)=>b.score-a.score);
-
-  if(results.length===0){
-    // Show upcoming seasonal risks
-    const month=new Date().getMonth()+1;
-    const upcoming=[];
-    const mNames=['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-    DISEASE_KB.forEach(disease=>{
-      const next=disease.peakMonths.find(m=>m>month)||disease.peakMonths[0];
-      const away=next>month?next-month:(12-month)+next;
-      if(away<=3) upcoming.push({disease,next,away});
-    });
-    upcoming.sort((a,b)=>a.away-b.away);
-    if(upcoming.length>0){
-      list.innerHTML='<div style="font-size:9px;color:var(--color-text-faint);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;padding:4px 0 8px">📅 Upcoming — next 3 months</div>'
-        +upcoming.slice(0,5).map(({disease,next})=>`
-        <div class="dd-pest-item pw">
-          <div class="dd-pest-row1">
-            <span style="font-size:12px">${disease.emoji}</span>
-            <span style="font-size:11px;font-weight:600;flex:1">${disease.name}</span>
-            <span style="font-size:10px;color:var(--color-text-faint)">Peak: ${mNames[next]}</span>
-          </div>
-          <div style="font-size:10px;color:var(--color-text-muted);margin-bottom:2px">${disease.crops.join(' · ')}</div>
-          <div class="dd-pest-action">${disease.action.split('.')[0]}.</div>
-        </div>`).join('')
-        +'<div style="font-size:9px;color:var(--color-text-faint);margin-top:4px">No active alerts now · Prepare before peak season</div>';
-    } else {
-      list.innerHTML='<div style="padding:10px 0;font-size:11px;color:var(--color-primary)">✅ No active or upcoming disease alerts</div>';
-    }
-    return;
-  }
-  list.innerHTML=results.map(({disease,score})=>{
-    const level=pestLevel(score);
-    const col=level==='high'?'#f87171':level==='moderate'?'#fb923c':'#facc15';
-    const cls=level==='high'?'ph':level==='moderate'?'pm':'pw';
-    return `<div class="dd-pest-item ${cls}">
-      <div class="dd-pest-row1">
-        <span style="font-size:13px">${disease.emoji}</span>
-        <span style="font-size:11px;font-weight:600;flex:1">${disease.name}</span>
-        <span style="font-size:11px;font-weight:700;color:${col}">${pestEmoji(level)} ${score}/100</span>
-      </div>
-      <div style="font-size:10px;color:var(--color-text-muted);margin-bottom:3px">${disease.crops.join(' · ')}</div>
-      <div class="dd-pest-action">${disease.action}</div>
-    </div>`;
-  }).join('');
-}
-
 
 // ═══════════════════════════════════════════════════════
 //  FLOOD & DISASTER RISK ENGINE (KSDMA + IMD)
@@ -1627,156 +1602,11 @@ let _geminiKey = '';
 let _aiHistory = [];
 let _aiInited  = false;
 
-function ruleEngineAnswer(question, districtName){
-  const q = question.toLowerCase();
-  const dist = DISTRICTS.find(d=>d.name===districtName)||null;
-  const hs   = dist ? (healthScores[dist.name]||{score:50,rain:0,temp:30,hum:70,dryDays:0}) : {score:50,rain:0,temp:30,hum:70,dryDays:0};
-  const wd   = dist ? weatherData[dist.name] : null;
-  const rain = wd?.daily?.precipitation_sum?.[0]||hs.rain||0;
-  const temp = wd?.daily?.temperature_2m_max?.[0]||hs.temp||30;
-  const hum  = hs.hum||70;
-  const score= hs.score||50;
-  const dryDays = hs.dryDays||0;
-  const crops = dist?.crops||['Paddy','Coconut','Rubber'];
-  const crop  = crops[0];
-  const kb    = CROP_KB[crop]||CROP_KB['Vegetables'];
-  const today = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long'});
-  const flood = dist ? (floodComposite(dist.name)||0) : 0;
-  const pest  = dist ? (pestMapScore(dist.name)||0) : 0;
-  const month = new Date().getMonth();
-  const loc   = districtName||'Kerala';
 
-  if(/irrigat|water|moisture|drip/.test(q)){
-    const urg = dryDays>4?'🔴 URGENT':dryDays>2?'🟠 Recommended':'🟢 Monitor';
-    return `**💧 Irrigation Advisory — ${loc}** (${today})\n\n**Status:** ${urg} — ${dryDays} dry day(s)\n**Rainfall today:** ${rain.toFixed(1)}mm · **Humidity:** ${hum}%\n\n**${crop}:** ${kb.irrigate}\n\n${dryDays>4?'⚠️ Dry spell — irrigate all crops today immediately.':rain>20?'✅ Adequate rainfall — skip irrigation to prevent waterlogging.':'Monitor topsoil moisture — irrigate if dry 2cm down.'}\n\n${crops.length>1?`**Other crops (${crops.slice(1).join(', ')}):** Check individual water needs based on growth stage.`:''}`;
-  }
-  if(/disease|pest|fungal|insect|spray|blight|rot|wilt|attack|pathogen/.test(q)){
-    const lvl = pest>=70?'🔴 HIGH':pest>=40?'🟠 MODERATE':'🟢 LOW';
-    const active = (typeof DISEASE_KB!=='undefined'?DISEASE_KB:[]).filter(d=>{
-      const cm=!d.crops?.length||d.crops.some(c=>crops.includes(c));
-      const mm=!d.peakMonths?.length||d.peakMonths.includes(month+1);
-      return cm&&mm;
-    }).slice(0,3);
-    const dList = active.length ? active.map(d=>`• **${d.emoji||'🌿'} ${d.name}:** ${d.action}`).join('\n') : '• No major disease alerts for this season.';
-    return `**🐛 Disease & Pest Advisory — ${loc}** (${today})\n\n**Risk Level:** ${lvl} (score ${pest}/100)\n**Conditions:** ${rain.toFixed(1)}mm rain · ${temp.toFixed(0)}°C · ${hum}% humidity\n\n**Active threats for ${crop}:**\n${dList}\n\n**Disease management:** ${kb.disease}\n**Pest management:** ${kb.pest}\n\n${hum>85&&rain>10?'⚠️ High humidity + rain = elevated fungal risk. Apply preventive fungicide immediately.':'Conditions moderate — scout fields twice weekly and maintain field hygiene.'}`;
-  }
-  if(/fertiliz|manure|npk|nutrient|urea|dap|potash|zinc|deficien/.test(q)){
-    return `**🌱 Fertilizer Advisory — ${loc}** (${today})\n\n**Primary crop:** ${crop} · **Health score:** ${score}/100\n**Conditions:** ${rain.toFixed(1)}mm rain · ${temp.toFixed(0)}°C\n\n**${crop} schedule:** ${kb.fertilize}\n\n${rain>30?'⚠️ Heavy rain forecast — delay top-dressing to avoid runoff loss.':dryDays>3?'⚠️ Dry conditions — irrigate before applying to prevent root burn.':'✅ Good conditions for fertilizer application today.'}\n\n**Organic tip:** Vermicompost 2t/ha + FYM 10t/ha improves soil health and reduces chemical input by 25–30%.`;
-  }
-  if(/market|price|sell|buy|mandi|rate|profit|value|trade/.test(q)){
-    const pp = window._prices ? window._prices.filter(p=>crops.some(c=>p.name.toLowerCase().includes(c.toLowerCase().slice(0,4)))).slice(0,3) : [];
-    const pl = pp.length ? pp.map(p=>`• **${p.name}:** ₹${p.price} ${p.unit} (${p.change>=0?'+':''}${p.change} today)`).join('\n') : '• Live prices loading — check Markets tab.';
-    return `**📈 Market Advisory — ${loc}** (${today})\n\n**Your crops:** ${crops.join(', ')}\n\n**Live prices:**\n${pl}\n\n**${crop} market:** ${kb.market}\n\n**Tips:**\n• Check KSAMB daily bulletin: ksamb.kerala.gov.in\n• Trade on e-NAM for better price discovery\n• Form/join FPO for collective bargaining\n• Store if below seasonal average — usually recovers in 3–4 weeks`;
-  }
-  if(/flood|waterlog|drain|river|alert|inundat/.test(q)){
-    const fl = flood>=70?'🔴 HIGH RISK':flood>=40?'🟠 MODERATE':'🟢 LOW';
-    const fv = (typeof FLOOD_VULN!=='undefined'&&FLOOD_VULN)?FLOOD_VULN[districtName]:null;
-    return `**🌊 Flood Risk Advisory — ${loc}** (${today})\n\n**Risk:** ${fl} (score ${flood}/100)\n**Rainfall today:** ${rain.toFixed(1)}mm\n${fv?`**Vulnerability:** ${fv.vuln} | Rivers: ${fv.rivers?.join(', ')||'N/A'}\n`:''}\n**Actions:**\n${flood>=70?'• 🛑 Halt all field operations\n• Move machinery & produce to high ground\n• Monitor KSDMA every 2 hours\n• Ensure pump drainage is functional':flood>=40?'• Prepare drainage channels in low-lying fields\n• Delay transplanting/direct sowing\n• Secure light equipment and inputs\n• Monitor river levels if near floodplains':'• Routine monitoring — normal precautions\n• Keep drainage channels clear\n• Ensure field bunds are intact'}\n\n**KSDMA helpline:** 0471-2364424`;
-  }
-  if(/plant|sow|crop plan|next season|cultivat|variety|which crop/.test(q)){
-    const sn = month>=5&&month<=8?'Kharif (Virippu)':month>=9&&month<=11?'Rabi (Mundakan)':'Summer (Puncha/Pre-Kharif)';
-    return `**🌾 Crop Planning — ${loc}** (${today})\n\n**Current season:** ${sn}\n**District crops:** ${crops.join(', ')}\n\n**Season guide for your crops:**\n${crops.map(c=>`• **${c}:** ${(CROP_KB[c]||CROP_KB['Vegetables']).season}`).join('\n')}\n\n**High-value options to consider:**\n• Vegetables (Rabi Oct–Feb): high returns, 60–90 day cycle\n• Banana (Nendran): ₹35–55/kg, strong Onam demand\n• Pepper: premium prices, semi drought-tolerant\n• Cardamom (Idukki belt): ₹1,400+/kg\n\n**This season:** ${month>=5&&month<=8?'Complete paddy transplanting before July 15. Ensure seed treatment done.':month>=9&&month<=11?'Harvest kharif crops. Prepare land for rabi vegetables and pulses.':'Focus on perennial crop maintenance. Plan summer irrigation schedule.'}`;
-  }
-  if(/scheme|subsid|govern|benefit|eligib|apply|pension|insurance|kisan/.test(q)){
-    return `**🏛️ Govt Schemes — ${loc}**\n\n${SCHEMES.slice(0,5).map(s=>`**${s.title}**\n• ${s.body}\n• Deadline: ${s.deadline}\n• Ministry: ${s.ministry}`).join('\n\n')}\n\n**More:** Kerala Horticulture Mission (50–75% subsidy), RKVY grants, e-NAM registration.\n\nVisit your **Krishi Bhavan** with Aadhaar + land records to apply for most schemes.`;
-  }
-  // General / today
-  const acts=[];
-  if(dryDays>3) acts.push(`💧 Irrigate ${crop} — ${dryDays} dry days`);
-  if(rain>30) acts.push(`🌊 Check drainage — ${rain.toFixed(0)}mm rain today`);
-  if(temp>36) acts.push(`🌡️ Heat stress — mulch soil and shade nurseries`);
-  if(pest>=60) acts.push(`🐛 Scout for disease — risk score ${pest}/100`);
-  if(flood>=60) acts.push(`⚠️ Flood precautions — risk score ${flood}/100`);
-  if(score<50) acts.push(`🔴 Crop health critical (${score}/100) — urgent intervention`);
-  if(!acts.length) acts.push('✅ Conditions moderate — routine monitoring','📋 Check soil moisture','🌿 Inspect for early pest signs');
-  return `**📋 Today's Advisory — ${loc}** (${today})\n\n**Health:** ${score}/100 · **Crop:** ${crop}${crops.length>1?` + ${crops.slice(1).join(', ')}`:''}\n**Weather:** ${rain.toFixed(1)}mm · ${temp.toFixed(0)}°C · ${hum}% humidity\n\n**Priority actions today:**\n${acts.map(a=>`• ${a}`).join('\n')}\n\n**${crop} seasonal note:** ${kb.season}\n\n_Based on Open-Meteo live weather · ${today}_`;
-}
-
-async function geminiAnswer(question, districtName){
-  // ── Firebase AI Logic path (key lives on Firebase servers, never exposed) ──
-  if(window._firebaseReady && window._firebaseModel){
-    const dist  = DISTRICTS.find(d=>d.name===districtName);
-    const hs    = dist?(healthScores[dist.name]||{score:50,hum:70}):{score:50,hum:70};
-    const wd    = dist?weatherData[dist.name]:null;
-    const rain  = wd?.daily?.precipitation_sum?.[0]||0;
-    const temp  = wd?.daily?.temperature_2m_max?.[0]||30;
-    const crops = dist?.crops?.join(', ')||'Paddy, Coconut, Rubber';
-    const today = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    const flood = dist?(floodComposite(dist.name)||0):0;
-    const pest  = dist?(pestMapScore(dist.name)||0):0;
-
-    const prompt = `You are AgroScope, an expert AI agricultural advisor for Kerala, India.
-Today: ${today}. District: ${districtName||'Kerala'}. Crops: ${crops}.
-Crop health: ${hs.score||50}/100. Rainfall: ${rain.toFixed(1)}mm. Temp: ${temp.toFixed(0)}°C. Humidity: ${hs.hum||70}%.
-Flood risk: ${flood}/100. Disease/pest risk: ${pest}/100.
-Provide concise actionable advice specific to Kerala farmers. Use Indian units (kg/ha, ₹/qt).
-Reference KAU (Kerala Agricultural University) recommendations and Kerala govt schemes where relevant.
-Format with bold headers (**text**) and bullet points. Keep under 250 words.
-
-Farmer's question: ${question}`;
-
-    const result = await window._firebaseModel.generateContent(prompt);
-    return result.response.text();
-  }
-
-  // ── Fallback: direct Gemini REST API (if user has manually set a key) ──────
-  if(_geminiKey && _geminiKey.length>20){
-    const dist  = DISTRICTS.find(d=>d.name===districtName);
-    const hs    = dist?(healthScores[dist.name]||{score:50,hum:70}):{score:50,hum:70};
-    const wd    = dist?weatherData[dist.name]:null;
-    const rain  = wd?.daily?.precipitation_sum?.[0]||0;
-    const temp  = wd?.daily?.temperature_2m_max?.[0]||30;
-    const crops = dist?.crops?.join(', ')||'Paddy, Coconut, Rubber';
-    const today = new Date().toLocaleDateString('en-IN',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
-    const ctx   = `You are AgroScope, an expert AI agricultural advisor for Kerala, India. Today: ${today}. District: ${districtName||'Kerala'}. Crops: ${crops}. Crop health: ${hs.score||50}/100. Rainfall: ${rain.toFixed(1)}mm. Temp: ${temp.toFixed(0)}°C. Humidity: ${hs.hum||70}%. Provide concise actionable Kerala farming advice in under 250 words.`;
-    const url   = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${_geminiKey}`;
-    const body  = {
-      contents:[
-        {role:'user',parts:[{text:ctx}]},
-        ..._aiHistory.slice(-6).map(h=>({role:h.role,parts:[{text:h.text}]})),
-        {role:'user',parts:[{text:question}]}
-      ],
-      generationConfig:{maxOutputTokens:450,temperature:0.4}
-    };
-    const res = await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
-    if(!res.ok){const e=await res.json();throw new Error(e.error?.message||`HTTP ${res.status}`);}
-    const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text||'No response received.';
-  }
-
-  throw new Error('No AI backend available');
-}
-
-function aiKeydown(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();aiSend();}}
-
-function onApiKeyInput(val){
-  _geminiKey=val.trim();
-  const s=document.getElementById('ai-key-status');
-  const m=document.getElementById('ai-mode-badge');
-  if(_geminiKey.length>20){s.textContent='Key set ✓';s.className='ai-key-badge connected';m.textContent='Gemini AI';m.className='ai-key-badge connected';}
-  else{s.textContent='No Key';s.className='ai-key-badge disconnected';m.textContent='Rule Engine';m.className='ai-key-badge disconnected';}
-}
-
-function aiChip(text){
-  const ta=document.getElementById('ai-textarea');
-  ta.value=text;
-  aiSend();
-}
 
 
 /* Wait up to 4s for Firebase module to finish async loading */
-function waitForFirebase(timeoutMs=4000){
-  return new Promise(resolve=>{
-    if(window._firebaseReady!==undefined){ resolve(window._firebaseReady); return; }
-    const start=Date.now();
-    const iv=setInterval(()=>{
-      if(window._firebaseReady!==undefined||Date.now()-start>timeoutMs){
-        clearInterval(iv);
-        resolve(!!window._firebaseReady);
-      }
-    },100);
-  });
-}
+
 
 async function aiSend(){
   const ta=document.getElementById('ai-textarea');
@@ -1816,69 +1646,7 @@ async function aiSend(){
   renderAIQuickCards(district);
 }
 
-function renderAIQuickCards(districtName){
-  const list=document.getElementById('ai-quick-list');if(!list)return;
-  const dist=DISTRICTS.find(d=>d.name===districtName);
-  const cards=[];
-  if(dist){
-    const hs=healthScores[dist.name]||{score:50,rain:0,temp:30,hum:70,dryDays:0};
-    const flood=floodComposite(dist.name)||0;
-    const pest=pestMapScore(dist.name)||0;
-    const crops=dist.crops;
-    cards.push({icon:'🌿',title:`${crops[0]} Health`,sev:hs.score<40?'Critical':hs.score<65?'Warning':'Good',sc:hs.score<40?'c':hs.score<65?'w':'g',body:`Score ${hs.score}/100 · ${(hs.rain||0).toFixed(1)}mm rain · ${(hs.temp||30).toFixed(0)}°C · ${hs.hum||70}% humidity`,acts:[{l:'💧 Irrigate',q:`Irrigation advice for ${crops[0]} in ${districtName}`},{l:'🌱 Fertilize',q:`Fertilizer schedule for ${crops[0]} in ${districtName}`},{l:'🐛 Scout',q:`Disease risk for ${crops[0]} in ${districtName}`}]});
-    cards.push({icon:'🌊',title:'Flood Risk',sev:flood>=70?'High':flood>=40?'Moderate':'Low',sc:flood>=70?'c':flood>=40?'w':'g',body:`Composite score ${flood}/100 · ${(hs.rain||0).toFixed(1)}mm today`,acts:[{l:'Precautions',q:`Flood precautions for ${districtName}`}]});
-    cards.push({icon:'🐛',title:'Disease Risk',sev:pest>=70?'High':pest>=40?'Moderate':'Low',sc:pest>=70?'c':pest>=40?'w':'g',body:`Risk score ${pest}/100 · ${hs.hum||70}% humidity · ${(hs.rain||0).toFixed(1)}mm rain`,acts:crops.slice(0,2).map(c=>({l:`${c} diseases`,q:`Disease risks for ${c} in ${districtName}`}))});
-    const pp=window._prices?window._prices.filter(p=>crops.some(c=>p.name.toLowerCase().includes(c.toLowerCase().slice(0,4)))).slice(0,2):[];
-    cards.push({icon:'📈',title:'Market',sev:'',sc:'g',body:pp.length?pp.map(p=>`${p.name}: ₹${p.price} (${p.change>=0?'+':''}${p.change})`).join(' · '):'Tap for live prices',acts:[{l:'Sell timing',q:`Market timing for ${crops[0]} in ${districtName}`}]});
-    cards.push({icon:'🌾',title:'Crop Planning',sev:'',sc:'g',body:`Season: ${new Date().getMonth()>=5&&new Date().getMonth()<=8?'Kharif active':new Date().getMonth()>=9?'Rabi season':'Pre-monsoon'} · Crops: ${crops.join(', ')}`,acts:[{l:'What to plant',q:`What crops to plant next season in ${districtName}`},{l:'Harvest timing',q:`Harvest timing for ${crops[0]} in ${districtName}`}]});
-  } else {
-    const avg=Object.values(healthScores).reduce((s,h)=>s+(h?.score||50),0)/14;
-    const crit=DISTRICTS.filter(d=>(healthScores[d.name]?.score||50)<50);
-    cards.push({icon:'🗺️',title:'Kerala Overview',sev:'',sc:'g',body:`Avg health ${avg.toFixed(0)}/100 · ${crit.length} district(s) need attention`,acts:[{l:'Highest risk district',q:'Which district has highest crop risk today?'},{l:'Today\'s overview',q:'Give me an overview of Kerala farming conditions today'}]});
-    DISTRICTS.slice(0,4).forEach(d=>{
-      const hs=healthScores[d.name]||{score:50};
-      cards.push({icon:'📍',title:d.name,sev:`${hs.score}/100`,sc:hs.score<50?'c':hs.score<70?'w':'g',body:`${d.crops.slice(0,2).join(', ')} · Score ${hs.score}/100`,acts:[{l:'Full advisory',q:`Full farming advisory for ${d.name}`}]});
-    });
-  }
-  document.getElementById('ai-adv-count').textContent=cards.length;
-  list.innerHTML=cards.map(c=>`<div class="ai-qcard"><div class="ai-qcard-head"><span class="ai-qcard-icon">${c.icon}</span><span class="ai-qcard-title">${c.title}</span>${c.sev?`<span class="ai-qcard-sev sev-${c.sc}">${c.sev}</span>`:''}</div><div class="ai-qcard-body">${c.body}</div><div class="ai-qcard-actions">${c.acts.map(a=>`<button class="ai-qcard-btn" onclick="aiChipQ(${JSON.stringify(a.q)})">${a.l}</button>`).join('')}</div></div>`).join('');
-}
 
-function aiChipQ(q){
-  const ta=document.getElementById('ai-textarea');
-  ta.value=q;aiSend();
-}
-
-function initAIAdvisory(){
-  // Re-check Firebase status after module loads (async)
-  setTimeout(async()=>{
-    const ready = await waitForFirebase(5000);
-    const s=document.getElementById('ai-key-status');
-    const m=document.getElementById('ai-mode-badge');
-    if(ready){
-      if(s){s.textContent='Connected ✓';s.className='ai-key-badge connected';}
-      if(m){m.textContent='Firebase AI';m.className='ai-key-badge connected';}
-    } else {
-      if(s){s.textContent='Not configured';s.className='ai-key-badge disconnected';}
-      if(m){m.textContent='Rule Engine';m.className='ai-key-badge disconnected';}
-    }
-  },500);
-  // Update status badge based on Firebase readiness
-  const statusBadge = document.getElementById('ai-key-status');
-  const modeBadge   = document.getElementById('ai-mode-badge');
-  if(window._firebaseReady){
-    if(statusBadge){statusBadge.textContent='Connected ✓';statusBadge.className='ai-key-badge connected';}
-    if(modeBadge){modeBadge.textContent='Firebase AI';modeBadge.className='ai-key-badge connected';}
-  } else {
-    if(statusBadge){statusBadge.textContent='Config needed';statusBadge.className='ai-key-badge disconnected';}
-    if(modeBadge){modeBadge.textContent='Rule Engine';modeBadge.className='ai-key-badge disconnected';}
-  }
-  const sel=document.getElementById('ai-district-sel');
-  if(sel&&sel.options.length===1){
-    DISTRICTS.forEach(d=>{const o=document.createElement('option');o.value=d.name;o.textContent=d.name;sel.appendChild(o);});
-  }
-  renderAIQuickCards('');
-}
 
 </script>
 <!-- ─────────────────────────────────────────────────────────────────────────
@@ -1889,5 +1657,6 @@ function initAIAdvisory(){
      ───────────────────────────────────────────────────────────────────────── -->
 <script src="js/map.js"></script>
 <script src="js/news-hub.js"></script>
+<script src="js/ai-advisory.js"></script>
 </body>
 </html>
