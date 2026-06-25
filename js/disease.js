@@ -34,7 +34,9 @@ function computePestRisk(disease, districtName){
   const raw=total>0?(score/total)*100:0;
   const month=new Date().getMonth()+1;
   const isPeak=disease.peakMonths.includes(month);
-  const isAdj=disease.peakMonths.includes(month-1)||disease.peakMonths.includes(month+1);
+  const prevMonth = month === 1 ? 12 : month - 1;
+  const nextMonth = month === 12 ? 1 : month + 1;
+  const isAdj=disease.peakMonths.includes(prevMonth)||disease.peakMonths.includes(nextMonth);
   const seasonMult=isPeak?1.2:isAdj?1.0:0.6;
   const cropMatch=disease.crops.some(c=>d.crops.some(dc=>dc.toLowerCase().includes(c.toLowerCase())||c.toLowerCase().includes(dc.toLowerCase())));
   return Math.min(100,Math.round(raw*seasonMult*(cropMatch?1.0:0.4)));
@@ -73,6 +75,11 @@ function renderPestCards(){
   });
   results.sort((a,b)=>b.maxScore-a.maxScore);
 
+    // update KPI alert count
+  const highCount=results.filter(r=>r.level==='high').length;
+  const el=document.getElementById('kpi-alerts'); if(el) el.textContent=results.length;
+  const el2=document.getElementById('kpi-alerts-sub'); if(el2) el2.textContent=highCount>0?`${highCount} high-risk diseases`:'No high alerts';
+
   if(results.length===0){
     list.innerHTML='<div style="padding:14px;font-size:11px;color:var(--color-primary)">✅ No active disease alerts</div>';
     return;
@@ -89,10 +96,7 @@ function renderPestCards(){
       <div class="pc-action">${disease.action.split('.')[0]}.</div>
     </div>`).join('');
 
-  // update KPI alert count
-  const highCount=results.filter(r=>r.level==='high').length;
-  const el=document.getElementById('kpi-alerts'); if(el) el.textContent=results.length;
-  const el2=document.getElementById('kpi-alerts-sub'); if(el2) el2.textContent=highCount>0?`${highCount} high-risk diseases`:'No high alerts';
+
 }
 
 // ── District popup pest tab ────────────────────────────────────────────────────
