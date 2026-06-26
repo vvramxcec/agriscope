@@ -31,6 +31,9 @@ function generateHistory(base, vol, days=30){
 }
 
 // Init price state
+/**
+ * Initializes the market price engine with historical data.
+ */
 let priceState = {};
 function initPrices(){
   COMMODITIES.forEach(c=>{
@@ -239,4 +242,16 @@ function refreshWindowPrices(){
      unit: c.unit,
    };
   });
+}
+function startMarketEngine(){
+  initPrices();
+  renderPriceCards();
+  updatePriceKPIs();
+  setInterval(tickPrices, 5 * 60 * 1000);
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', startMarketEngine, { once: true });
+} else {
+  startMarketEngine();
 }
