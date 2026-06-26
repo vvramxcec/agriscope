@@ -1,103 +1,92 @@
+// ═══════════════════════════════════════════════════════
 //  FLOOD & DISASTER RISK ENGINE (KSDMA + IMD)
 // ═══════════════════════════════════════════════════════
 
-
-
-// soi saturation engine - Antecedent Precipitation Index (API)
+// soil saturation engine - Antecedent Precipitation Index (API)
 // Formula (IMD/KSDMA hydrological practice):
 // API = P_t + 0.7 * P_(t-1) + 0.4 * P_(t-2)
 
-const EXTREME_RAIN_THRESHOLD = 150; // IMD extreme heavyrainfall in active monsoon zones
-
-const API_NORMALISE_MAX = 345 ; // worst case kerala monsoon( 200m(today)+ 0.7 * 150 + 0.4 * 100) = 345mm ), 
+const EXTREME_RAIN_THRESHOLD = 150; // IMD extreme heavy rainfall in active monsoon zones
+const API_NORMALISE_MAX = 345; // worst case kerala monsoon
 
 function savePrecipHistory(districtName, mmToday){
-  try{
+  try {
     const today = new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Kolkata'});
     const key = 'agroscope_precip'+ districtName;
     let hist = JSON.parse(localStorage.getItem(key) || '[]');
     if(hist.length && hist[hist.length-1].date === today){
-      hist[hist.length - 1].mm = mmToday; //update same day entry
-      } else{
-         if (hist.length > 0) {
-    const lastDate = new Date(hist[hist.length-1].date + 'T00:00:00');
-    const currentDate = new Date(today + 'T00:00:00');
-    const diffDays = Math.round((currentDate - lastDate) / (1000 * 60 * 60 * 24));
-    for (let i = 1; i < diffDays; i++) {
-      const d = new Date(lastDate);
-      d.setDate(d.getDate() + i);
-      hist.push({ date: d.toISOString().slice(0, 10), mm: 0 });
-    }
-  }
-  hist.push({date:today, mm:mmToday});
+      hist[hist.length - 1].mm = mmToday; 
+    } else {
+      if (hist.length > 0) {
+        const lastDate = new Date(hist[hist.length-1].date + 'T00:00:00');
+        const currentDate = new Date(today + 'T00:00:00');
+        const diffDays = Math.round((currentDate - lastDate) / (1000 * 60 * 60 * 24));
+        for (let i = 1; i < diffDays; i++) {
+          const d = new Date(lastDate);
+          d.setDate(d.getDate() + i);
+          hist.push({ date: d.toISOString().slice(0, 10), mm: 0 });
+        }
       }
-      if(hist.length > 7) hist = hist.slice(-7); // keep last 7 days max
-      localStorage.setItem(key,JSON.stringify(hist));
+      hist.push({date:today, mm:mmToday});
+    }
+    if(hist.length > 7) hist = hist.slice(-7); 
+    localStorage.setItem(key,JSON.stringify(hist));
   } catch(e) {
-  console.warn("localStorage is unavailable or full. History won't be saved across sessions:", e.message);
-}
-
+    console.warn("localStorage is unavailable or full. History won't be saved across sessions:", e.message);
+  }
 }
 
 function loadPrecipHistory(districtName){
-  try{
+  try {
     return JSON.parse(localStorage.getItem('agroscope_precip'+districtName) || '[]');
-  }
-  catch(e){
+  } catch(e) {
     return [];
   }
 }
 
-// compute the Antecedent Precipitation Index for a distric
-// uses live Open-Meteo data for today (P_t = precipitation_sum[0] and localstorage for P_(t-1) and P_(t-2)
-// on first load there will be no history, so the formula degrades to  just today's rain, After 3d, it reaches the 3 day memory
-// @param {string}   districtName @param {number[]} precipSum   - daily.precipitation_sum from Open-Meteo, @returns {{ api: number, pt: number, pt1: number, pt2: number, apiScore: number }}
-
-function  computeAPIndex(districtName,precipSum){
-  const pt = precipSum?.[0] ?? 0; //today's
-  const hist = loadPrecipHistory(districtName) //sorted old->new
-  const pt1 = hist.length >= 2 ? (hist[hist.length -2 ].mm ?? 0) : 0;
-  const pt2 = hist.length >= 3 ? (hist[hist.length - 3].mm??0):0;
-  const api = pt + (0.7 * pt1) + (0.4*pt2);
+function computeAPIndex(districtName,precipSum){
+  const pt = precipSum?.[0] ?? 0; 
+  const hist = loadPrecipHistory(districtName); 
+  const pt1 = hist.length >= 2 ? (hist[hist.length - 2].mm ?? 0) : 0;
+  const pt2 = hist.length >= 3 ? (hist[hist.length - 3].mm ?? 0) : 0;
+  const api = pt + (0.7 * pt1) + (0.4 * pt2);
   const apiScore = Math.max(0,Math.min(100,Math.round((api/API_NORMALISE_MAX)*100)));
   return {api,pt,pt1,pt2,apiScore};
-
 }
 
+let FLOOD_VULN = {};
 
-let FLOOD_VULN = {}
-
-// Change your numbers to these:
 function imdAlert(r){
   if(r>115.6) return {level:'red',   label:'🔴 RED',   cls:'imd-red',   score:100};
   if(r>64.5)  return {level:'orange',label:'🟠 ORANGE',cls:'imd-orange',score:70};
   if(r>15.0)  return {level:'yellow',label:'🟡 YELLOW',cls:'imd-yellow',score:40};
   return             {level:'green', label:'🟢 GREEN', cls:'imd-green', score:10};
 }
+
 function getFc3d(name){
   const wd=weatherData[name]; if(!wd||!wd.daily) return 0;
   const p=wd.daily.precipitation_sum||[]; return (p[1]||0)+(p[2]||0)+(p[3]||0);
 }
+
 function floodComposite(name){
   const wd=weatherData[name]; if(!wd||!wd.daily) return 0;
   const rain=wd.daily.precipitation_sum?.[0]||0;
   const v=FLOOD_VULN[name]||{flood:40,landslide:30,wind:30};
 
   if(rain >= EXTREME_RAIN_THRESHOLD) return 100;
-  //api weighted composite formula
-  // weight alloc, 40% soil saturation(API),30% IMD alert tier, 20% KSDMA baseline vuln, 10% 3day forecast
+  
   const {apiScore} = computeAPIndex(name,wd.daily.precipitation_sum);
   const imdScore = imdAlert(rain).score ;
   const ksdmascore = Math.max(v.flood,v.landslide,v.wind);
-  
-  const fc=getFc3d(name);
-  const fcScore = fc > 150 ? 80: fc > 80? 50: fc > 40 ? 30: 10;
 
+  // Maintainer specific mandate (50% API, 30% IMD, 20% KSDMA)
   return Math.max(0,Math.min(100,Math.round(
-  (apiScore * 0.50) + (imdScore * 0.30) + (ksdmascore * 0.20)
-)));
+    (apiScore * 0.50) + (imdScore * 0.30) + (ksdmascore * 0.20)
+  )));
 }
+
 function floodColor(s){ return s>=80?'#f87171':s>=55?'#fb923c':s>=35?'#facc15':'#1a2f22'; }
+
 function riskTypeLabel(name){
   const v=FLOOD_VULN[name]; if(!v) return '🌊 Flood';
   return v.primary==='landslide'?'🏔️ Landslide':v.primary==='wind'?'💨 Wind':'🌊 Flood';
@@ -106,15 +95,20 @@ function riskTypeLabel(name){
 function buildFloodRows(){
   return DISTRICTS.map(d=>{
     const wd=weatherData[d.name];
-    const rain=wd?.daily?.precipitation_sum?.[0]||0;
+    // FIX: Resolves CodeRabbit's major bug flag. Gracefully intercepts missing telemetry models.
+    if (!wd || !wd.daily) {
+      return { name: d.name, rain: 0, imd: { level: 'green', label: '⏳ N/A', cls: 'imd-green', score: 0 }, fc: 0, vm: 0, score: -1, apiScore: 0, noData: true };
+    }
+    const rain=wd.daily.precipitation_sum?.[0]||0;
     const imd=imdAlert(rain); const fc=getFc3d(d.name);
     const v=FLOOD_VULN[d.name]||{flood:40,landslide:30,wind:30};
     const vm=Math.max(v.flood,v.landslide,v.wind);
     const score=floodComposite(d.name);
-    const {apiScore} = computeAPIndex(d.name,wd?.daily?.precipitation_sum || [])
-    return {name:d.name,rain,imd,fc,vm,score,apiScore};
+    const {apiScore} = computeAPIndex(d.name,wd.daily.precipitation_sum || []);
+    return {name:d.name,rain,imd,fc,vm,score,apiScore,noData:false};
   }).sort((a,b)=>b.score-a.score);
 }
+
 function renderFloodTable(){
   const tb=document.getElementById('flood-tbody'); if(!tb) return;
   if(!weatherData||Object.keys(weatherData).length===0){
@@ -123,43 +117,44 @@ function renderFloodTable(){
   }
   const rows=buildFloodRows();
   const cnt={red:0,orange:0,yellow:0,green:0};
-  rows.forEach(r=>cnt[r.imd.level]++);
+  rows.forEach(r=>{ if(!r.noData) cnt[r.imd.level]++; });
   ['red','orange','yellow','green'].forEach(l=>{
     const el=document.getElementById('fs-'+l); if(el) el.textContent={red:'🔴',orange:'🟠',yellow:'🟡',green:'🟢'}[l]+' '+cnt[l]+' '+l.charAt(0).toUpperCase()+l.slice(1);
   });
-   tb.innerHTML=rows.map(r=>`<tr onclick="showDistrictDetail('${r.name.replace(/'/g, "&apos;")}','flood')">
-    <td><strong>${r.name}</strong><div style="font-size:10px;color:var(--color-text-faint)">${riskTypeLabel(r.name)}</div></td>
-    <td><span class="imd-badge ${r.imd.cls}">${r.imd.label}</span></td>
-    <td style="font-weight:600">${r.rain.toFixed(1)} mm</td>
-    <td><span style="font-size:11px;font-weight:700;color:${r.apiScore>=70?'#f87171':r.apiScore>=40?'#fb923c':'#7a9982'}">${r.apiScore}</span><span style="font-size:9px;color:var(--color-text-faint)">/100</span></td>
-    <td>${r.fc.toFixed(0)} mm</td>
-    <td><div style="display:flex;align-items:center;gap:5px"><div style="width:44px;height:4px;background:var(--color-surface-3);border-radius:99px;overflow:hidden"><div style="width:${r.vm}%;height:100%;background:#fb923c;border-radius:99px"></div></div><span style="font-size:10px;color:var(--color-text-faint)">${r.vm}</span></div></td>
-    <td><span class="risk-type-pill">${riskTypeLabel(r.name)}</span></td>
-    <td><div style="display:flex;align-items:center;gap:5px"><div style="width:44px;height:4px;background:var(--color-surface-3);border-radius:99px;overflow:hidden"><div style="width:${r.score}%;height:100%;background:${floodColor(r.score)};border-radius:99px"></div></div><span style="font-size:11px;font-weight:700;color:${floodColor(r.score)}">${r.score}</span></div></td>
-  </tr>`).join('');
-
+  
+  tb.innerHTML=rows.map(r=>{
+    if (r.noData) {
+      return `<tr><td><strong>${r.name}</strong></td><td colspan="7" style="color:var(--color-text-faint); font-size:11px; padding:10px 14px;">⏳ Awaiting district telemetry data...</td></tr>`;
+    }
+    return `<tr onclick="showDistrictDetail('${r.name.replace(/'/g, "&apos;")}','flood')">
+      <td><strong>${r.name}</strong><div style="font-size:10px;color:var(--color-text-faint)">${riskTypeLabel(r.name)}</div></td>
+      <td><span class="imd-badge ${r.imd.cls}">${r.imd.label}</span></td>
+      <td style="font-weight:600">${r.rain.toFixed(1)} mm</td>
+      <td><span style="font-size:11px;font-weight:700;color:${r.apiScore>=70?'#f87171':r.apiScore>=40?'#fb923c':'#7a9982'}">${r.apiScore}</span><span style="font-size:9px;color:var(--color-text-faint)">/100</span></td>
+      <td>${r.fc.toFixed(0)} mm</td>
+      <td><div style="display:flex;align-items:center;gap:5px"><div style="width:44px;height:4px;background:var(--color-surface-3);border-radius:99px;overflow:hidden"><div style="width:${r.vm}%;height:100%;background:#fb923c;border-radius:99px"></div></div><span style="font-size:10px;color:var(--color-text-faint)">${r.vm}</span></div></td>
+      <td><span class="risk-type-pill">${riskTypeLabel(r.name)}</span></td>
+      <td><div style="display:flex;align-items:center;gap:5px"><div style="width:44px;height:4px;background:var(--color-surface-3);border-radius:99px;overflow:hidden"><div style="width:${r.score}%;height:100%;background:${floodColor(r.score)};border-radius:99px"></div></div><span style="font-size:11px;font-weight:700;color:${floodColor(r.score)}">${r.score}</span></div></td>
+    </tr>`;
+  }).join('');
 }
+
 function renderFloodCards(){
   const list = document.getElementById('flood-cards-list');
   if(!list) return;
 
-  // Guard: no weather data yet
   const distNames = Object.keys(weatherData||{});
   if(distNames.length === 0){
     list.innerHTML = '<div style="padding:14px;font-size:11px;color:var(--color-text-faint)">⏳ Weather data loading…</div>';
     return;
   }
 
-  const rows = DISTRICTS.map(d => {
-    const wd  = weatherData[d.name] || {};
-    const rain = (wd.daily && wd.daily.precipitation_sum) ? (wd.daily.precipitation_sum[0]||0) : 0;
-    const imd  = imdAlert(rain);
-    const score = floodComposite(d.name);
-    const {apiScore} = computeAPIndex(d.name,wd?.daily?.precipitation_sum || [])
-    return {name:d.name, rain, imd, score,apiScore};
-  }).sort((a,b) => b.score - a.score);
+  const rows = buildFloodRows();
 
   list.innerHTML = rows.map(r => {
+    if (r.noData) {
+      return `<div class="flood-card" style="opacity: 0.7;"><span style="font-size:11px;font-weight:600;">${r.name}</span><div style="font-size:10px;color:var(--color-text-faint);margin-top:4px;">⏳ Fetching telemetry...</div></div>`;
+    }
     const col = floodColor(r.score);
     const apiCol = r.apiScore>=70?'#f87171':r.apiScore>=40?'#fb923c':'#4ade80';
     const rtl = riskTypeLabel(r.name);
@@ -176,8 +171,8 @@ function renderFloodCards(){
       + '<span style="font-size:10px;font-weight:700;color:' + col + ';">' + r.score + '</span>'
       + '</div></div></div>';
   }).join('');
-
 }
+
 function populateDDFlood(name){
   const body=document.getElementById('dd-flood-body'); if(!body) return;
   const wd=weatherData[name];
@@ -190,11 +185,12 @@ function populateDDFlood(name){
   const days=wd.daily.precipitation_sum||[];
   const maxR=Math.max(...days.slice(0,7),1);
   const dayL=['Today','D+1','D+2','D+3','D+4','D+5','D+6'];
-    const adv=score>=80?'🔴 HIGH — Evacuate low-lying areas. Avoid river crossings. Follow KSDMA advisories.'
+  const adv=score>=80?'🔴 HIGH — Evacuate low-lying areas. Avoid river crossings. Follow KSDMA advisories.'
     :score>=55?'🟠 ELEVATED — Stay alert. Avoid waterlogged roads. Monitor dam levels.'
     :score>=35?'🟡 WATCH — Be prepared. Check IMD updates. Avoid flood-prone zones.'
     :'🟢 NORMAL — Conditions within safe thresholds.';
   const apiCol = apiScore>=70?'#f87171':apiScore>=40?'#fb923c':'#4ade80';
+  
   body.innerHTML=`<div style="margin-bottom:10px">
     <span class="imd-badge ${imd.cls}" style="font-size:12px;padding:4px 12px">${imd.label} ALERT</span>
     <span style="font-size:11px;color:var(--color-text-faint);margin-left:8px">${rain.toFixed(1)} mm/24h</span>
@@ -218,5 +214,4 @@ function populateDDFlood(name){
   </div>
   <div style="margin-top:10px;padding:8px 10px;border-radius:6px;background:var(--color-surface);font-size:11px;line-height:1.5;border-left:3px solid ${floodColor(score)}">${adv}</div>
   <div style="margin-top:5px;font-size:9px;color:var(--color-text-faint)">Score:${score}/100 · 50% API + 30% IMD + 20% KSDMA · Open-Meteo</div>`;
-
 }
