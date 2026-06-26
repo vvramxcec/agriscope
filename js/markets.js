@@ -35,7 +35,21 @@ function generateHistory(base, vol, days=30){
  * Initializes the market price engine with historical data.
  */
 let priceState = {};
+
+function initializePriceState(){
+  if (Object.keys(priceState).length) return priceState;
+  COMMODITIES.forEach(c=>{
+    const history = generateHistory(c.base, c.vol, 30);
+    const price = history[history.length - 1];
+    const prevPrice = history[history.length - 2] ?? price;
+    priceState[c.id] = { price, prevPrice, history };
+  });
+  refreshWindowPrices();
+  return priceState;
+}
+
 function initPrices(){
+  initializePriceState();
   COMMODITIES.forEach(c=>{
     const s = priceState[c.id];
     const chg = (Math.random()-0.48)*c.vol;
@@ -243,6 +257,8 @@ function refreshWindowPrices(){
    };
   });
 }
+initializePriceState();
+
 function startMarketEngine(){
   initPrices();
   renderPriceCards();
