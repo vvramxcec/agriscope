@@ -34,15 +34,19 @@ function generateHistory(base, vol, days=30){
 let priceState = {};
 function initPrices(){
   COMMODITIES.forEach(c=>{
-    const hist = generateHistory(c.base, c.vol, 30);
-    // today's price is last value
-    priceState[c.id] = {
-      history: hist,
-      price: hist[hist.length-1],
-      prevPrice: hist[hist.length-2],
-    };
+    const s = priceState[c.id];
+    const chg = (Math.random()-0.48)*c.vol;
+    const newPrice = parseFloat(Math.max(c.base*0.6, s.price*(1+chg)).toFixed(2));
+    s.prevPrice = s.price;
+    s.price = newPrice;
+    s.history.push(newPrice);
+    if(s.history.length>30) s.history.shift();
   });
   refreshWindowPrices();
+  renderPriceTable();
+  renderPriceCards();
+  updatePriceKPIs();
+  if(currentChartType==='prices') buildChart('prices');
 }
 
 // Tick — update prices every 5 mins
@@ -78,7 +82,10 @@ function priceSignal(id){
   if(trend<-1.5) return 'sell';
   return 'hold';
 }
-function fmtPrice(id){ return '₹'+priceState[id]?.price.toLocaleString('en-IN',{maximumFractionDigits:0})||'--'; }
+function fmtPrice(id){
+  const price = priceState[id]?.price;
+  return price == null ? '--' : '₹' + price.toLocaleString('en-IN', { maximumFractionDigits: 0 });
+}
 function fmtPct(id){
   const p=pricePct(id);
   const sign=p>0?'+':''; return sign+p.toFixed(2)+'%';
@@ -218,12 +225,18 @@ function showMarketsView(on){
 }
 // Expose price data globally for ai-advisory and news-hub
 function refreshWindowPrices(){
-  window._prices = COMMODITIES.map(c => ({
-    name: c.name,
-    price: priceState[c.id]?.price || c.base,
-    change: pricePct(c.id),
-    high: price7dHigh(c.id),
-    low: price7dLow(c.id),
-    unit: c.unit,
-  }));
+  window._prices = COMMODITIES.map(c => {
+    const s = priceState[c.id];
+    const price = s?.price ?? c.base;
+    const prevPrice = s?.prevPrice ?? price;
+    const change = parseFloat((price - prevPrice).toFixed(2));
+    return {
+      name: c.name,
+      price,
+      change,
+      high: s ? price7dHigh(c.id) : price,
+      low: s ? price7dLow(c.id) : price,
+     unit: c.unit,
+   };
+  });
 }
