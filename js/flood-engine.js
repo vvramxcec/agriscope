@@ -57,9 +57,9 @@ function computeAPIndex(districtName,precipSum){
 let FLOOD_VULN = {};
 
 function imdAlert(r){
-  if(r>115.6) return {level:'red',   label:'🔴 RED',   cls:'imd-red',   score:100};
-  if(r>64.5)  return {level:'orange',label:'🟠 ORANGE',cls:'imd-orange',score:70};
-  if(r>15.0)  return {level:'yellow',label:'🟡 YELLOW',cls:'imd-yellow',score:40};
+  if(r>204.4) return {level:'red',   label:'🔴 RED',   cls:'imd-red',   score:100};
+  if(r>115.6) return {level:'orange',label:'🟠 ORANGE',cls:'imd-orange',score:70};
+  if(r>64.5)  return {level:'yellow',label:'🟡 YELLOW',cls:'imd-yellow',score:40};
   return             {level:'green', label:'🟢 GREEN', cls:'imd-green', score:10};
 }
 
