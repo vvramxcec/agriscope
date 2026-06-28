@@ -46,29 +46,38 @@ async function seedLivePrices() {
   const badge = document.getElementById('market-live-badge');
   if (badge) badge.textContent = '⏳ Fetching live prices…';
 
-  // Use session cache if under 1 hour old — avoids hammering the API
-  const cached = sessionStorage.getItem('agriscope_prices');
-  if (cached) {
-    const { ts, prices } = JSON.parse(cached);
-    if (Date.now() - ts < 3_600_000) {
-      applyLivePrices(prices);
-      if (badge) badge.textContent = '✅ Live prices (cached)';
-      return;
+  // Check session cache — wrapped in try/catch so malformed cache never breaks startup
+  try {
+    const cached = sessionStorage.getItem('agriscope_prices');
+    if (cached) {
+      const { ts, prices } = JSON.parse(cached);
+      if (Number.isFinite(ts) && prices && typeof prices === 'object' && Date.now() - ts < 3_600_000) {
+        applyLivePrices(prices);
+        if (badge) badge.textContent = '✅ Live prices (cached)';
+        return;
+      }
     }
+  } catch (err) {
+    console.warn('[AgroScope] Ignoring cached market prices:', err?.message ?? err);
   }
 
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 8000);
-    const res = await fetch(LIVE_PRICE_API, { signal: controller.signal });
-    clearTimeout(timer);
 
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const json = await res.json();
+    // Timer stays active through body parsing — cleared in finally
+    let json;
+    try {
+      const res = await fetch(LIVE_PRICE_API, { signal: controller.signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      json = await res.json();
+    } finally {
+      clearTimeout(timer);
+    }
+
     const records = json.records ?? [];
     if (!records.length) throw new Error('No records');
 
-    // Build id → price map from API response
     const prices = {};
     records.forEach(r => {
       const name = (r.commodity ?? '').toLowerCase().trim();
@@ -78,7 +87,13 @@ async function seedLivePrices() {
     });
 
     applyLivePrices(prices);
-    sessionStorage.setItem('agriscope_prices', JSON.stringify({ ts: Date.now(), prices }));
+
+    // Cache write failure must not affect the badge — live data is already applied
+    try {
+      sessionStorage.setItem('agriscope_prices', JSON.stringify({ ts: Date.now(), prices }));
+    } catch (err) {
+      console.warn('[AgroScope] Could not cache market prices:', err?.message ?? err);
+    }
 
     const count = Object.keys(prices).length;
     if (badge) badge.textContent = count > 0
@@ -88,7 +103,6 @@ async function seedLivePrices() {
   } catch (err) {
     console.warn('[AgroScope] Market price fetch failed:', err.message);
     if (badge) badge.textContent = '⚠️ Live pricing unavailable — showing reference rates';
-    // Hardcoded base prices in COMMODITIES stay as fallback, nothing breaks
   }
 }
 
