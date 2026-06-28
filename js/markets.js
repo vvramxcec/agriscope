@@ -19,6 +19,85 @@ const COMMODITIES = [
   { id:'cashew',      emoji:'🥜', name:'Cashew',        unit:'₹/kg',       mandi:'Kollam',          base:760,  vol:0.010, crop:'Cashew' },
 ];
 
+// ═══════════════════════════════════════════════════════
+//  LIVE PRICE SEEDING — data.gov.in (free public API, no private key)
+// ═══════════════════════════════════════════════════════
+const LIVE_PRICE_API =
+  'https://api.data.gov.in/resource/9ef84268-d588-465a-a308-a864a43d0070' +
+  '?api-key=579b464db66ec23bdd000001cdd3946e44ce4aada578974b' +
+  '&format=json&filters%5Bstate.keyword%5D=Kerala&limit=100';
+
+const API_NAME_MAP = {
+  'coconut':      'coconut',
+  'black pepper': 'pepper',
+  'cardamom':     'cardamom',
+  'rubber':       'rubber',
+  'coffee':       'coffee',
+  'tea':          'tea',
+  'coconut oil':  'coconutoil',
+  'ginger':       'ginger',
+  'turmeric':     'turmeric',
+  'banana':       'banana',
+  'tapioca':      'tapioca',
+  'cashew':       'cashew',
+};
+
+async function seedLivePrices() {
+  const badge = document.getElementById('market-live-badge');
+  if (badge) badge.textContent = '⏳ Fetching live prices…';
+
+  // Use session cache if under 1 hour old — avoids hammering the API
+  const cached = sessionStorage.getItem('agriscope_prices');
+  if (cached) {
+    const { ts, prices } = JSON.parse(cached);
+    if (Date.now() - ts < 3_600_000) {
+      applyLivePrices(prices);
+      if (badge) badge.textContent = '✅ Live prices (cached)';
+      return;
+    }
+  }
+
+  try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 8000);
+    const res = await fetch(LIVE_PRICE_API, { signal: controller.signal });
+    clearTimeout(timer);
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const json = await res.json();
+    const records = json.records ?? [];
+    if (!records.length) throw new Error('No records');
+
+    // Build id → price map from API response
+    const prices = {};
+    records.forEach(r => {
+      const name = (r.commodity ?? '').toLowerCase().trim();
+      const id = API_NAME_MAP[name];
+      const price = parseFloat(r.modal_price ?? r.min_price ?? 0);
+      if (id && price > 0 && !prices[id]) prices[id] = price;
+    });
+
+    applyLivePrices(prices);
+    sessionStorage.setItem('agriscope_prices', JSON.stringify({ ts: Date.now(), prices }));
+
+    const count = Object.keys(prices).length;
+    if (badge) badge.textContent = count > 0
+      ? `✅ ${count} live Kerala mandi prices`
+      : '⚠️ API connected, no Kerala matches';
+
+  } catch (err) {
+    console.warn('[AgroScope] Market price fetch failed:', err.message);
+    if (badge) badge.textContent = '⚠️ Live pricing unavailable — showing reference rates';
+    // Hardcoded base prices in COMMODITIES stay as fallback, nothing breaks
+  }
+}
+
+function applyLivePrices(prices) {
+  COMMODITIES.forEach(c => {
+    if (prices[c.id]) c.base = prices[c.id];
+  });
+}
+
 // Generate 30-day history with realistic walk for each commodity
 function generateHistory(base, vol, days=30){
   const arr=[]; let p=base*(0.92+Math.random()*0.08);
@@ -259,7 +338,8 @@ function refreshWindowPrices(){
 }
 initializePriceState();
 
-function startMarketEngine(){
+async function startMarketEngine(){
+  await seedLivePrices();   // fetch real prices first, then simulate on top
   initPrices();
   renderPriceCards();
   updatePriceKPIs();
