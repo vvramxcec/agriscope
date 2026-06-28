@@ -51,7 +51,7 @@ async function seedLivePrices() {
     const cached = sessionStorage.getItem('agriscope_prices');
     if (cached) {
       const { ts, prices } = JSON.parse(cached);
-      if (Number.isFinite(ts) && prices && typeof prices === 'object' && Date.now() - ts < 3_600_000) {
+      if (Number.isFinite(ts) && prices && typeof prices === 'object' && Object.keys(prices).length > 0 && Date.now() - ts < 3_600_000) {
         applyLivePrices(prices);
         if (badge) badge.textContent = '✅ Live prices (cached)';
         return;
@@ -86,6 +86,12 @@ async function seedLivePrices() {
       if (id && price > 0 && !prices[id]) prices[id] = price;
     });
 
+    const count = Object.keys(prices).length;
+    if (count === 0) {
+      if (badge) badge.textContent = '⚠️ API connected, no Kerala matches';
+      return; // don't cache or apply an empty map
+    }
+
     applyLivePrices(prices);
 
     // Cache write failure must not affect the badge — live data is already applied
@@ -95,10 +101,7 @@ async function seedLivePrices() {
       console.warn('[AgroScope] Could not cache market prices:', err?.message ?? err);
     }
 
-    const count = Object.keys(prices).length;
-    if (badge) badge.textContent = count > 0
-      ? `✅ ${count} live Kerala mandi prices`
-      : '⚠️ API connected, no Kerala matches';
+    if (badge) badge.textContent = `✅ ${count} live Kerala mandi prices`;
 
   } catch (err) {
     console.warn('[AgroScope] Market price fetch failed:', err.message);
